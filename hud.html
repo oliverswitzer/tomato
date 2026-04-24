@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: transparent;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #hud {
+      background: #FFFFFF;
+      border-radius: 22px;
+      border: 1px solid #EFE8DD;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow:
+        0 20px 44px rgba(0, 0, 0, 0.12),
+        0 2px 8px rgba(0, 0, 0, 0.06);
+      -webkit-app-region: drag;
+    }
+
+    .no-drag { -webkit-app-region: no-drag; }
+
+    /* Collapsed view */
+    .top-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .tomato-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .text-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .timer-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .timer-time {
+      font-family: 'Geist Mono', monospace;
+      font-size: 28px;
+      font-weight: 600;
+      color: #2A2A2A;
+      letter-spacing: -0.5px;
+    }
+
+    .timer-remaining {
+      font-size: 10px;
+      font-weight: 500;
+      color: #8B8477;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .status-badge.on-track {
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+
+    .status-badge.paused {
+      background: #FFF3E0;
+      color: #E65100;
+    }
+
+    .status-badge .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+
+    .summary-text {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 13px;
+      font-style: italic;
+      color: #4A4237;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .divider {
+      height: 1px;
+      background: #F0EAE2;
+      width: 100%;
+    }
+
+    .bottom-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .focused-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #8B8477;
+      letter-spacing: 1.2px;
+    }
+
+    .spacer { flex: 1; }
+
+    .expand-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 14px;
+      background: #F7F2EA;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .expand-btn:hover { background: #EFE8DD; }
+    .expand-btn svg {
+      width: 14px;
+      height: 14px;
+      color: #7A6A58;
+      transition: transform 0.2s;
+    }
+
+    /* Expanded view */
+    #expanded {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .session-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(226, 87, 76, 0.08);
+      font-size: 10px;
+      font-weight: 700;
+      color: #E2574C;
+      letter-spacing: 1.2px;
+    }
+
+    .session-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #E2574C;
+    }
+
+    .expanded-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .expanded-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      flex-shrink: 0;
+      border: 1px solid #EFE8DD;
+    }
+
+    .header-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .header-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #BAA898;
+      letter-spacing: 1.4px;
+    }
+
+    .header-time {
+      font-family: 'Geist Mono', monospace;
+      font-size: 36px;
+      font-weight: 600;
+      color: #2A2A2A;
+      letter-spacing: -1px;
+    }
+
+    .progress-wrap {
+      width: 100%;
+      height: 4px;
+      background: #F4EEE3;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: #E2574C;
+      border-radius: 2px;
+      transition: width 1s linear;
+    }
+
+    .activity-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .activity-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #BAA898;
+      letter-spacing: 1.4px;
+    }
+
+    .activity-text {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 17px;
+      font-style: italic;
+      font-weight: 500;
+      color: #2A2A2A;
+      letter-spacing: -0.3px;
+      line-height: 1.3;
+    }
+
+    .timeline-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-top: 10px;
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 2px;
+    }
+
+    .timeline-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #BAA898;
+      letter-spacing: 1.4px;
+    }
+
+    .timeline-count {
+      font-size: 10px;
+      font-weight: 600;
+      color: #BAA898;
+      letter-spacing: 1px;
+    }
+
+    .timeline-entry {
+      background: #FBF7F1;
+      border: 1px solid #EFE8DD;
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .entry-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .entry-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #E2574C;
+      flex-shrink: 0;
+    }
+
+    .entry-duration {
+      font-family: 'Geist Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      color: #2A2A2A;
+    }
+
+    .entry-desc {
+      font-size: 12px;
+      color: #6B6259;
+      line-height: 1.4;
+      padding-left: 14px;
+    }
+
+    .entry-time {
+      font-size: 10px;
+      color: #BAA898;
+      padding-left: 14px;
+    }
+
+    .hud-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .hud-btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid #EFE8DD;
+      background: #FBF7F1;
+      font-size: 11px;
+      font-weight: 600;
+      color: #2A2A2A;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .hud-btn:hover { background: #F0EAE2; }
+    .hud-btn.danger {
+      border-color: #E2574C33;
+      color: #E2574C;
+    }
+    .hud-btn.danger:hover { background: #FEE4E2; }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <!-- Collapsed top bar -->
+    <div id="collapsed">
+      <div class="top-row">
+        <div class="tomato-avatar">🍅</div>
+        <div class="text-col">
+          <div class="timer-row">
+            <span class="timer-time" id="timer-collapsed">25:00</span>
+            <span class="status-badge on-track" id="status-badge">
+              <span class="dot" style="background: #2E7D32"></span>
+              On track
+            </span>
+          </div>
+          <div class="summary-text" id="summary-text">Starting session...</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="bottom-row">
+        <span class="focused-label">FOCUSED</span>
+        <span class="spacer"></span>
+        <button class="expand-btn no-drag" id="expand-btn" onclick="toggleExpand()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6,9 12,15 18,9"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Expanded view -->
+    <div id="expanded">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div class="session-badge">
+          <span class="dot"></span>
+          <span id="session-badge-text">POMODORO &bull; 25 MIN</span>
+        </div>
+        <button class="expand-btn no-drag" onclick="toggleExpand()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="18,15 12,9 6,15"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <div class="expanded-header">
+        <div class="expanded-avatar">🍅</div>
+        <div class="header-info">
+          <span class="header-label">SESSION TIMER</span>
+          <span class="header-time" id="timer-expanded">25:00</span>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progress-bar" style="width: 100%"></div>
+      </div>
+
+      <div class="activity-section">
+        <span class="activity-label">CURRENT ACTIVITY</span>
+        <div class="activity-text" id="activity-text">Starting session...</div>
+      </div>
+
+      <div class="timeline-section">
+        <div class="timeline-header">
+          <span class="timeline-label" id="timeline-label">LAST 25 MINUTES</span>
+          <span class="timeline-count" id="timeline-count">0 ACTIVITIES</span>
+        </div>
+        <div id="timeline-entries">
+          <div class="timeline-entry">
+            <div class="entry-header">
+              <span class="entry-dot"></span>
+              <span class="entry-duration">0:00</span>
+            </div>
+            <div class="entry-desc">Session just started</div>
+            <div class="entry-time">now</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-controls no-drag">
+        <button class="hud-btn" id="pause-btn" onclick="togglePause()">Pause</button>
+        <button class="hud-btn danger" onclick="endSession()">End session</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    let isExpanded = false;
+    let currentState = null;
+
+    function formatTime(totalSec) {
+      const m = Math.floor(totalSec / 60);
+      const s = totalSec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function toggleExpand() {
+      isExpanded = !isExpanded;
+      document.getElementById('collapsed').style.display = isExpanded ? 'none' : 'flex';
+      document.getElementById('expanded').style.display = isExpanded ? 'flex' : 'none';
+      ipcRenderer.send('hud-resize', { expanded: isExpanded });
+    }
+
+    function togglePause() {
+      ipcRenderer.send('toggle-pause');
+    }
+
+    function endSession() {
+      ipcRenderer.send('end-session');
+    }
+
+    ipcRenderer.on('session-state', (_event, state) => {
+      currentState = state;
+      const timeStr = formatTime(state.remainingSec);
+
+      document.getElementById('timer-collapsed').textContent = timeStr;
+      document.getElementById('timer-expanded').textContent = timeStr;
+      document.getElementById('summary-text').textContent = state.intention;
+      document.getElementById('activity-text').textContent = state.intention;
+
+      const progress = (state.remainingSec / (state.durationMin * 60)) * 100;
+      document.getElementById('progress-bar').style.width = progress + '%';
+
+      document.getElementById('session-badge-text').textContent =
+        `POMODORO • ${state.durationMin} MIN`;
+      document.getElementById('timeline-label').textContent =
+        `LAST ${state.durationMin} MINUTES`;
+
+      const badge = document.getElementById('status-badge');
+      const pauseBtn = document.getElementById('pause-btn');
+
+      if (state.paused) {
+        badge.className = 'status-badge paused';
+        badge.innerHTML = '<span class="dot" style="background: #E65100"></span> Paused';
+        pauseBtn.textContent = 'Resume';
+      } else {
+        badge.className = 'status-badge on-track';
+        badge.innerHTML = '<span class="dot" style="background: #2E7D32"></span> On track';
+        pauseBtn.textContent = 'Pause';
+      }
+    });
+
+    ipcRenderer.on('session-ended', () => {
+      document.getElementById('timer-collapsed').textContent = '00:00';
+      document.getElementById('timer-expanded').textContent = '00:00';
+      document.getElementById('summary-text').textContent = 'Session complete!';
+      document.getElementById('activity-text').textContent = 'Session complete!';
+      document.getElementById('progress-bar').style.width = '0%';
+
+      const badge = document.getElementById('status-badge');
+      badge.className = 'status-badge on-track';
+      badge.innerHTML = '<span class="dot" style="background: #2E7D32"></span> Done';
+    });
+
+    ipcRenderer.send('hud-ready');
+  </script>
+</body>
+</html>

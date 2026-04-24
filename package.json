@@ -1,0 +1,13 @@
+{
+  "name": "tomato",
+  "version": "0.1.0",
+  "description": "Pomodoro Mac app with screen-reading focus tracking",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "electron": "^41.3.0"
+  }
+}

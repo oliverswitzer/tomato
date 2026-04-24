@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: transparent;
+      user-select: none;
+    }
+
+    #bubble {
+      background: #FFFFFF;
+      border-radius: 18px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow:
+        0 14px 50px rgba(0, 0, 0, 0.2),
+        0 4px 12px rgba(0, 0, 0, 0.08);
+      -webkit-app-region: drag;
+    }
+
+    .bubble-text {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 15px;
+      font-style: italic;
+      color: #2A2A2A;
+      line-height: 1.45;
+    }
+
+    .bubble-text strong {
+      font-weight: 500;
+    }
+
+    .bubble-buttons {
+      display: flex;
+      gap: 8px;
+      -webkit-app-region: no-drag;
+    }
+
+    .bubble-btn {
+      flex: 1;
+      padding: 9px 14px;
+      border-radius: 8px;
+      border: none;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .bubble-btn.secondary {
+      background: #F3EFE9;
+      color: #2A2A2A;
+    }
+    .bubble-btn.secondary:hover {
+      background: #E6E1D8;
+    }
+
+    .bubble-btn.primary {
+      background: #E2574C;
+      color: #FFFFFF;
+    }
+    .bubble-btn.primary:hover {
+      background: #D04A3F;
+    }
+  </style>
+</head>
+<body>
+  <div id="bubble">
+    <div class="bubble-text" id="nudge-text">
+      I noticed you don't seem to be working on your focus task right now.
+    </div>
+    <div class="bubble-buttons">
+      <button class="bubble-btn secondary" onclick="pauseSession()">Pause session</button>
+      <button class="bubble-btn primary" onclick="refocus()">Refocus</button>
+    </div>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    async function init() {
+      const state = await ipcRenderer.invoke('get-session-state');
+      if (state && state.intention) {
+        document.getElementById('nudge-text').innerHTML =
+          `I noticed you don’t seem to be working on “${state.intention}” right now.`;
+      }
+    }
+
+    function pauseSession() {
+      ipcRenderer.send('nudge-pause');
+    }
+
+    function refocus() {
+      ipcRenderer.send('nudge-refocus');
+    }
+
+    init();
+  </script>
+</body>
+</html>
