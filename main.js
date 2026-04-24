@@ -1,10 +1,22 @@
 const { app, BrowserWindow, Tray, Menu, screen, ipcMain, nativeImage } = require('electron');
+const { spawn, execFileSync } = require('child_process');
 const path = require('path');
+const fs = require('fs');
+const { FocusTracker } = require('./focus-tracker');
+
+const LOG_FILE = path.join(__dirname, 'tomato.log');
+function log(msg) {
+  const line = `[${new Date().toISOString()}] [main] ${msg}\n`;
+  fs.appendFileSync(LOG_FILE, line);
+}
 
 let tray = null;
 let startWin = null;
 let hudWin = null;
 let nudgeWin = null;
+let screenpipeProc = null;
+let keylistenerProc = null;
+let focusTracker = null;
 
 let sessionState = {
   active: false,
@@ -14,13 +26,146 @@ let sessionState = {
   paused: false,
 };
 
+// --- Screenpipe lifecycle (mirrored from screenpipe-hud) ---
+
+function resolveScreenpipeBin() {
+  if (process.env.SCREENPIPE_BIN) return process.env.SCREENPIPE_BIN;
+
+  const platform = `${process.platform}-${process.arch}`;
+  const pkgMap = {
+    'darwin-arm64': '@screenpipe/cli-darwin-arm64',
+    'darwin-x64': '@screenpipe/cli-darwin-x64',
+    'linux-x64': '@screenpipe/cli-linux-x64',
+    'win32-x64': '@screenpipe/cli-win32-x64',
+  };
+  const pkg = pkgMap[platform];
+  if (!pkg) throw new Error(`Unsupported platform: ${platform}`);
+
+  const pkgJson = require.resolve(`${pkg}/package.json`);
+  const ext = process.platform === 'win32' ? '.exe' : '';
+  return path.join(path.dirname(pkgJson), 'bin', `screenpipe${ext}`);
+}
+
+function getScreenpipeApiKey(bin) {
+  try {
+    return execFileSync(bin, ['auth', 'token'], { encoding: 'utf8' }).trim();
+  } catch {
+    return '';
+  }
+}
+
+function startScreenpipe() {
+  let bin;
+  try {
+    bin = resolveScreenpipeBin();
+  } catch (err) {
+    log(`Could not resolve screenpipe binary: ${err.message}`);
+    return;
+  }
+
+  const apiKey = getScreenpipeApiKey(bin);
+  if (apiKey) {
+    process.env.SCREENPIPE_API_KEY = apiKey;
+    log(`Resolved screenpipe API key: ${apiKey.slice(0, 6)}...`);
+  }
+
+  log(`Starting screenpipe: ${bin}`);
+
+  screenpipeProc = spawn(bin, ['record'], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    detached: false,
+  });
+
+  screenpipeProc.stdout.on('data', (data) => {
+    for (const line of data.toString().split('\n').filter(Boolean)) {
+      log(`[screenpipe] ${line}`);
+    }
+  });
+
+  screenpipeProc.stderr.on('data', (data) => {
+    for (const line of data.toString().split('\n').filter(Boolean)) {
+      log(`[screenpipe] ${line}`);
+    }
+  });
+
+  screenpipeProc.on('error', (err) => {
+    log(`screenpipe failed to start: ${err.message}`);
+    screenpipeProc = null;
+  });
+
+  screenpipeProc.on('exit', (code, signal) => {
+    log(`screenpipe exited (code=${code}, signal=${signal})`);
+    screenpipeProc = null;
+  });
+}
+
+function stopScreenpipe() {
+  if (!screenpipeProc) return;
+  log('Stopping screenpipe');
+  try { screenpipeProc.kill('SIGTERM'); } catch {}
+  screenpipeProc = null;
+}
+
+// --- Keylistener (compiled Swift binary) ---
+
+function startKeylistener() {
+  const bin = path.join(__dirname, 'keylistener');
+  if (!fs.existsSync(bin)) {
+    log('Keylistener binary not found — skipping keystroke capture');
+    return;
+  }
+
+  log(`Starting keylistener: ${bin}`);
+
+  keylistenerProc = spawn(bin, [], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    detached: false,
+  });
+
+  keylistenerProc.stdout.on('data', (data) => {
+    for (const line of data.toString().split('\n').filter(Boolean)) {
+      try {
+        const chunk = JSON.parse(line);
+        if (chunk.type === 'keystroke_chunk' && focusTracker) {
+          focusTracker.addKeystrokeChunk(chunk);
+        }
+      } catch {
+        log(`[keylistener] ${line}`);
+      }
+    }
+  });
+
+  keylistenerProc.stderr.on('data', (data) => {
+    log(`[keylistener] ${data.toString().trim()}`);
+  });
+
+  keylistenerProc.on('error', (err) => {
+    log(`keylistener failed to start: ${err.message}`);
+    keylistenerProc = null;
+  });
+
+  keylistenerProc.on('exit', (code) => {
+    log(`keylistener exited (code=${code})`);
+    keylistenerProc = null;
+  });
+}
+
+function stopKeylistener() {
+  if (!keylistenerProc) return;
+  log('Stopping keylistener');
+  try { keylistenerProc.kill('SIGTERM'); } catch {}
+  keylistenerProc = null;
+}
+
+// --- Tray ---
+
 function createTrayIcon() {
   const img = nativeImage.createFromPath(path.join(__dirname, 'assets', 'tray-icon.png'));
   return img.resize({ width: 18, height: 18 });
 }
 
 function createTray() {
-  const icon = createTrayIcon('idle');
+  const icon = createTrayIcon();
   tray = new Tray(icon);
   tray.setToolTip('Tomato');
   updateTrayMenu();
@@ -67,6 +212,8 @@ function updateTrayMenu() {
 
   tray.setContextMenu(Menu.buildFromTemplate(template));
 }
+
+// --- Windows ---
 
 function showStartWindow() {
   if (startWin) {
@@ -160,6 +307,8 @@ function showNudgeWindow() {
   nudgeWin.on('closed', () => { nudgeWin = null; });
 }
 
+// --- Session logic ---
+
 let timerInterval = null;
 
 function startSession(intention, durationMin) {
@@ -171,8 +320,6 @@ function startSession(intention, durationMin) {
     paused: false,
   };
 
-  // tray icon stays the same for now
-
   if (startWin) {
     startWin.close();
     startWin = null;
@@ -181,6 +328,26 @@ function startSession(intention, durationMin) {
   showHudWindow();
   sendHudState();
   updateTrayMenu();
+
+  // Start focus tracking with screenpipe
+  focusTracker = new FocusTracker();
+  focusTracker.apiKey = process.env.SCREENPIPE_API_KEY || '';
+
+  focusTracker.onActivity = (activity) => {
+    if (hudWin) {
+      hudWin.webContents.send('activity-update', activity);
+    }
+  };
+
+  focusTracker.onDrift = (reason) => {
+    log(`Drift detected: ${reason}`);
+    showNudgeWindow();
+    if (hudWin) {
+      hudWin.webContents.send('drift-detected', { reason });
+    }
+  };
+
+  focusTracker.start(intention, durationMin);
 
   timerInterval = setInterval(() => {
     if (sessionState.paused) return;
@@ -202,7 +369,6 @@ function startSession(intention, durationMin) {
 
 function togglePause() {
   sessionState.paused = !sessionState.paused;
-  // tray icon state change (future: swap icon)
   sendHudState();
   updateTrayMenu();
 }
@@ -213,7 +379,11 @@ function endSession() {
   clearInterval(timerInterval);
   timerInterval = null;
 
-  // tray icon back to idle (future: swap icon)
+  if (focusTracker) {
+    focusTracker.stop();
+    focusTracker = null;
+  }
+
   updateTrayMenu();
 
   if (hudWin) {
@@ -228,11 +398,15 @@ function endSession() {
 
 function sendHudState() {
   if (hudWin) {
-    hudWin.webContents.send('session-state', { ...sessionState });
+    hudWin.webContents.send('session-state', {
+      ...sessionState,
+      activities: focusTracker ? focusTracker.getActivities() : [],
+    });
   }
 }
 
-// IPC handlers
+// --- IPC handlers ---
+
 ipcMain.on('start-session', (_event, { intention, durationMin }) => {
   startSession(intention, durationMin);
 });
@@ -260,10 +434,6 @@ ipcMain.on('close-start', () => {
   if (startWin) startWin.close();
 });
 
-ipcMain.on('show-nudge', () => {
-  showNudgeWindow();
-});
-
 ipcMain.on('nudge-refocus', () => {
   if (nudgeWin) {
     nudgeWin.close();
@@ -279,15 +449,33 @@ ipcMain.on('nudge-pause', () => {
   }
 });
 
-ipcMain.handle('get-session-state', () => ({ ...sessionState }));
+ipcMain.handle('get-session-state', () => ({
+  ...sessionState,
+  activities: focusTracker ? focusTracker.getActivities() : [],
+}));
+
+// --- App lifecycle ---
 
 app.dock?.hide();
 
 app.whenReady().then(() => {
+  startScreenpipe();
+  startKeylistener();
   createTray();
   showStartWindow();
 });
 
+function cleanup() {
+  stopScreenpipe();
+  stopKeylistener();
+  if (focusTracker) focusTracker.stop();
+}
+
+app.on('before-quit', cleanup);
 app.on('window-all-closed', (e) => {
   e.preventDefault();
 });
+
+process.on('SIGTERM', () => { cleanup(); process.exit(); });
+process.on('SIGINT', () => { cleanup(); process.exit(); });
+process.on('exit', cleanup);

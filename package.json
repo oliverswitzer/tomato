@@ -8,6 +8,8 @@
   },
   "type": "commonjs",
   "dependencies": {
-    "electron": "^41.3.0"
+    "@anthropic-ai/sdk": "^0.90.0",
+    "electron": "^41.3.0",
+    "screenpipe": "^0.3.289"
   }
 }

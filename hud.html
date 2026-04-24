@@ -467,14 +467,62 @@
       ipcRenderer.send('end-session');
     }
 
+    let activities = [];
+    let isDrifting = false;
+
+    function formatActivityTime(iso) {
+      return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+
+    function renderTimeline() {
+      const container = document.getElementById('timeline-entries');
+      const count = document.getElementById('timeline-count');
+
+      if (activities.length === 0) {
+        container.innerHTML = `
+          <div class="timeline-entry">
+            <div class="entry-header">
+              <span class="entry-dot"></span>
+              <span class="entry-duration">0:00</span>
+            </div>
+            <div class="entry-desc">Waiting for screen activity...</div>
+            <div class="entry-time">now</div>
+          </div>`;
+        count.textContent = '0 ACTIVITIES';
+        return;
+      }
+
+      count.textContent = `${activities.length} ACTIVIT${activities.length === 1 ? 'Y' : 'IES'}`;
+
+      const recent = activities.slice(-6).reverse();
+      container.innerHTML = recent.map(a => `
+        <div class="timeline-entry">
+          <div class="entry-header">
+            <span class="entry-dot" style="background: ${isDrifting ? '#E2574C' : '#7CB342'}"></span>
+            <span class="entry-duration">${formatActivityTime(a.timestamp)}</span>
+          </div>
+          <div class="entry-desc">${a.summary}</div>
+          <div class="entry-time">${a.apps.join(', ') || 'unknown'}</div>
+        </div>
+      `).join('');
+    }
+
     ipcRenderer.on('session-state', (_event, state) => {
       currentState = state;
       const timeStr = formatTime(state.remainingSec);
 
       document.getElementById('timer-collapsed').textContent = timeStr;
       document.getElementById('timer-expanded').textContent = timeStr;
-      document.getElementById('summary-text').textContent = state.intention;
-      document.getElementById('activity-text').textContent = state.intention;
+
+      if (state.activities && state.activities.length > 0) {
+        activities = state.activities;
+        const latest = activities[activities.length - 1];
+        document.getElementById('summary-text').textContent = latest.summary;
+        document.getElementById('activity-text').textContent = latest.summary;
+      } else {
+        document.getElementById('summary-text').textContent = state.intention;
+        document.getElementById('activity-text').textContent = state.intention;
+      }
 
       const progress = (state.remainingSec / (state.durationMin * 60)) * 100;
       document.getElementById('progress-bar').style.width = progress + '%';
@@ -491,11 +539,32 @@
         badge.className = 'status-badge paused';
         badge.innerHTML = '<span class="dot" style="background: #E65100"></span> Paused';
         pauseBtn.textContent = 'Resume';
+      } else if (isDrifting) {
+        badge.className = 'status-badge paused';
+        badge.innerHTML = '<span class="dot" style="background: #E2574C"></span> Off track';
+        pauseBtn.textContent = 'Pause';
       } else {
         badge.className = 'status-badge on-track';
         badge.innerHTML = '<span class="dot" style="background: #2E7D32"></span> On track';
         pauseBtn.textContent = 'Pause';
       }
+
+      if (isExpanded) renderTimeline();
+    });
+
+    ipcRenderer.on('activity-update', (_event, activity) => {
+      activities.push(activity);
+      if (activities.length > 100) activities.shift();
+      document.getElementById('summary-text').textContent = activity.summary;
+      document.getElementById('activity-text').textContent = activity.summary;
+      if (isExpanded) renderTimeline();
+    });
+
+    ipcRenderer.on('drift-detected', (_event, { reason }) => {
+      isDrifting = true;
+      const badge = document.getElementById('status-badge');
+      badge.className = 'status-badge paused';
+      badge.innerHTML = '<span class="dot" style="background: #E2574C"></span> Off track';
     });
 
     ipcRenderer.on('session-ended', () => {
@@ -504,6 +573,8 @@
       document.getElementById('summary-text').textContent = 'Session complete!';
       document.getElementById('activity-text').textContent = 'Session complete!';
       document.getElementById('progress-bar').style.width = '0%';
+      activities = [];
+      isDrifting = false;
 
       const badge = document.getElementById('status-badge');
       badge.className = 'status-badge on-track';
