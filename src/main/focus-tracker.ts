@@ -1,9 +1,10 @@
-const Anthropic = require('@anthropic-ai/sdk');
-const fs = require('fs');
-const path = require('path');
+import Anthropic from '@anthropic-ai/sdk';
+import fs from 'fs';
+import path from 'path';
+import type { Activity, KeystrokeChunk } from '../shared/ipc';
 
-const LOG_FILE = path.join(__dirname, 'tomato.log');
-function log(msg) {
+const LOG_FILE = path.join(__dirname, '..', '..', 'tomato.log');
+function log(msg: string): void {
   const line = `[${new Date().toISOString()}] [focus-tracker] ${msg}\n`;
   fs.appendFileSync(LOG_FILE, line);
 }
@@ -12,35 +13,48 @@ const SCREENPIPE_API = 'http://localhost:3030';
 const POLL_INTERVAL_MS = 15_000;
 const DRIFT_CHECK_INTERVAL_MS = 180_000;
 
-class FocusTracker {
-  constructor() {
-    this.anthropic = null;
-    this.apiKey = process.env.SCREENPIPE_API_KEY || '';
-    this.intention = '';
-    this.durationMin = 25;
-    this.activities = [];
-    this.keystrokeBuffer = [];
-    this.pollTimer = null;
-    this.driftTimer = null;
-    this.onActivity = null;
-    this.onDrift = null;
-    this.lastPollTime = null;
+interface ScreenpipeSearchResult {
+  data?: Array<{
+    content: {
+      app_name: string;
+      window_name: string;
+      text: string;
+    };
+  }>;
+}
 
+export class FocusTracker {
+  private anthropic: Anthropic | null = null;
+  apiKey = '';
+  private intention = '';
+  private activities: Activity[] = [];
+  private keystrokeBuffer: KeystrokeChunk[] = [];
+  private pollTimer: ReturnType<typeof setInterval> | null = null;
+  private driftTimer: ReturnType<typeof setInterval> | null = null;
+  onActivity: ((activity: Activity) => void) | null = null;
+  onDrift: ((reason: string) => void) | null = null;
+
+  constructor() {
     try {
       this.anthropic = new Anthropic({ dangerouslyAllowBrowser: true });
       log('Anthropic client created');
     } catch (err) {
-      log(`Anthropic client error: ${err.message}`);
+      log(`Anthropic client error: ${(err as Error).message}`);
     }
   }
 
-  headers() {
-    const h = { 'Content-Type': 'application/json' };
+  private headers(): Record<string, string> {
+    const h: Record<string, string> = { 'Content-Type': 'application/json' };
     if (this.apiKey) h['Authorization'] = `Bearer ${this.apiKey}`;
     return h;
   }
 
-  async searchScreenpipe(contentType, startTime, endTime, limit = 10) {
+  private async searchScreenpipe(
+    contentType: string,
+    startTime: Date,
+    endTime: Date,
+    limit = 10,
+  ): Promise<ScreenpipeSearchResult | null> {
     const params = new URLSearchParams({
       q: '',
       content_type: contentType,
@@ -57,14 +71,14 @@ class FocusTracker {
         log(`Screenpipe API ${res.status}: ${res.statusText}`);
         return null;
       }
-      return await res.json();
+      return (await res.json()) as ScreenpipeSearchResult;
     } catch (err) {
-      log(`Screenpipe fetch error: ${err.message}`);
+      log(`Screenpipe fetch error: ${(err as Error).message}`);
       return null;
     }
   }
 
-  async waitForScreenpipe(timeoutMs = 30000) {
+  private async waitForScreenpipe(timeoutMs = 30000): Promise<boolean> {
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
       try {
@@ -75,21 +89,23 @@ class FocusTracker {
           log('Screenpipe is ready');
           return true;
         }
-      } catch {}
-      await new Promise(r => setTimeout(r, 1000));
+      } catch {
+        // keep retrying
+      }
+      await new Promise((r) => setTimeout(r, 1000));
     }
     log('Screenpipe health check timed out');
     return false;
   }
 
-  addKeystrokeChunk(chunk) {
+  addKeystrokeChunk(chunk: KeystrokeChunk): void {
     this.keystrokeBuffer.push(chunk);
     if (this.keystrokeBuffer.length > 30) this.keystrokeBuffer.shift();
   }
 
-  buildKeystrokeContext() {
+  private buildKeystrokeContext(): string {
     if (this.keystrokeBuffer.length === 0) return '';
-    const grouped = {};
+    const grouped: Record<string, string[]> = {};
     for (const chunk of this.keystrokeBuffer) {
       const key = `${chunk.app} — ${chunk.window}`;
       if (!grouped[key]) grouped[key] = [];
@@ -100,18 +116,17 @@ class FocusTracker {
       .join('\n\n');
   }
 
-  async buildScreenContext() {
+  private async buildScreenContext(): Promise<string> {
     const now = new Date();
     const ago = new Date(now.getTime() - POLL_INTERVAL_MS);
 
-    const parts = [];
+    const parts: string[] = [];
 
-    // Use OCR data only for app + window titles, skip the noisy screen text
     const ocrData = await this.searchScreenpipe('ocr', ago, now, 5);
 
     if (ocrData?.data?.length) {
-      const seen = new Set();
-      const windows = [];
+      const seen = new Set<string>();
+      const windows: string[] = [];
       for (const d of ocrData.data) {
         const c = d.content;
         const key = `${c.app_name} — ${c.window_name}`;
@@ -133,7 +148,7 @@ class FocusTracker {
     return parts.join('\n\n');
   }
 
-  async summarizeActivity(context) {
+  private async summarizeActivity(context: string): Promise<string | null> {
     if (!this.anthropic || !context.trim()) return null;
 
     log(`--- SUMMARIZE PROMPT ---\n${context}\n--- END PROMPT ---`);
@@ -142,19 +157,21 @@ class FocusTracker {
       const res = await this.anthropic.messages.create({
         model: 'claude-haiku-4-5',
         max_tokens: 150,
-        messages: [{
-          role: 'user',
-          content: `Summarize what the user was doing in the last 15 seconds based on their screen content and typed text.
+        messages: [
+          {
+            role: 'user',
+            content: `Summarize what the user was doing in the last 15 seconds based on their screen content and typed text.
 
 Write 1-2 short sentences. Be specific about which app and what task. Don't start with "The user was".
 
 ${context}`,
-        }],
+          },
+        ],
       });
-      const block = res.content.find(b => b.type === 'text');
-      return block ? block.text.trim() : null;
+      const block = res.content.find((b) => b.type === 'text');
+      return block && block.type === 'text' ? block.text.trim() : null;
     } catch (err) {
-      log(`Claude summary error: ${err.message}`);
+      log(`Claude summary error: ${(err as Error).message}`);
       if (context.includes('## SCREEN CONTENT')) {
         const match = context.match(/\[(.+?) — (.+?)\]/);
         return match ? `Active in: ${match[1]}` : null;
@@ -163,18 +180,23 @@ ${context}`,
     }
   }
 
-  async checkDrift(recentContext) {
+  private async checkDrift(
+    recentContext: string,
+  ): Promise<{ isDrift: boolean; reason: string } | null> {
     if (!this.anthropic || !this.intention || !recentContext.trim()) return null;
 
-    log(`--- DRIFT CHECK PROMPT ---\nIntention: "${this.intention}"\n${recentContext}\n--- END PROMPT ---`);
+    log(
+      `--- DRIFT CHECK PROMPT ---\nIntention: "${this.intention}"\n${recentContext}\n--- END PROMPT ---`,
+    );
 
     try {
       const res = await this.anthropic.messages.create({
         model: 'claude-haiku-4-5',
         max_tokens: 100,
-        messages: [{
-          role: 'user',
-          content: `The user set a focus intention: "${this.intention}"
+        messages: [
+          {
+            role: 'user',
+            content: `The user set a focus intention: "${this.intention}"
 
 Based on recent screen activity, are they still working on this intention or have they drifted?
 
@@ -186,23 +208,31 @@ Then a brief reason (1 sentence).
 
 Recent activity:
 ${recentContext}`,
-        }],
+          },
+        ],
       });
 
-      const block = res.content.find(b => b.type === 'text');
-      if (!block) return null;
+      const block = res.content.find((b) => b.type === 'text');
+      if (!block || block.type !== 'text') return null;
 
       const text = block.text.trim();
       const isDrift = text.toLowerCase().startsWith('drifted');
       log(`--- DRIFT RESPONSE ---\n${text}\n--- END RESPONSE ---`);
       return { isDrift, reason: text };
     } catch (err) {
-      log(`Claude drift check error: ${err.message}`);
+      log(`Claude drift check error: ${(err as Error).message}`);
       return null;
     }
   }
 
-  async tick() {
+  private extractApps(context: string): string[] {
+    const apps = new Set<string>();
+    const matches = context.matchAll(/\[(.+?) — /g);
+    for (const m of matches) apps.add(m[1]);
+    return [...apps];
+  }
+
+  private async tick(): Promise<void> {
     const context = await this.buildScreenContext();
     const apps = this.extractApps(context);
     const hasKeystrokes = context.includes('## TYPED TEXT');
@@ -213,9 +243,8 @@ ${recentContext}`,
     }
 
     if (!hasKeystrokes) {
-      // No typing — just record which apps are active, skip the LLM call
       if (apps.length > 0) {
-        const activity = {
+        const activity: Activity = {
           summary: `Active in ${apps.join(', ')}`,
           timestamp: new Date().toISOString(),
           apps,
@@ -230,7 +259,7 @@ ${recentContext}`,
 
     const summary = await this.summarizeActivity(context);
     if (summary) {
-      const activity = {
+      const activity: Activity = {
         summary,
         timestamp: new Date().toISOString(),
         apps,
@@ -245,16 +274,15 @@ ${recentContext}`,
     this.keystrokeBuffer.length = 0;
   }
 
-  async driftCheck() {
-    // Use activities from the last 3 minutes (matches DRIFT_CHECK_INTERVAL_MS)
+  private async driftCheck(): Promise<void> {
     const cutoff = Date.now() - DRIFT_CHECK_INTERVAL_MS;
     const recentActivities = this.activities.filter(
-      a => new Date(a.timestamp).getTime() >= cutoff
+      (a) => new Date(a.timestamp).getTime() >= cutoff,
     );
     if (recentActivities.length === 0) return;
 
     const recentContext = recentActivities
-      .map(a => `- ${a.summary} (${a.apps.join(', ')})`)
+      .map((a) => `- ${a.summary} (${a.apps.join(', ')})`)
       .join('\n');
 
     const result = await this.checkDrift(recentContext);
@@ -264,16 +292,8 @@ ${recentContext}`,
     }
   }
 
-  extractApps(context) {
-    const apps = new Set();
-    const matches = context.matchAll(/\[(.+?) — /g);
-    for (const m of matches) apps.add(m[1]);
-    return [...apps];
-  }
-
-  async start(intention, durationMin) {
+  async start(intention: string, durationMin: number): Promise<void> {
     this.intention = intention;
-    this.durationMin = durationMin;
     this.activities = [];
     this.keystrokeBuffer = [];
 
@@ -287,7 +307,7 @@ ${recentContext}`,
     this.driftTimer = setInterval(() => this.driftCheck(), DRIFT_CHECK_INTERVAL_MS);
   }
 
-  stop() {
+  stop(): void {
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
@@ -299,9 +319,7 @@ ${recentContext}`,
     log('Session stopped');
   }
 
-  getActivities() {
+  getActivities(): Activity[] {
     return [...this.activities];
   }
 }
-
-module.exports = { FocusTracker };

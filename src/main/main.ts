@@ -1,25 +1,37 @@
-const { app, BrowserWindow, Tray, Menu, screen, ipcMain, nativeImage } = require('electron');
-const { spawn, execFileSync } = require('child_process');
-const path = require('path');
-const fs = require('fs');
-const { FocusTracker } = require('./focus-tracker');
-const { saveSession, getRecentSessions } = require('./session-store');
+import {
+  app,
+  BrowserWindow,
+  Tray,
+  Menu,
+  screen,
+  ipcMain,
+  nativeImage,
+} from 'electron';
+import { spawn, execFileSync, ChildProcess } from 'child_process';
+import path from 'path';
+import fs from 'fs';
+import { FocusTracker } from './focus-tracker';
+import { saveSession, getRecentSessions } from './session-store';
+import type { SessionState, KeystrokeChunk } from '../shared/ipc';
 
-const LOG_FILE = path.join(__dirname, 'tomato.log');
-function log(msg) {
+const APP_ROOT = path.join(__dirname, '..', '..');
+const LOG_FILE = path.join(APP_ROOT, 'tomato.log');
+const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
+
+function log(msg: string): void {
   const line = `[${new Date().toISOString()}] [main] ${msg}\n`;
   fs.appendFileSync(LOG_FILE, line);
 }
 
-let tray = null;
-let startWin = null;
-let hudWin = null;
-let nudgeWin = null;
-let screenpipeProc = null;
-let keylistenerProc = null;
-let focusTracker = null;
+let tray: Tray | null = null;
+let startWin: BrowserWindow | null = null;
+let hudWin: BrowserWindow | null = null;
+let nudgeWin: BrowserWindow | null = null;
+let screenpipeProc: ChildProcess | null = null;
+let keylistenerProc: ChildProcess | null = null;
+let focusTracker: FocusTracker | null = null;
 
-let sessionState = {
+let sessionState: SessionState = {
   active: false,
   intention: '',
   durationMin: 25,
@@ -27,13 +39,25 @@ let sessionState = {
   paused: false,
 };
 
-// --- Screenpipe lifecycle (mirrored from screenpipe-hud) ---
+function getPreloadPath(): string {
+  return path.join(__dirname, '..', 'preload', 'preload.js');
+}
 
-function resolveScreenpipeBin() {
+function loadRendererPage(win: BrowserWindow, hash: string): void {
+  if (VITE_DEV_SERVER_URL) {
+    win.loadURL(`${VITE_DEV_SERVER_URL}#${hash}`);
+  } else {
+    win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'), { hash });
+  }
+}
+
+// --- Screenpipe lifecycle ---
+
+function resolveScreenpipeBin(): string {
   if (process.env.SCREENPIPE_BIN) return process.env.SCREENPIPE_BIN;
 
   const platform = `${process.platform}-${process.arch}`;
-  const pkgMap = {
+  const pkgMap: Record<string, string> = {
     'darwin-arm64': '@screenpipe/cli-darwin-arm64',
     'darwin-x64': '@screenpipe/cli-darwin-x64',
     'linux-x64': '@screenpipe/cli-linux-x64',
@@ -47,7 +71,7 @@ function resolveScreenpipeBin() {
   return path.join(path.dirname(pkgJson), 'bin', `screenpipe${ext}`);
 }
 
-function getScreenpipeApiKey(bin) {
+function getScreenpipeApiKey(bin: string): string {
   try {
     return execFileSync(bin, ['auth', 'token'], { encoding: 'utf8' }).trim();
   } catch {
@@ -55,12 +79,12 @@ function getScreenpipeApiKey(bin) {
   }
 }
 
-function startScreenpipe() {
-  let bin;
+function startScreenpipe(): void {
+  let bin: string;
   try {
     bin = resolveScreenpipeBin();
   } catch (err) {
-    log(`Could not resolve screenpipe binary: ${err.message}`);
+    log(`Could not resolve screenpipe binary: ${(err as Error).message}`);
     return;
   }
 
@@ -77,13 +101,13 @@ function startScreenpipe() {
     detached: false,
   });
 
-  screenpipeProc.stdout.on('data', (data) => {
+  screenpipeProc.stdout?.on('data', (data: Buffer) => {
     for (const line of data.toString().split('\n').filter(Boolean)) {
       log(`[screenpipe] ${line}`);
     }
   });
 
-  screenpipeProc.stderr.on('data', (data) => {
+  screenpipeProc.stderr?.on('data', (data: Buffer) => {
     for (const line of data.toString().split('\n').filter(Boolean)) {
       log(`[screenpipe] ${line}`);
     }
@@ -100,17 +124,21 @@ function startScreenpipe() {
   });
 }
 
-function stopScreenpipe() {
+function stopScreenpipe(): void {
   if (!screenpipeProc) return;
   log('Stopping screenpipe');
-  try { screenpipeProc.kill('SIGTERM'); } catch {}
+  try {
+    screenpipeProc.kill('SIGTERM');
+  } catch {
+    // already dead
+  }
   screenpipeProc = null;
 }
 
-// --- Keylistener (compiled Swift binary) ---
+// --- Keylistener ---
 
-function startKeylistener() {
-  const bin = path.join(__dirname, 'keylistener');
+function startKeylistener(): void {
+  const bin = path.join(APP_ROOT, 'keylistener');
   if (!fs.existsSync(bin)) {
     log('Keylistener binary not found — skipping keystroke capture');
     return;
@@ -123,10 +151,10 @@ function startKeylistener() {
     detached: false,
   });
 
-  keylistenerProc.stdout.on('data', (data) => {
+  keylistenerProc.stdout?.on('data', (data: Buffer) => {
     for (const line of data.toString().split('\n').filter(Boolean)) {
       try {
-        const chunk = JSON.parse(line);
+        const chunk = JSON.parse(line) as KeystrokeChunk;
         if (chunk.type === 'keystroke_chunk' && focusTracker) {
           focusTracker.addKeystrokeChunk(chunk);
         }
@@ -136,7 +164,7 @@ function startKeylistener() {
     }
   });
 
-  keylistenerProc.stderr.on('data', (data) => {
+  keylistenerProc.stderr?.on('data', (data: Buffer) => {
     log(`[keylistener] ${data.toString().trim()}`);
   });
 
@@ -151,21 +179,27 @@ function startKeylistener() {
   });
 }
 
-function stopKeylistener() {
+function stopKeylistener(): void {
   if (!keylistenerProc) return;
   log('Stopping keylistener');
-  try { keylistenerProc.kill('SIGTERM'); } catch {}
+  try {
+    keylistenerProc.kill('SIGTERM');
+  } catch {
+    // already dead
+  }
   keylistenerProc = null;
 }
 
 // --- Tray ---
 
-function createTrayIcon() {
-  const img = nativeImage.createFromPath(path.join(__dirname, 'assets', 'tray-icon.png'));
+function createTrayIcon(): Electron.NativeImage {
+  const img = nativeImage.createFromPath(
+    path.join(APP_ROOT, 'assets', 'tray-icon.png'),
+  );
   return img.resize({ width: 18, height: 18 });
 }
 
-function createTray() {
+function createTray(): void {
   const icon = createTrayIcon();
   tray = new Tray(icon);
   tray.setToolTip('Tomato');
@@ -184,8 +218,10 @@ function createTray() {
   });
 }
 
-function updateTrayMenu() {
-  const template = [];
+function updateTrayMenu(): void {
+  if (!tray) return;
+
+  const template: Electron.MenuItemConstructorOptions[] = [];
 
   if (sessionState.active) {
     const mins = Math.floor(sessionState.remainingSec / 60);
@@ -193,7 +229,7 @@ function updateTrayMenu() {
     const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
     template.push(
-      { label: `Focus session`, enabled: false },
+      { label: 'Focus session', enabled: false },
       { label: `${timeStr} remaining`, enabled: false },
       { type: 'separator' },
       {
@@ -205,9 +241,10 @@ function updateTrayMenu() {
       { label: 'Open session HUD', click: () => showHudWindow() },
     );
   } else {
-    template.push(
-      { label: 'Start a session...', click: () => showStartWindow() },
-    );
+    template.push({
+      label: 'Start a session...',
+      click: () => showStartWindow(),
+    });
   }
 
   template.push(
@@ -220,14 +257,15 @@ function updateTrayMenu() {
 
 // --- Windows ---
 
-function showStartWindow() {
+function showStartWindow(): void {
   if (startWin) {
     startWin.show();
     startWin.focus();
     return;
   }
 
-  const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
+  const { width: screenWidth, height: screenHeight } =
+    screen.getPrimaryDisplay().workAreaSize;
   const winWidth = 520;
   const winHeight = 720;
 
@@ -242,16 +280,19 @@ function showStartWindow() {
     hasShadow: true,
     vibrancy: 'under-window',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: getPreloadPath(),
     },
   });
 
-  startWin.loadFile(path.join(__dirname, 'start.html'));
-  startWin.on('closed', () => { startWin = null; });
+  loadRendererPage(startWin, '/start');
+  startWin.on('closed', () => {
+    startWin = null;
+  });
 }
 
-function showHudWindow() {
+function showHudWindow(): void {
   if (hudWin) {
     hudWin.show();
     hudWin.focus();
@@ -272,23 +313,27 @@ function showHudWindow() {
     skipTaskbar: true,
     hasShadow: false,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: getPreloadPath(),
     },
   });
 
-  hudWin.loadFile(path.join(__dirname, 'hud.html'));
+  loadRendererPage(hudWin, '/hud');
   hudWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  hudWin.on('closed', () => { hudWin = null; });
+  hudWin.on('closed', () => {
+    hudWin = null;
+  });
 }
 
-function showNudgeWindow() {
+function showNudgeWindow(): void {
   if (nudgeWin) {
     nudgeWin.show();
     return;
   }
 
-  const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
+  const { width: screenWidth, height: screenHeight } =
+    screen.getPrimaryDisplay().workAreaSize;
 
   nudgeWin = new BrowserWindow({
     width: 340,
@@ -302,21 +347,24 @@ function showNudgeWindow() {
     skipTaskbar: true,
     hasShadow: false,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: getPreloadPath(),
     },
   });
 
-  nudgeWin.loadFile(path.join(__dirname, 'nudge.html'));
+  loadRendererPage(nudgeWin, '/nudge');
   nudgeWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  nudgeWin.on('closed', () => { nudgeWin = null; });
+  nudgeWin.on('closed', () => {
+    nudgeWin = null;
+  });
 }
 
 // --- Session logic ---
 
-let timerInterval = null;
+let timerInterval: ReturnType<typeof setInterval> | null = null;
 
-function startSession(intention, durationMin) {
+function startSession(intention: string, durationMin: number): void {
   sessionState = {
     active: true,
     intention,
@@ -334,11 +382,9 @@ function startSession(intention, durationMin) {
   sendHudState();
   updateTrayMenu();
 
-  // Start screenpipe + keylistener only when a session begins
   startScreenpipe();
   startKeylistener();
 
-  // Start focus tracking with screenpipe
   focusTracker = new FocusTracker();
   focusTracker.apiKey = process.env.SCREENPIPE_API_KEY || '';
 
@@ -376,17 +422,19 @@ function startSession(intention, durationMin) {
   }, 1000);
 }
 
-function togglePause() {
+function togglePause(): void {
   sessionState.paused = !sessionState.paused;
   sendHudState();
   updateTrayMenu();
 }
 
-function endSession() {
+function endSession(): void {
   sessionState.active = false;
   sessionState.paused = false;
-  clearInterval(timerInterval);
-  timerInterval = null;
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
 
   if (focusTracker) {
     saveSession({
@@ -404,16 +452,19 @@ function endSession() {
   updateTrayMenu();
 
   if (hudWin) {
-    hudWin.webContents.send('session-ended');
+    hudWin.close();
+    hudWin = null;
   }
 
   if (nudgeWin) {
     nudgeWin.close();
     nudgeWin = null;
   }
+
+  showStartWindow();
 }
 
-function sendHudState() {
+function sendHudState(): void {
   if (hudWin) {
     hudWin.webContents.send('session-state', {
       ...sessionState,
@@ -424,7 +475,7 @@ function sendHudState() {
 
 // --- IPC handlers ---
 
-ipcMain.on('start-session', (_event, { intention, durationMin }) => {
+ipcMain.on('start-session', (_event, { intention, durationMin }: { intention: string; durationMin: number }) => {
   startSession(intention, durationMin);
 });
 
@@ -436,7 +487,7 @@ ipcMain.on('end-session', () => {
   endSession();
 });
 
-ipcMain.on('hud-resize', (_event, { expanded }) => {
+ipcMain.on('hud-resize', (_event, { expanded }: { expanded: boolean }) => {
   if (!hudWin) return;
   const [x, y] = hudWin.getPosition();
   hudWin.setSize(expanded ? 400 : 360, expanded ? 560 : 180);
@@ -473,25 +524,78 @@ ipcMain.handle('get-session-state', () => ({
 
 ipcMain.handle('get-recent-sessions', () => getRecentSessions(5));
 
+ipcMain.handle('capture', async () => {
+  const SCREENPIPE_API = 'http://localhost:3030';
+  const params = new URLSearchParams({
+    q: '',
+    content_type: 'ocr',
+    limit: '3',
+  });
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const apiKey = process.env.SCREENPIPE_API_KEY;
+  if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+  try {
+    const res = await fetch(`${SCREENPIPE_API}/search?${params}`, { headers });
+    if (!res.ok) {
+      return { error: `Screenpipe API returned ${res.status}: ${res.statusText}` };
+    }
+    const data = await res.json() as {
+      data?: Array<{
+        content: {
+          app_name: string;
+          window_name: string;
+          text: string;
+          timestamp: string;
+          focused: boolean;
+        };
+      }>;
+    };
+
+    if (!data.data || data.data.length === 0) {
+      return { error: 'No recent captures found. Is screenpipe running?' };
+    }
+
+    const frames = data.data.map((d) => ({
+      app: d.content.app_name,
+      window: d.content.window_name,
+      text: d.content.text,
+      timestamp: d.content.timestamp,
+      focused: d.content.focused,
+    }));
+
+    return { frames };
+  } catch (err) {
+    return { error: `Failed to reach screenpipe: ${(err as Error).message}` };
+  }
+});
+
 // --- App lifecycle ---
 
 app.whenReady().then(() => {
-  app.dock?.setIcon(path.join(__dirname, 'assets', 'app-icon.png'));
+  app.dock?.setIcon(path.join(APP_ROOT, 'assets', 'app-icon.png'));
   createTray();
   showStartWindow();
 });
 
-function cleanup() {
+function cleanup(): void {
   stopScreenpipe();
   stopKeylistener();
   if (focusTracker) focusTracker.stop();
 }
 
 app.on('before-quit', cleanup);
-app.on('window-all-closed', (e) => {
-  e.preventDefault();
+app.on('window-all-closed', () => {
+  // Prevent app from quitting when all windows are closed (tray app)
 });
 
-process.on('SIGTERM', () => { cleanup(); process.exit(); });
-process.on('SIGINT', () => { cleanup(); process.exit(); });
+process.on('SIGTERM', () => {
+  cleanup();
+  process.exit();
+});
+process.on('SIGINT', () => {
+  cleanup();
+  process.exit();
+});
 process.on('exit', cleanup);

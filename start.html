@@ -399,31 +399,12 @@
       </div>
     </div>
 
-    <div class="recent-section no-drag">
+    <div class="recent-section no-drag" id="recent-section" style="display: none;">
       <div class="recent-header">
         <span class="recent-title">Recent sessions</span>
-        <span class="recent-date">This week</span>
+        <span class="recent-date" id="recent-date"></span>
       </div>
-      <div class="recent-card">
-        <div class="recent-card-header">
-          <span class="recent-card-title">
-            <span class="dot" style="background: #E2574C"></span>
-            Ship the pricing page rewrite
-          </span>
-          <span class="recent-card-meta">38 min &middot; yesterday</span>
-        </div>
-        <div class="recent-card-desc">Replaced the three-tier layout with a cleaner comparison table and rewrote the headline to emphasize outcomes.</div>
-      </div>
-      <div class="recent-card">
-        <div class="recent-card-header">
-          <span class="recent-card-title">
-            <span class="dot" style="background: #F0A020"></span>
-            Draft the onboarding email sequence
-          </span>
-          <span class="recent-card-meta">45 min &middot; 2 days ago</span>
-        </div>
-        <div class="recent-card-desc">Wrote the welcome and day-3 emails. Got pulled into Slack twice before refocusing on the sequence.</div>
-      </div>
+      <div id="recent-cards"></div>
     </div>
   </div>
 
@@ -469,6 +450,47 @@
     document.getElementById('intention-input').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') startSession();
     });
+
+    function relativeDate(iso) {
+      const diff = Date.now() - new Date(iso).getTime();
+      const mins = Math.floor(diff / 60_000);
+      if (mins < 60) return `${mins} min ago`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days === 1) return 'yesterday';
+      if (days < 7) return `${days} days ago`;
+      return new Date(iso).toLocaleDateString();
+    }
+
+    const dotColors = ['#E2574C', '#7CB342', '#F0A020', '#5C6BC0', '#26A69A'];
+
+    async function loadRecentSessions() {
+      const sessions = await ipcRenderer.invoke('get-recent-sessions');
+      if (!sessions || sessions.length === 0) return;
+
+      const section = document.getElementById('recent-section');
+      const cards = document.getElementById('recent-cards');
+      const dateLabel = document.getElementById('recent-date');
+
+      section.style.display = 'flex';
+      dateLabel.textContent = 'This week';
+
+      cards.innerHTML = sessions.map((s, i) => `
+        <div class="recent-card" onclick="selectChip(this)" style="cursor: pointer;">
+          <div class="recent-card-header">
+            <span class="recent-card-title">
+              <span class="dot" style="background: ${dotColors[i % dotColors.length]}"></span>
+              ${s.intention}
+            </span>
+            <span class="recent-card-meta">${s.durationMin} min &middot; ${relativeDate(s.endedAt)}</span>
+          </div>
+          ${s.summary ? `<div class="recent-card-desc">${s.summary}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    loadRecentSessions();
   </script>
 </body>
 </html>
