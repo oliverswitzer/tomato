@@ -1,0 +1,97 @@
+name: Build & Release DMG
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: Create a GitHub Release with the DMG
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Download bundled binaries
+        env:
+          BINARIES_URL: ${{ secrets.BINARIES_URL }}
+        run: |
+          mkdir -p bin
+          if [ -n "$BINARIES_URL" ]; then
+            echo "Downloading bundled binaries from configured URL..."
+            curl -fSL "$BINARIES_URL/screenpipe" -o bin/screenpipe
+            curl -fSL "$BINARIES_URL/ffmpeg" -o bin/ffmpeg
+            curl -fSL "$BINARIES_URL/ffprobe" -o bin/ffprobe
+            curl -fSL "$BINARIES_URL/request-screen-access" -o bin/request-screen-access
+            chmod +x bin/*
+          else
+            echo "::warning::BINARIES_URL secret not set — bundled binaries will be missing from the build."
+            echo "Set BINARIES_URL to a directory URL containing: screenpipe, ffmpeg, ffprobe, request-screen-access"
+          fi
+
+      - name: Import code signing certificate
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          if [ -z "$APPLE_CERTIFICATE" ]; then
+            echo "::warning::APPLE_CERTIFICATE not set — build will be unsigned."
+            exit 0
+          fi
+          CERT_PATH=$RUNNER_TEMP/certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+
+          echo "$APPLE_CERTIFICATE" | base64 --decode > "$CERT_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
+
+      - name: Build DMG
+        env:
+          CSC_LINK: ${{ secrets.APPLE_CERTIFICATE }}
+          CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -z "$CSC_LINK" ]; then
+            CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-rebuild && npx electron-builder --mac --publish never
+          else
+            npx electron-rebuild && npx electron-builder --mac --publish never
+          fi
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tomato-dmg
+          path: release/*.dmg
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.create_release)
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*.dmg
+          generate_release_notes: true
+          tag_name: ${{ github.ref_name || format('v{0}-manual', github.run_number) }}
+          draft: ${{ github.event_name == 'workflow_dispatch' }}
