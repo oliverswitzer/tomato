@@ -39,6 +39,7 @@ export function HudPage() {
         }
       }),
       window.tomato.onActivityUpdate((activity) => {
+        setDriftInfo(null);
         setActivities((prev) => {
           const next = [...prev, activity];
           return next.length > 100 ? next.slice(1) : next;
@@ -71,7 +72,7 @@ export function HudPage() {
       {/* Shared header: status badge + toggle */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div
-          className="session-badge"
+          className={`session-badge${driftInfo ? ' drifting' : ''}`}
           style={driftInfo ? {
             background: 'rgba(230, 160, 0, 0.12)',
             color: '#B8860B',
@@ -163,7 +164,7 @@ export function HudPage() {
                       </span>
                     </div>
                     <div className="entry-desc">{a.summary}</div>
-                    <div className="entry-time">{a.apps.join(', ') || 'unknown'}</div>
+                    {a.apps.length > 0 && <div className="entry-time">{a.apps.join(', ')}</div>}
                   </div>
                 ))
               )}

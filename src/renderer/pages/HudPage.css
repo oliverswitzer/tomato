@@ -11,7 +11,7 @@
     0 2px 8px rgba(0, 0, 0, 0.06);
   -webkit-app-region: drag;
   max-height: 100vh;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 #session-timer::-webkit-scrollbar {
@@ -162,6 +162,15 @@
   letter-spacing: 1.2px;
 }
 
+.session-badge.drifting {
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 .session-badge .dot {
   width: 6px;
   height: 6px;
@@ -243,6 +252,10 @@
   font-weight: 500;
   color: #2A2A2A;
   letter-spacing: -0.3px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   line-height: 1.3;
 }
 
@@ -269,11 +282,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 2px 8px;
+  padding: 8px 2px;
   position: sticky;
   top: 0;
   background: #FFFFFF;
   z-index: 1;
+  border-bottom: 1px solid #F0EAE2;
+  margin-bottom: 4px;
 }
 
 .timeline-label {

@@ -188,27 +188,19 @@ export function StartPage() {
                   </span>
                 </div>
                 {s.focusScore !== undefined && (
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                  }}>
-                    <div style={{
-                      flex: 1,
-                      height: 4,
-                      background: '#F0EAE2',
-                      borderRadius: 2,
-                      overflow: 'hidden',
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: s.focusScore >= 70 ? '#7CB342' : s.focusScore >= 40 ? '#F0A020' : '#E2574C',
                     }}>
-                      <div style={{
-                        width: `${s.focusScore}%`,
-                        height: '100%',
-                        background: s.focusScore >= 70 ? '#7CB342' : s.focusScore >= 40 ? '#F0A020' : '#E2574C',
-                        borderRadius: 2,
-                      }} />
-                    </div>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: '#8B8477' }}>
-                      {s.focusScore}%
+                      {(() => {
+                        const focusedSec = Math.round(s.durationMin * 60 * s.focusScore! / 100);
+                        const fm = Math.floor(focusedSec / 60);
+                        const fs = focusedSec % 60;
+                        const tm = s.durationMin;
+                        return `${fm}:${String(fs).padStart(2, '0')} of ${tm}:00 focused`;
+                      })()}
                     </span>
                   </div>
                 )}

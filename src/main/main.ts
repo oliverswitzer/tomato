@@ -432,7 +432,8 @@ function startSession(intention: string, durationMin: number): void {
   const llm = new AnthropicLlmClient(
     new Anthropic({ dangerouslyAllowBrowser: true }),
   );
-  focusTracker = new FocusTracker({ db: db!, llm });
+  const batchMs = process.env.TOMATO_BATCH_MS ? parseInt(process.env.TOMATO_BATCH_MS) : undefined;
+  focusTracker = new FocusTracker({ db: db!, llm, batchIntervalMs: batchMs });
 
   focusTracker.onActivity = (activity) => {
     if (timerWin) {
@@ -454,7 +455,7 @@ function startSession(intention: string, durationMin: number): void {
     }
   };
 
-  focusTracker.start(intention);
+  focusTracker.start(intention, durationMin);
 
   timerInterval = setInterval(() => {
     if (sessionState.paused) return;
@@ -562,7 +563,7 @@ ipcMain.on('end-session', () => {
 ipcMain.on('timer-resize', (_event, { expanded }: { expanded: boolean }) => {
   if (!timerWin) return;
   const [x, y] = timerWin.getPosition();
-  timerWin.setSize(360, expanded ? 700 : 220);
+  timerWin.setSize(360, expanded ? 800 : 220);
   timerWin.setPosition(x, y);
 });
 

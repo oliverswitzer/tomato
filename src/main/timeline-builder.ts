@@ -39,14 +39,14 @@ export class TimelineBuilder {
     }
 
     for (const ev of textEvents) {
-      const app = ev.app_name ?? 'unknown';
+      if (!ev.app_name) continue;
       raw.push({
         timestamp: ev.timestamp,
-        app,
+        app: ev.app_name,
         window: ev.window_title ?? '',
         typedText: ev.text_content,
         eventType: 'typing',
-        accessibilityHints: a11yByApp.get(app) ?? [],
+        accessibilityHints: a11yByApp.get(ev.app_name) ?? [],
         browserUrl: null,
       });
     }

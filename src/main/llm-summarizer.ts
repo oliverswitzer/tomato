@@ -20,6 +20,7 @@ export interface LlmClient {
   batchSummarize(
     timeline: ActivityTimeline,
     intention: string,
+    sessionContext?: { durationMin: number; batchWindowSec: number },
   ): Promise<BatchSummaryResult | null>;
   summarizeSession(
     intention: string,
@@ -37,8 +38,9 @@ export class AnthropicLlmClient implements LlmClient {
   async batchSummarize(
     timeline: ActivityTimeline,
     intention: string,
+    sessionContext?: { durationMin: number; batchWindowSec: number },
   ): Promise<BatchSummaryResult | null> {
-    const prompt = this.buildPrompt(timeline, intention);
+    const prompt = this.buildPrompt(timeline, intention, sessionContext);
     this.lastPrompt = prompt;
 
     try {
@@ -61,7 +63,7 @@ export class AnthropicLlmClient implements LlmClient {
     return this.lastPrompt;
   }
 
-  private buildPrompt(timeline: ActivityTimeline, intention: string): string {
+  private buildPrompt(timeline: ActivityTimeline, intention: string, sessionContext?: { durationMin: number; batchWindowSec: number }): string {
     const timelineText =
       timeline.entries.length > 0
         ? timeline.entries
@@ -78,7 +80,14 @@ export class AnthropicLlmClient implements LlmClient {
             .join('\n')
         : 'No activity detected in this time window.';
 
+    const windowNote = sessionContext
+      ? `\n\nIMPORTANT: This is a ${sessionContext.batchWindowSec}-second snapshot within a ${sessionContext.durationMin}-minute pomodoro session. You are summarizing ONLY this short window, not the entire session. A brief distraction in a ${sessionContext.batchWindowSec}-second window does not mean the user failed — they may have been focused for the other ${sessionContext.durationMin - 1} minutes. Be proportionate in your assessment.`
+      : '';
+
     return `You are a focus-tracking assistant for a pomodoro session.
+
+## Important context about the data
+The typed text comes from raw keystroke capture. It includes typos, misspellings, partial words, and backspace artifacts. This is NORMAL human typing — do not interpret typos or messy text as evidence of distraction or lack of focus. Judge focus based on WHICH APP the user is in and WHAT THEY ARE DOING, not on typing quality.
 
 ## Session intention
 "${intention}"
@@ -87,12 +96,12 @@ export class AnthropicLlmClient implements LlmClient {
 Apps used: ${timeline.uniqueApps.join(', ') || 'none'}
 Most active: ${timeline.dominantApp || 'none'}
 
-${timelineText}
+${timelineText}${windowNote}
 
 ## Instructions
-Analyze the activity and respond with EXACTLY this JSON (no other text):
+Analyze the activity in this window and respond with EXACTLY this JSON (no other text):
 {
-  "summary": "1-2 sentence summary of what the user accomplished",
+  "summary": "1-2 sentence summary of what the user did in this window",
   "level2Classification": "one of: Building | Research | Marketing | User Validation | Admin | Communication | Off-task",
   "driftAssessment": {
     "isDrifting": true or false,

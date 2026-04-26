@@ -30,6 +30,7 @@ export class FocusTracker {
   private batchTimer: ReturnType<typeof setInterval> | null = null;
   private activities: Activity[] = [];
   private intention = '';
+  private durationMin = 25;
   private lastBatchResult: BatchSummaryResult | null = null;
   private pendingLlmCall = false;
 
@@ -48,8 +49,9 @@ export class FocusTracker {
     this.clock = deps.clock ?? (() => new Date());
   }
 
-  start(intention: string): void {
+  start(intention: string, durationMin = 25): void {
     this.intention = intention;
+    this.durationMin = durationMin;
     this.activities = [];
     this.lastBatchResult = null;
 
@@ -144,7 +146,10 @@ export class FocusTracker {
 
     this.pendingLlmCall = true;
     log(`batch: calling LLM with ${timeline.entries.length} entries, intention="${this.intention}"`);
-    const result = await this.deps.llm.batchSummarize(timeline, this.intention);
+    const result = await this.deps.llm.batchSummarize(timeline, this.intention, {
+      durationMin: this.durationMin,
+      batchWindowSec: Math.round(this.batchMs / 1000),
+    });
     this.pendingLlmCall = false;
 
     if (!result) {

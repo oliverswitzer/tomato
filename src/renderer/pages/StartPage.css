@@ -281,6 +281,10 @@
   cursor: pointer;
 }
 
+.recent-card + .recent-card {
+  margin-top: 10px;
+}
+
 .recent-card-header {
   display: flex;
   justify-content: space-between;
