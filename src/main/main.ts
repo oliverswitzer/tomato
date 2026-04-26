@@ -559,6 +559,8 @@ ipcMain.handle('capture', () => {
 
 // --- App lifecycle ---
 
+app.setPath('userData', path.join(app.getPath('appData'), 'tomato'));
+
 app.whenReady().then(() => {
   app.dock?.setIcon(path.join(APP_ROOT, 'assets', 'app-icon.png'));
   createTray();
