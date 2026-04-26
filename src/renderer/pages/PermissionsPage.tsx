@@ -97,7 +97,7 @@ function PermissionCard({ icon, iconGradient, title, description, granted, onOpe
 export function PermissionsPage() {
   const [screenGranted, setScreenGranted] = useState(false);
   const [accessibilityGranted, setAccessibilityGranted] = useState(false);
-  const bothGranted = screenGranted && accessibilityGranted;
+
 
   useEffect(() => {
     async function check() {
@@ -173,16 +173,6 @@ export function PermissionsPage() {
 
       {/* Footer */}
       <div className="flex flex-col items-center w-full" style={{ gap: 14 }}>
-        <div className="flex items-center" style={{ gap: 6 }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8B8477" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="m7 11v-4a5 5 0 0 1 10 0v4" />
-          </svg>
-          <span className="text-[11px] text-[#8B8477]">
-            All screen reading happens on your Mac. Nothing is recorded or uploaded.
-          </span>
-        </div>
-
         <div style={noDrag}>
           <button
             onClick={() => window.tomato.permissionsComplete()}

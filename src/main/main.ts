@@ -40,7 +40,7 @@ function log(msg: string): void {
 
 let tray: Tray | null = null;
 let startWin: BrowserWindow | null = null;
-let hudWin: BrowserWindow | null = null;
+let timerWin: BrowserWindow | null = null;
 let nudgeWin: BrowserWindow | null = null;
 let screenpipeProc: ChildProcess | null = null;
 let focusTracker: FocusTracker | null = null;
@@ -177,10 +177,10 @@ function createTray(): void {
 
   tray.on('click', () => {
     if (sessionState.active) {
-      if (hudWin) {
-        hudWin.isVisible() ? hudWin.hide() : hudWin.show();
+      if (timerWin) {
+        timerWin.isVisible() ? timerWin.hide() : timerWin.show();
       } else {
-        showHudWindow();
+        showTimerWindow();
       }
     } else {
       showStartWindow();
@@ -208,7 +208,7 @@ function updateTrayMenu(): void {
       },
       { label: 'End session', click: () => endSession() },
       { type: 'separator' },
-      { label: 'Open session HUD', click: () => showHudWindow() },
+      { label: 'Open Session Timer', click: () => showTimerWindow() },
     );
   } else {
     template.push({
@@ -278,7 +278,7 @@ function showStartWindow(): void {
 
   const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
   const winWidth = 520;
-  const winHeight = 720;
+  const winHeight = 860;
 
   startWin = new BrowserWindow({
     width: winWidth,
@@ -303,18 +303,18 @@ function showStartWindow(): void {
   });
 }
 
-function showHudWindow(): void {
-  if (hudWin) {
-    hudWin.show();
-    hudWin.focus();
+function showTimerWindow(): void {
+  if (timerWin) {
+    timerWin.show();
+    timerWin.focus();
     return;
   }
 
   const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
 
-  hudWin = new BrowserWindow({
+  timerWin = new BrowserWindow({
     width: 360,
-    height: 180,
+    height: 220,
     x: screenWidth - 380,
     y: 40,
     frame: false,
@@ -330,10 +330,10 @@ function showHudWindow(): void {
     },
   });
 
-  loadRendererPage(hudWin, '/hud');
-  hudWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  hudWin.on('closed', () => {
-    hudWin = null;
+  loadRendererPage(timerWin, '/hud');
+  timerWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  timerWin.on('closed', () => {
+    timerWin = null;
   });
 }
 
@@ -415,8 +415,8 @@ function startSession(intention: string, durationMin: number): void {
     startWin = null;
   }
 
-  showHudWindow();
-  sendHudState();
+  showTimerWindow();
+  sendTimerState();
   updateTrayMenu();
 
   startScreenpipe();
@@ -435,22 +435,22 @@ function startSession(intention: string, durationMin: number): void {
   focusTracker = new FocusTracker({ db: db!, llm });
 
   focusTracker.onActivity = (activity) => {
-    if (hudWin) {
-      hudWin.webContents.send('activity-update', activity);
+    if (timerWin) {
+      timerWin.webContents.send('activity-update', activity);
     }
   };
 
   focusTracker.onDrift = (data) => {
     log(`Drift detected: ${data.reason} (confidence: ${data.confidence}, classification: ${data.level2Classification})`);
     showNudgeWindow();
-    if (hudWin) {
-      hudWin.webContents.send('drift-detected', data);
+    if (timerWin) {
+      timerWin.webContents.send('drift-detected', data);
     }
   };
 
   focusTracker.onTimelineUpdate = (entries) => {
-    if (hudWin) {
-      hudWin.webContents.send('timeline-update', entries);
+    if (timerWin) {
+      timerWin.webContents.send('timeline-update', entries);
     }
   };
 
@@ -466,7 +466,7 @@ function startSession(intention: string, durationMin: number): void {
       return;
     }
 
-    sendHudState();
+    sendTimerState();
 
     if (sessionState.remainingSec % 30 === 0) {
       updateTrayMenu();
@@ -476,7 +476,7 @@ function startSession(intention: string, durationMin: number): void {
 
 function togglePause(): void {
   sessionState.paused = !sessionState.paused;
-  sendHudState();
+  sendTimerState();
   updateTrayMenu();
 }
 
@@ -490,14 +490,25 @@ async function endSession(): Promise<void> {
 
   if (focusTracker) {
     const activities = focusTracker.getActivities();
-    const sessionSummary = await focusTracker.summarizeSession(sessionState.durationMin);
+
+    let summary: string | undefined;
+    let focusScore: number | undefined;
+
+    if (activities.length > 0) {
+      const sessionSummary = await focusTracker.summarizeSession(sessionState.durationMin);
+      summary = sessionSummary?.summary;
+      focusScore = sessionSummary?.focusScore;
+    } else {
+      summary = 'No activity was tracked during this session.';
+      focusScore = 0;
+    }
 
     saveSession({
       intention: sessionState.intention,
       durationMin: sessionState.durationMin,
       activities,
-      summary: sessionSummary?.summary,
-      focusScore: sessionSummary?.focusScore,
+      summary,
+      focusScore,
     });
     focusTracker.stop();
     focusTracker = null;
@@ -512,9 +523,9 @@ async function endSession(): Promise<void> {
 
   updateTrayMenu();
 
-  if (hudWin) {
-    hudWin.close();
-    hudWin = null;
+  if (timerWin) {
+    timerWin.close();
+    timerWin = null;
   }
 
   if (nudgeWin) {
@@ -525,9 +536,9 @@ async function endSession(): Promise<void> {
   showStartWindow();
 }
 
-function sendHudState(): void {
-  if (hudWin) {
-    hudWin.webContents.send('session-state', {
+function sendTimerState(): void {
+  if (timerWin) {
+    timerWin.webContents.send('session-state', {
       ...sessionState,
       activities: focusTracker ? focusTracker.getActivities() : [],
     });
@@ -548,15 +559,15 @@ ipcMain.on('end-session', () => {
   endSession();
 });
 
-ipcMain.on('hud-resize', (_event, { expanded }: { expanded: boolean }) => {
-  if (!hudWin) return;
-  const [x, y] = hudWin.getPosition();
-  hudWin.setSize(expanded ? 400 : 360, expanded ? 700 : 180);
-  hudWin.setPosition(x, y);
+ipcMain.on('timer-resize', (_event, { expanded }: { expanded: boolean }) => {
+  if (!timerWin) return;
+  const [x, y] = timerWin.getPosition();
+  timerWin.setSize(360, expanded ? 700 : 220);
+  timerWin.setPosition(x, y);
 });
 
-ipcMain.on('hud-ready', () => {
-  sendHudState();
+ipcMain.on('timer-ready', () => {
+  sendTimerState();
 });
 
 ipcMain.on('close-start', () => {

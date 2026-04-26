@@ -20,12 +20,12 @@ export function HudPage() {
   const latestSummary =
     activities.length > 0
       ? activities[activities.length - 1].summary
-      : state.intention || 'Starting session...';
+      : 'First summary in a few minutes...';
 
   const toggleExpand = useCallback(() => {
     setIsExpanded((prev) => {
       const next = !prev;
-      window.tomato.hudResize(next);
+      window.tomato.timerResize(next);
       return next;
     });
   }, []);
@@ -52,7 +52,7 @@ export function HudPage() {
       }),
     ];
 
-    window.tomato.hudReady();
+    window.tomato.timerReady();
 
     return () => unsubs.forEach((fn) => fn());
   }, []);
@@ -63,101 +63,58 @@ export function HudPage() {
     ? 0
     : (state.remainingSec / (state.durationMin * 60)) * 100;
 
-  let badgeClass = 'status-badge on-track';
-  let badgeDotColor = '#2E7D32';
-  let badgeText = 'On track';
-
-  if (sessionEnded) {
-    badgeText = 'Done';
-  } else if (state.paused) {
-    badgeClass = 'status-badge paused';
-    badgeDotColor = '#E65100';
-    badgeText = 'Paused';
-  } else if (driftInfo) {
-    badgeClass = 'status-badge paused';
-    badgeDotColor = '#E2574C';
-    badgeText = 'Off track';
-  }
 
   const recentTimeline = activities.slice(-6).reverse();
 
   return (
-    <div id="hud">
-      {!isExpanded && (
-        <div id="collapsed">
-          <div className="top-row">
-            <div className="tomato-avatar">🍅</div>
-            <div className="text-col">
-              <div className="timer-row">
-                <span className="timer-time">{timeStr}</span>
-                <span className={badgeClass}>
-                  <span className="dot" style={{ background: badgeDotColor }} />
-                  {badgeText}
-                </span>
-              </div>
-              <div className="summary-text">{state.intention || displaySummary}</div>
-            </div>
-          </div>
-          <div className="divider" />
-          <div className="bottom-row">
-            <span className="focused-label">FOCUSED</span>
-            <span className="spacer" />
-            <button
-              className="expand-btn no-drag"
-              onClick={toggleExpand}
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="6,9 12,15 18,9" />
-              </svg>
-            </button>
-          </div>
+    <div id="session-timer">
+      {/* Shared header: status badge + toggle */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div
+          className="session-badge"
+          style={driftInfo ? {
+            background: 'rgba(230, 160, 0, 0.12)',
+            color: '#B8860B',
+          } : {
+            background: 'rgba(46, 125, 50, 0.1)',
+            color: '#2E7D32',
+          }}
+        >
+          <span className="dot" style={{ background: driftInfo ? '#E6A000' : '#2E7D32' }} />
+          <span>{driftInfo ? 'POSSIBLE DISTRACTION' : 'ON TRACK'} &bull; {state.durationMin} MIN</span>
         </div>
-      )}
+        <button className="expand-btn no-drag" onClick={toggleExpand}>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points={isExpanded ? '18,15 12,9 6,15' : '6,9 12,15 18,9'} />
+          </svg>
+        </button>
+      </div>
+
+      {/* Shared timer row */}
+      <div className="top-row">
+        <div className="tomato-avatar">🍅</div>
+        <div className="text-col">
+          <div className="timer-row">
+            <span className="timer-time">{timeStr}</span>
+          </div>
+          <div className="summary-text">{state.intention || displaySummary}</div>
+        </div>
+      </div>
+
+      {/* Shared progress bar */}
+      <div className="progress-wrap">
+        <div className="progress-bar" style={{ width: `${progress}%` }} />
+      </div>
 
       {isExpanded && (
         <div id="expanded" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div className="session-badge">
-              <span className="dot" />
-              <span>POMODORO &bull; {state.durationMin} MIN</span>
-            </div>
-            <button className="expand-btn no-drag" onClick={toggleExpand}>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="18,15 12,9 6,15" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="expanded-header">
-            <div className="expanded-avatar">🍅</div>
-            <div className="header-info">
-              <span className="header-label">SESSION TIMER</span>
-              <span className="header-time">{timeStr}</span>
-            </div>
-          </div>
-
-          <div className="progress-wrap">
-            <div className="progress-bar" style={{ width: `${progress}%` }} />
-          </div>
-
-          <div className="activity-section">
-            <span className="activity-label">INTENTION</span>
-            <div className="activity-text" style={{ fontStyle: 'normal', fontSize: 14, color: '#6B6259' }}>{state.intention}</div>
-          </div>
 
           <div className="activity-section">
             <span className="activity-label">CURRENT ACTIVITY</span>
@@ -213,12 +170,12 @@ export function HudPage() {
             </div>
           </div>
 
-          <div className="hud-controls no-drag">
-            <button className="hud-btn" onClick={() => window.tomato.togglePause()}>
+          <div className="timer-controls no-drag">
+            <button className="timer-btn" onClick={() => window.tomato.togglePause()}>
               {state.paused ? 'Resume' : 'Pause'}
             </button>
             <button
-              className="hud-btn danger"
+              className="timer-btn danger"
               onClick={() => window.tomato.endSession()}
             >
               End session

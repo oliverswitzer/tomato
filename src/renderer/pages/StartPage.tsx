@@ -101,7 +101,6 @@ export function StartPage() {
       <div className="timer-section no-drag">
         <div className="timer-label-row">
           <span className="timer-label">Session length</span>
-          <span className="timer-hint">Classic pomodoro is 25 min</span>
         </div>
         <div className="timer-options">
           {TIMER_OPTIONS.map((opt) => (
@@ -161,20 +160,6 @@ export function StartPage() {
           </span>
           Start {selectedMinutes}-minute session
         </button>
-        <div className="privacy-row">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="m7 11v-4a5 5 0 0 1 10 0v4" />
-          </svg>
-          Screen reading happens on your Mac. Nothing is uploaded.
-        </div>
       </div>
 
       {recentSessions.length > 0 && (
@@ -199,7 +184,7 @@ export function StartPage() {
                     {s.intention}
                   </span>
                   <span className="recent-card-meta">
-                    {s.durationMin} min &middot; {relativeDate(s.endedAt)}
+                    {s.durationMin} min session &middot; {relativeDate(s.endedAt)}
                   </span>
                 </div>
                 {s.focusScore !== undefined && (
