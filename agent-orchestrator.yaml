@@ -5,6 +5,7 @@ defaults:
   workspace: worktree
   notifiers:
     - desktop
+    - discord
 projects:
   tomato:
     name: tomato
@@ -17,3 +18,8 @@ projects:
     tracker:
       plugin: linear
       teamId: "0a4ce72a-2ad7-4404-b7ed-a2f5dec76ad0"
+
+notifiers:
+  discord:
+    plugin: discord
+    webhookUrl: ${DISCORD_WEBHOOK_URL}
