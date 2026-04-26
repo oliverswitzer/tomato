@@ -11,7 +11,7 @@
     "start": "npm run build && electron dist/main/main.js",
     "typecheck": "tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.renderer.json --noEmit",
     "test": "vitest run",
-    "pack": "npm run build && npx electron-rebuild && electron-builder --mac --dir && codesign --sign 'Tomato Dev' --force --identifier com.tomato.pomodoro release/mac-arm64/Tomato.app/Contents/Resources/screenpipe && codesign --sign 'Tomato Dev' --force --identifier com.tomato.pomodoro release/mac-arm64/Tomato.app/Contents/Resources/request-screen-access && codesign --sign 'Tomato Dev' --force --deep release/mac-arm64/Tomato.app",
+    "pack": "npm run build && npx electron-rebuild && electron-builder --mac --dir && bash scripts/sign.sh",
     "dist": "npm run build && npx electron-rebuild && electron-builder --mac"
   },
   "type": "commonjs",

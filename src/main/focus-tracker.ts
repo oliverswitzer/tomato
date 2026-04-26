@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+import { app } from 'electron';
 import type { Activity, PollState, DebugPipelineState } from '../shared/ipc';
 import type { ScreenpipeDb } from './screenpipe-db';
 import type { LlmClient, BatchSummaryResult } from './llm-summarizer';
@@ -5,6 +8,13 @@ import { TimelineBuilder, type TimelineEntry, type ActivityTimeline } from './ti
 
 const DEFAULT_TICK_MS = 15_000;
 const DEFAULT_BATCH_MS = 180_000;
+
+function log(msg: string): void {
+  try {
+    const logPath = path.join(app.getPath('userData'), 'tomato.log');
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] [focus-tracker] ${msg}\n`);
+  } catch {}
+}
 
 export interface FocusTrackerDeps {
   db: ScreenpipeDb;
@@ -90,6 +100,7 @@ export class FocusTracker {
 
     try {
       const timeline = this.timelineBuilder.buildFromDb(this.deps.db, since, until);
+      log(`tick: ${timeline.entries.length} entries, dominant=${timeline.dominantApp}, range=${since} to ${until}`);
 
       const pollState: PollState = {
         timestamp: until,
@@ -101,7 +112,8 @@ export class FocusTracker {
       };
       this.onPollState?.(pollState);
       this.onTimelineUpdate?.(timeline.entries);
-    } catch {
+    } catch (err) {
+      log(`tick error: ${(err as Error).message}`);
       this.onPollState?.({
         timestamp: until,
         activeApp: '',
@@ -119,17 +131,28 @@ export class FocusTracker {
     let timeline: ActivityTimeline;
     try {
       timeline = this.timelineBuilder.buildFromDb(this.deps.db, since, until);
-    } catch {
+      log(`batch: ${timeline.entries.length} entries over ${since} to ${until}`);
+    } catch (err) {
+      log(`batch DB error: ${(err as Error).message}`);
       return;
     }
 
-    if (timeline.entries.length === 0) return;
+    if (timeline.entries.length === 0) {
+      log('batch: no entries, skipping LLM call');
+      return;
+    }
 
     this.pendingLlmCall = true;
+    log(`batch: calling LLM with ${timeline.entries.length} entries, intention="${this.intention}"`);
     const result = await this.deps.llm.batchSummarize(timeline, this.intention);
     this.pendingLlmCall = false;
 
-    if (!result) return;
+    if (!result) {
+      log('batch: LLM returned null');
+      return;
+    }
+
+    log(`batch: summary="${result.summary}", classification=${result.level2Classification}, drifting=${result.driftAssessment.isDrifting}`);
 
     this.lastBatchResult = result;
 
