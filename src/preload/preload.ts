@@ -15,6 +15,10 @@ const api: TomatoApi = {
   getSessionState: () => ipcRenderer.invoke('get-session-state'),
   getRecentSessions: () => ipcRenderer.invoke('get-recent-sessions'),
   getScreenPermission: () => ipcRenderer.invoke('get-screen-permission'),
+  getAccessibilityPermission: () => ipcRenderer.invoke('get-accessibility-permission'),
+  openScreenPermissionSettings: () => ipcRenderer.send('open-screen-permission-settings'),
+  openAccessibilityPermissionSettings: () => ipcRenderer.send('open-accessibility-permission-settings'),
+  permissionsComplete: () => ipcRenderer.send('permissions-complete'),
   capture: () => ipcRenderer.invoke('capture'),
   getDebugPipelineState: () => ipcRenderer.invoke('get-debug-pipeline-state'),
 

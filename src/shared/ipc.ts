@@ -80,6 +80,10 @@ export interface TomatoApi {
   getSessionState(): Promise<SessionStateWithActivities>;
   getRecentSessions(): Promise<SavedSession[]>;
   getScreenPermission(): Promise<boolean>;
+  getAccessibilityPermission(): Promise<boolean>;
+  openScreenPermissionSettings(): void;
+  openAccessibilityPermissionSettings(): void;
+  permissionsComplete(): void;
   capture(): Promise<CaptureResult>;
   getDebugPipelineState(): Promise<DebugPipelineState | null>;
 

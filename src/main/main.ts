@@ -6,7 +6,6 @@ import {
   screen,
   ipcMain,
   nativeImage,
-  dialog,
   shell,
   desktopCapturer,
   systemPreferences,
@@ -130,30 +129,9 @@ function startScreenpipe(): void {
     },
   });
 
-  let permissionPromptShown = false;
-
   const handleScreenpipeOutput = (data: Buffer) => {
     for (const line of data.toString().split('\n').filter(Boolean)) {
       log(`[screenpipe] ${line}`);
-
-      if (!permissionPromptShown && line.includes('waiting') && line.includes('grant access')) {
-        permissionPromptShown = true;
-        // Delay so the macOS system permission dialog appears first
-        setTimeout(() => {
-          dialog.showMessageBox({
-            type: 'info',
-            title: 'Tomato needs screen recording permission',
-            message: 'To track your focus, Tomato needs Screen Recording access.',
-            detail: 'Enable Tomato in System Settings → Privacy & Security → Screen Recording, then restart the session.',
-            buttons: ['Open Settings', 'Later'],
-            defaultId: 0,
-          }).then(({ response }) => {
-            if (response === 0) {
-              shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
-            }
-          });
-        }, 3000);
-      }
     }
   };
 
@@ -255,6 +233,41 @@ function updateTrayMenu(): void {
 }
 
 // --- Windows ---
+
+function showPermissionsWindow(): void {
+  if (startWin) {
+    loadRendererPage(startWin, '/permissions');
+    startWin.show();
+    startWin.focus();
+    return;
+  }
+
+  const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
+  const winWidth = 760;
+  const winHeight = 780;
+
+  startWin = new BrowserWindow({
+    width: winWidth,
+    height: winHeight,
+    x: Math.round((screenWidth - winWidth) / 2),
+    y: 60,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    hasShadow: true,
+    vibrancy: 'under-window',
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: getPreloadPath(),
+    },
+  });
+
+  loadRendererPage(startWin, '/permissions');
+  startWin.on('closed', () => {
+    startWin = null;
+  });
+}
 
 function showStartWindow(): void {
   if (startWin) {
@@ -576,6 +589,26 @@ ipcMain.handle('get-screen-permission', () => {
   return systemPreferences.getMediaAccessStatus('screen') === 'granted';
 });
 
+ipcMain.handle('get-accessibility-permission', () => {
+  return systemPreferences.isTrustedAccessibilityClient(false);
+});
+
+ipcMain.on('open-screen-permission-settings', () => {
+  shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
+});
+
+ipcMain.on('open-accessibility-permission-settings', () => {
+  shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility');
+});
+
+ipcMain.on('permissions-complete', () => {
+  if (startWin) {
+    startWin.close();
+    startWin = null;
+  }
+  showStartWindow();
+});
+
 ipcMain.handle('get-debug-pipeline-state', () => {
   return focusTracker?.getDebugState() ?? null;
 });
@@ -606,18 +639,40 @@ ipcMain.handle('capture', () => {
 
 app.setPath('userData', path.join(app.getPath('appData'), 'tomato'));
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   app.dock?.setIcon(path.join(APP_ROOT, 'assets', 'app-icon.png'));
 
-  // Trigger macOS to register Tomato in Screen Recording permissions list
-  const hasAccess = systemPreferences.getMediaAccessStatus('screen') === 'granted';
-  if (!hasAccess) {
-    desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 1, height: 1 } })
-      .catch(() => {});
+  const screenOk = systemPreferences.getMediaAccessStatus('screen') === 'granted';
+  const a11yOk = systemPreferences.isTrustedAccessibilityClient(false);
+  log(`Permissions check: screen=${screenOk}, accessibility=${a11yOk}`);
+
+  // Request permissions that aren't granted yet.
+  if (!screenOk) {
+    // CGRequestScreenCaptureAccess registers the app in Screen Recording settings
+    const helper = path.join(process.resourcesPath, 'request-screen-access');
+    if (fs.existsSync(helper)) {
+      try { execFileSync(helper, { timeout: 5000 }); } catch {}
+    } else {
+      // Fallback for dev mode
+      const localHelper = path.join(APP_ROOT, 'bin', 'request-screen-access');
+      if (fs.existsSync(localHelper)) {
+        try { execFileSync(localHelper, { timeout: 5000 }); } catch {}
+      } else {
+        await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 1, height: 1 } }).catch(() => {});
+      }
+    }
+  }
+  if (!a11yOk) {
+    systemPreferences.isTrustedAccessibilityClient(true);
   }
 
   createTray();
-  showStartWindow();
+
+  if (screenOk && a11yOk) {
+    showStartWindow();
+  } else {
+    showPermissionsWindow();
+  }
 });
 
 function cleanup(): void {

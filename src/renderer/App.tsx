@@ -2,6 +2,7 @@ import { StartPage } from './pages/StartPage';
 import { HudPage } from './pages/HudPage';
 import { NudgePage } from './pages/NudgePage';
 import { DebugDashboard } from './pages/DebugDashboard';
+import { PermissionsPage } from './pages/PermissionsPage';
 import type { ComponentType } from 'react';
 
 const pages: Record<string, ComponentType> = {
@@ -9,6 +10,7 @@ const pages: Record<string, ComponentType> = {
   '/hud': HudPage,
   '/nudge': NudgePage,
   '/debug': DebugDashboard,
+  '/permissions': PermissionsPage,
 };
 
 export function App() {
