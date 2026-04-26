@@ -6,7 +6,7 @@ import './HudPage.css';
 export function HudPage() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [isDrifting, setIsDrifting] = useState(false);
+  const [driftInfo, setDriftInfo] = useState<{ reason: string; confidence: number; level2Classification: string } | null>(null);
   const [sessionEnded, setSessionEnded] = useState(false);
   const [state, setState] = useState<SessionStateWithActivities>({
     active: false,
@@ -44,8 +44,8 @@ export function HudPage() {
           return next.length > 100 ? next.slice(1) : next;
         });
       }),
-      window.tomato.onDriftDetected(() => {
-        setIsDrifting(true);
+      window.tomato.onDriftDetected((data) => {
+        setDriftInfo(data);
       }),
       window.tomato.onSessionEnded(() => {
         setSessionEnded(true);
@@ -73,7 +73,7 @@ export function HudPage() {
     badgeClass = 'status-badge paused';
     badgeDotColor = '#E65100';
     badgeText = 'Paused';
-  } else if (isDrifting) {
+  } else if (driftInfo) {
     badgeClass = 'status-badge paused';
     badgeDotColor = '#E2574C';
     badgeText = 'Off track';
@@ -95,7 +95,7 @@ export function HudPage() {
                   {badgeText}
                 </span>
               </div>
-              <div className="summary-text">{displaySummary}</div>
+              <div className="summary-text">{state.intention || displaySummary}</div>
             </div>
           </div>
           <div className="divider" />
@@ -155,9 +155,24 @@ export function HudPage() {
           </div>
 
           <div className="activity-section">
+            <span className="activity-label">INTENTION</span>
+            <div className="activity-text" style={{ fontStyle: 'normal', fontSize: 14, color: '#6B6259' }}>{state.intention}</div>
+          </div>
+
+          <div className="activity-section">
             <span className="activity-label">CURRENT ACTIVITY</span>
             <div className="activity-text">{displaySummary}</div>
           </div>
+
+          {driftInfo && (
+            <div className="activity-section" style={{ background: '#FEE4E2', borderRadius: 12, padding: '10px 14px' }}>
+              <span className="activity-label" style={{ color: '#B42318' }}>OFF TRACK</span>
+              <div style={{ fontSize: 13, color: '#2A2A2A', lineHeight: 1.4 }}>{driftInfo.reason}</div>
+              <div style={{ fontSize: 11, color: '#8B8477', marginTop: 4 }}>
+                {driftInfo.level2Classification} &middot; {Math.round(driftInfo.confidence * 100)}% confidence
+              </div>
+            </div>
+          )}
 
           <div className="timeline-section">
             <div className="timeline-header">
@@ -184,7 +199,7 @@ export function HudPage() {
                     <div className="entry-header">
                       <span
                         className="entry-dot"
-                        style={{ background: isDrifting ? '#E2574C' : '#7CB342' }}
+                        style={{ background: driftInfo ? '#E2574C' : '#7CB342' }}
                       />
                       <span className="entry-duration">
                         {formatActivityTime(a.timestamp)}

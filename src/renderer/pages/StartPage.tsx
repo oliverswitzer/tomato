@@ -17,12 +17,13 @@ const CHIPS = [
 ] as const;
 
 const DOT_COLORS = ['#E2574C', '#7CB342', '#F0A020', '#5C6BC0', '#26A69A'];
+const MAX_INTENTION_LENGTH = 250;
 
 export function StartPage() {
   const [intention, setIntention] = useState('');
   const [selectedMinutes, setSelectedMinutes] = useState(25);
   const [recentSessions, setRecentSessions] = useState<SavedSession[]>([]);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     window.tomato.getRecentSessions().then(setRecentSessions);
@@ -54,16 +55,28 @@ export function StartPage() {
       </div>
 
       <div className="input-section no-drag">
-        <input
-          ref={inputRef}
-          className="input-field"
-          type="text"
-          placeholder="e.g. Finish the landing page hero copy"
-          autoFocus
-          value={intention}
-          onChange={(e) => setIntention(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleStart(); }}
-        />
+        <div style={{ position: 'relative', width: '100%' }}>
+          <textarea
+            ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+            className="input-field"
+            placeholder="e.g. Finish the landing page hero copy"
+            autoFocus
+            maxLength={MAX_INTENTION_LENGTH}
+            rows={3}
+            value={intention}
+            onChange={(e) => setIntention(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleStart(); } }}
+          />
+          <span style={{
+            position: 'absolute',
+            right: 16,
+            bottom: 8,
+            fontSize: 11,
+            color: intention.length > MAX_INTENTION_LENGTH - 20 ? '#E2574C' : '#BAA898',
+          }}>
+            {intention.length}/{MAX_INTENTION_LENGTH}
+          </span>
+        </div>
         <div className="chips-label">Or try one:</div>
         <div className="chips-row">
           {CHIPS.map((chip) => (

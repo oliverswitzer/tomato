@@ -74,6 +74,7 @@
   border: 1.5px solid rgba(226, 87, 76, 0.2);
   border-radius: 18px;
   padding: 18px 20px;
+  padding-bottom: 28px;
   font-family: 'Newsreader', Georgia, serif;
   font-size: 18px;
   color: #2A2A2A;
@@ -81,6 +82,8 @@
   width: 100%;
   box-shadow: 0 2px 12px rgba(42, 42, 42, 0.05);
   transition: border-color 0.2s;
+  resize: none;
+  line-height: 1.4;
 }
 .input-field::placeholder { color: #BAA898; }
 .input-field:focus { border-color: rgba(226, 87, 76, 0.5); }
@@ -281,27 +284,34 @@
 .recent-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .recent-card-title {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
   color: #2A2A2A;
+  flex: 1;
+  min-width: 0;
+}
+
+.recent-card-meta {
+  font-size: 11px;
+  color: #8B8477;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .recent-card-title .dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-}
-
-.recent-card-meta {
-  font-size: 11px;
-  color: #8B8477;
+  flex-shrink: 0;
+  margin-top: 5px;
 }
 
 .recent-card-desc {

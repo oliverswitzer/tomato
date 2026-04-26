@@ -83,7 +83,7 @@ export interface TomatoApi {
 
   onSessionState(callback: (state: SessionStateWithActivities) => void): () => void;
   onActivityUpdate(callback: (activity: Activity) => void): () => void;
-  onDriftDetected(callback: (data: { reason: string }) => void): () => void;
+  onDriftDetected(callback: (data: { reason: string; confidence: number; level2Classification: string }) => void): () => void;
   onSessionEnded(callback: () => void): () => void;
   onTimelineUpdate(callback: (entries: TimelineEntryIpc[]) => void): () => void;
 }

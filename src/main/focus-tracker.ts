@@ -28,7 +28,7 @@ export class FocusTracker {
   private clock: () => Date;
 
   onActivity: ((activity: Activity) => void) | null = null;
-  onDrift: ((reason: string) => void) | null = null;
+  onDrift: ((data: { reason: string; confidence: number; level2Classification: string }) => void) | null = null;
   onPollState: ((state: PollState) => void) | null = null;
   onTimelineUpdate: ((entries: TimelineEntry[]) => void) | null = null;
 
@@ -139,7 +139,11 @@ export class FocusTracker {
     this.onActivity?.(activity);
 
     if (result.driftAssessment.isDrifting && result.driftAssessment.confidence >= 0.6) {
-      this.onDrift?.(result.driftAssessment.reason);
+      this.onDrift?.({
+        reason: result.driftAssessment.reason,
+        confidence: result.driftAssessment.confidence,
+        level2Classification: result.level2Classification,
+      });
     }
   }
 

@@ -28,7 +28,7 @@ const api: TomatoApi = {
     return () => { ipcRenderer.removeListener('activity-update', handler); };
   },
   onDriftDetected: (callback) => {
-    const handler = (_e: IpcRendererEvent, data: { reason: string }) => callback(data);
+    const handler = (_e: IpcRendererEvent, data: { reason: string; confidence: number; level2Classification: string }) => callback(data);
     ipcRenderer.on('drift-detected', handler);
     return () => { ipcRenderer.removeListener('drift-detected', handler); };
   },

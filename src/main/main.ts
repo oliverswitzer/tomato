@@ -386,11 +386,11 @@ function startSession(intention: string, durationMin: number): void {
     }
   };
 
-  focusTracker.onDrift = (reason) => {
-    log(`Drift detected: ${reason}`);
+  focusTracker.onDrift = (data) => {
+    log(`Drift detected: ${data.reason} (confidence: ${data.confidence}, classification: ${data.level2Classification})`);
     showNudgeWindow();
     if (hudWin) {
-      hudWin.webContents.send('drift-detected', { reason });
+      hudWin.webContents.send('drift-detected', data);
     }
   };
 
@@ -492,7 +492,7 @@ ipcMain.on('end-session', () => {
 ipcMain.on('hud-resize', (_event, { expanded }: { expanded: boolean }) => {
   if (!hudWin) return;
   const [x, y] = hudWin.getPosition();
-  hudWin.setSize(expanded ? 400 : 360, expanded ? 560 : 180);
+  hudWin.setSize(expanded ? 400 : 360, expanded ? 700 : 180);
   hudWin.setPosition(x, y);
 });
 

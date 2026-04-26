@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+// better-sqlite3 types used only in main.ts where the real DB is constructed
 
 export interface SqliteDatabase {
   prepare(sql: string): { all(...params: unknown[]): unknown[]; get(...params: unknown[]): unknown };

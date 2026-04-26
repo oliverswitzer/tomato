@@ -102,14 +102,16 @@ describe('FocusTracker', () => {
     });
     const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
 
-    const driftReasons: string[] = [];
-    tracker.onDrift = (reason) => driftReasons.push(reason);
+    const driftEvents: { reason: string; confidence: number; level2Classification: string }[] = [];
+    tracker.onDrift = (data) => driftEvents.push(data);
 
     tracker.start('Build focus tracker');
     await vi.advanceTimersByTimeAsync(10000);
 
-    expect(driftReasons).toHaveLength(1);
-    expect(driftReasons[0]).toContain('LinkedIn');
+    expect(driftEvents).toHaveLength(1);
+    expect(driftEvents[0].reason).toContain('LinkedIn');
+    expect(driftEvents[0].confidence).toBe(0.8);
+    expect(driftEvents[0].level2Classification).toBe('Off-task');
 
     tracker.stop();
   });
@@ -123,13 +125,13 @@ describe('FocusTracker', () => {
     });
     const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
 
-    const driftReasons: string[] = [];
-    tracker.onDrift = (reason) => driftReasons.push(reason);
+    const driftEvents: { reason: string }[] = [];
+    tracker.onDrift = (data) => driftEvents.push(data);
 
     tracker.start('test');
     await vi.advanceTimersByTimeAsync(10000);
 
-    expect(driftReasons).toHaveLength(0);
+    expect(driftEvents).toHaveLength(0);
 
     tracker.stop();
   });

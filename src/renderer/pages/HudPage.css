@@ -10,6 +10,17 @@
     0 20px 44px rgba(0, 0, 0, 0.12),
     0 2px 8px rgba(0, 0, 0, 0.06);
   -webkit-app-region: drag;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+#hud::-webkit-scrollbar {
+  width: 4px;
+}
+
+#hud::-webkit-scrollbar-thumb {
+  background: rgba(186, 168, 152, 0.3);
+  border-radius: 2px;
 }
 
 .no-drag { -webkit-app-region: no-drag; }
@@ -236,6 +247,18 @@
   flex-direction: column;
   gap: 10px;
   padding-top: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  -webkit-app-region: no-drag;
+}
+
+.timeline-section::-webkit-scrollbar {
+  width: 4px;
+}
+
+.timeline-section::-webkit-scrollbar-thumb {
+  background: rgba(186, 168, 152, 0.3);
+  border-radius: 2px;
 }
 
 .timeline-header {
