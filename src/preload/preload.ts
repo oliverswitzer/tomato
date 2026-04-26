@@ -14,6 +14,7 @@ const api: TomatoApi = {
 
   getSessionState: () => ipcRenderer.invoke('get-session-state'),
   getRecentSessions: () => ipcRenderer.invoke('get-recent-sessions'),
+  getScreenPermission: () => ipcRenderer.invoke('get-screen-permission'),
   capture: () => ipcRenderer.invoke('capture'),
   getDebugPipelineState: () => ipcRenderer.invoke('get-debug-pipeline-state'),
 

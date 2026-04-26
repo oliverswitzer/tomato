@@ -23,10 +23,16 @@ export function StartPage() {
   const [intention, setIntention] = useState('');
   const [selectedMinutes, setSelectedMinutes] = useState(25);
   const [recentSessions, setRecentSessions] = useState<SavedSession[]>([]);
+  const [hasScreenPermission, setHasScreenPermission] = useState(true);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     window.tomato.getRecentSessions().then(setRecentSessions);
+    window.tomato.getScreenPermission().then(setHasScreenPermission);
+    const interval = setInterval(() => {
+      window.tomato.getScreenPermission().then(setHasScreenPermission);
+    }, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   function handleStart() {
@@ -121,7 +127,26 @@ export function StartPage() {
           gap: 12,
         }}
       >
-        <button className="start-btn" onClick={handleStart}>
+        {!hasScreenPermission && (
+          <div style={{
+            width: '100%',
+            padding: '12px 16px',
+            background: '#FEE4E2',
+            borderRadius: 12,
+            fontSize: 13,
+            color: '#B42318',
+            lineHeight: 1.5,
+          }}>
+            <strong>Screen recording permission required.</strong>
+            {' '}Open System Settings → Privacy & Security → Screen Recording and enable Tomato.
+          </div>
+        )}
+        <button
+          className="start-btn"
+          onClick={handleStart}
+          disabled={!hasScreenPermission}
+          style={!hasScreenPermission ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+        >
           <span className="icon-circle">
             <svg
               viewBox="0 0 24 24"

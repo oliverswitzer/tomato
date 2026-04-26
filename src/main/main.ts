@@ -6,6 +6,10 @@ import {
   screen,
   ipcMain,
   nativeImage,
+  dialog,
+  shell,
+  desktopCapturer,
+  systemPreferences,
 } from 'electron';
 import { spawn, execFileSync, ChildProcess } from 'child_process';
 import path from 'path';
@@ -20,12 +24,19 @@ import { saveSession, getRecentSessions } from './session-store';
 import type { SessionState } from '../shared/ipc';
 
 const APP_ROOT = path.join(__dirname, '..', '..');
-const LOG_FILE = path.join(APP_ROOT, 'tomato.log');
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
+
+function getLogPath(): string {
+  try {
+    return path.join(app.getPath('userData'), 'tomato.log');
+  } catch {
+    return path.join(APP_ROOT, 'tomato.log');
+  }
+}
 
 function log(msg: string): void {
   const line = `[${new Date().toISOString()}] [main] ${msg}\n`;
-  fs.appendFileSync(LOG_FILE, line);
+  fs.appendFileSync(getLogPath(), line);
 }
 
 let tray: Tray | null = null;
@@ -61,6 +72,15 @@ function loadRendererPage(win: BrowserWindow, hash: string): void {
 function resolveScreenpipeBin(): string {
   if (process.env.SCREENPIPE_BIN) return process.env.SCREENPIPE_BIN;
 
+  // Bundled binary inside the app (packaged with electron-builder)
+  const bundled = path.join(process.resourcesPath, 'screenpipe');
+  if (fs.existsSync(bundled)) return bundled;
+
+  // Local dev: check bin/ directory
+  const local = path.join(APP_ROOT, 'bin', 'screenpipe');
+  if (fs.existsSync(local)) return local;
+
+  // Fallback: npm package
   const platform = `${process.platform}-${process.arch}`;
   const pkgMap: Record<string, string> = {
     'darwin-arm64': '@screenpipe/cli-darwin-arm64',
@@ -101,22 +121,44 @@ function startScreenpipe(): void {
 
   log(`Starting screenpipe: ${bin}`);
 
-  screenpipeProc = spawn(bin, ['record'], {
+  screenpipeProc = spawn(bin, ['record', '--disable-audio'], {
     stdio: ['ignore', 'pipe', 'pipe'],
     detached: false,
+    env: {
+      ...process.env,
+      PATH: `${process.resourcesPath}:${process.env.PATH}:/opt/homebrew/bin:/usr/local/bin`,
+    },
   });
 
-  screenpipeProc.stdout?.on('data', (data: Buffer) => {
-    for (const line of data.toString().split('\n').filter(Boolean)) {
-      log(`[screenpipe] ${line}`);
-    }
-  });
+  let permissionPromptShown = false;
 
-  screenpipeProc.stderr?.on('data', (data: Buffer) => {
+  const handleScreenpipeOutput = (data: Buffer) => {
     for (const line of data.toString().split('\n').filter(Boolean)) {
       log(`[screenpipe] ${line}`);
+
+      if (!permissionPromptShown && line.includes('waiting') && line.includes('grant access')) {
+        permissionPromptShown = true;
+        // Delay so the macOS system permission dialog appears first
+        setTimeout(() => {
+          dialog.showMessageBox({
+            type: 'info',
+            title: 'Tomato needs screen recording permission',
+            message: 'To track your focus, Tomato needs Screen Recording access.',
+            detail: 'Enable Tomato in System Settings → Privacy & Security → Screen Recording, then restart the session.',
+            buttons: ['Open Settings', 'Later'],
+            defaultId: 0,
+          }).then(({ response }) => {
+            if (response === 0) {
+              shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
+            }
+          });
+        }, 3000);
+      }
     }
-  });
+  };
+
+  screenpipeProc.stdout?.on('data', handleScreenpipeOutput);
+  screenpipeProc.stderr?.on('data', handleScreenpipeOutput);
 
   screenpipeProc.on('error', (err) => {
     log(`screenpipe failed to start: ${err.message}`);
@@ -221,16 +263,15 @@ function showStartWindow(): void {
     return;
   }
 
-  const { width: screenWidth, height: screenHeight } =
-    screen.getPrimaryDisplay().workAreaSize;
+  const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
   const winWidth = 520;
   const winHeight = 720;
 
   startWin = new BrowserWindow({
     width: winWidth,
     height: winHeight,
-    x: Math.round((screenWidth - winWidth) / 2),
-    y: Math.round((screenHeight - winHeight) / 2),
+    x: screenWidth - winWidth - 40,
+    y: 40,
     frame: false,
     transparent: true,
     resizable: false,
@@ -531,6 +572,10 @@ ipcMain.handle('get-session-state', () => ({
 
 ipcMain.handle('get-recent-sessions', () => getRecentSessions(5));
 
+ipcMain.handle('get-screen-permission', () => {
+  return systemPreferences.getMediaAccessStatus('screen') === 'granted';
+});
+
 ipcMain.handle('get-debug-pipeline-state', () => {
   return focusTracker?.getDebugState() ?? null;
 });
@@ -563,6 +608,14 @@ app.setPath('userData', path.join(app.getPath('appData'), 'tomato'));
 
 app.whenReady().then(() => {
   app.dock?.setIcon(path.join(APP_ROOT, 'assets', 'app-icon.png'));
+
+  // Trigger macOS to register Tomato in Screen Recording permissions list
+  const hasAccess = systemPreferences.getMediaAccessStatus('screen') === 'granted';
+  if (!hasAccess) {
+    desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 1, height: 1 } })
+      .catch(() => {});
+  }
+
   createTray();
   showStartWindow();
 });

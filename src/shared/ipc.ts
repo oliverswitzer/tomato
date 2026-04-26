@@ -79,6 +79,7 @@ export interface TomatoApi {
 
   getSessionState(): Promise<SessionStateWithActivities>;
   getRecentSessions(): Promise<SavedSession[]>;
+  getScreenPermission(): Promise<boolean>;
   capture(): Promise<CaptureResult>;
   getDebugPipelineState(): Promise<DebugPipelineState | null>;
 

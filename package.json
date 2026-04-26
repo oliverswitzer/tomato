@@ -10,14 +10,15 @@
     "build": "npm run build:main && npm run build:renderer",
     "start": "npm run build && electron dist/main/main.js",
     "typecheck": "tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.renderer.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "pack": "npm run build && npx electron-rebuild && electron-builder --mac --dir && codesign --sign - --force --identifier com.tomato.pomodoro release/mac-arm64/Tomato.app/Contents/Resources/screenpipe && codesign --sign - --force --deep release/mac-arm64/Tomato.app",
+    "dist": "npm run build && npx electron-rebuild && electron-builder --mac"
   },
   "type": "commonjs",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
     "@types/better-sqlite3": "^7.6.13",
     "better-sqlite3": "^12.9.0",
-    "electron": "^41.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "screenpipe": "^0.3.289"
@@ -28,9 +29,57 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^4.4.0",
+    "electron": "^41.3.0",
+    "electron-builder": "^26.8.1",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.8.0",
     "vite": "^6.3.0",
     "vitest": "^3.1.0"
+  },
+  "build": {
+    "appId": "com.tomato.pomodoro",
+    "productName": "Tomato",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "assets/**/*"
+    ],
+    "asarUnpack": [
+      "**/better-sqlite3/**"
+    ],
+    "nodeGypRebuild": false,
+    "buildDependenciesFromSource": false,
+    "extraResources": [
+      {
+        "from": "bin/screenpipe",
+        "to": "screenpipe"
+      },
+      {
+        "from": "bin/ffmpeg",
+        "to": "ffmpeg"
+      },
+      {
+        "from": "bin/ffprobe",
+        "to": "ffprobe"
+      }
+    ],
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.productivity",
+      "icon": "assets/app-icon.png",
+      "identity": null,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "dmg": {
+      "title": "Tomato",
+      "iconSize": 128,
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ]
+    }
   }
 }
