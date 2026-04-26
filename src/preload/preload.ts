@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import type { TomatoApi, SessionStateWithActivities, Activity } from '../shared/ipc';
+import type { TomatoApi, SessionStateWithActivities, Activity, TimelineEntryIpc } from '../shared/ipc';
 
 const api: TomatoApi = {
   startSession: (intention, durationMin) =>
@@ -15,6 +15,7 @@ const api: TomatoApi = {
   getSessionState: () => ipcRenderer.invoke('get-session-state'),
   getRecentSessions: () => ipcRenderer.invoke('get-recent-sessions'),
   capture: () => ipcRenderer.invoke('capture'),
+  getDebugPipelineState: () => ipcRenderer.invoke('get-debug-pipeline-state'),
 
   onSessionState: (callback) => {
     const handler = (_e: IpcRendererEvent, state: SessionStateWithActivities) => callback(state);
@@ -35,6 +36,11 @@ const api: TomatoApi = {
     const handler = () => callback();
     ipcRenderer.on('session-ended', handler);
     return () => { ipcRenderer.removeListener('session-ended', handler); };
+  },
+  onTimelineUpdate: (callback) => {
+    const handler = (_e: IpcRendererEvent, entries: TimelineEntryIpc[]) => callback(entries);
+    ipcRenderer.on('timeline-update', handler);
+    return () => { ipcRenderer.removeListener('timeline-update', handler); };
   },
 };
 

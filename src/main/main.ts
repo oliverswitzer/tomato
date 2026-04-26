@@ -9,10 +9,15 @@ import {
 } from 'electron';
 import { spawn, execFileSync, ChildProcess } from 'child_process';
 import path from 'path';
+import os from 'os';
 import fs from 'fs';
+import Anthropic from '@anthropic-ai/sdk';
 import { FocusTracker } from './focus-tracker';
+import Database from 'better-sqlite3';
+import { SqliteScreenpipeDb } from './screenpipe-db';
+import { AnthropicLlmClient } from './llm-summarizer';
 import { saveSession, getRecentSessions } from './session-store';
-import type { SessionState, KeystrokeChunk } from '../shared/ipc';
+import type { SessionState } from '../shared/ipc';
 
 const APP_ROOT = path.join(__dirname, '..', '..');
 const LOG_FILE = path.join(APP_ROOT, 'tomato.log');
@@ -28,8 +33,8 @@ let startWin: BrowserWindow | null = null;
 let hudWin: BrowserWindow | null = null;
 let nudgeWin: BrowserWindow | null = null;
 let screenpipeProc: ChildProcess | null = null;
-let keylistenerProc: ChildProcess | null = null;
 let focusTracker: FocusTracker | null = null;
+let db: import('./screenpipe-db').ScreenpipeDb | null = null;
 
 let sessionState: SessionState = {
   active: false,
@@ -135,61 +140,6 @@ function stopScreenpipe(): void {
   screenpipeProc = null;
 }
 
-// --- Keylistener ---
-
-function startKeylistener(): void {
-  const bin = path.join(APP_ROOT, 'keylistener');
-  if (!fs.existsSync(bin)) {
-    log('Keylistener binary not found — skipping keystroke capture');
-    return;
-  }
-
-  log(`Starting keylistener: ${bin}`);
-
-  keylistenerProc = spawn(bin, [], {
-    stdio: ['ignore', 'pipe', 'pipe'],
-    detached: false,
-  });
-
-  keylistenerProc.stdout?.on('data', (data: Buffer) => {
-    for (const line of data.toString().split('\n').filter(Boolean)) {
-      try {
-        const chunk = JSON.parse(line) as KeystrokeChunk;
-        if (chunk.type === 'keystroke_chunk' && focusTracker) {
-          focusTracker.addKeystrokeChunk(chunk);
-        }
-      } catch {
-        log(`[keylistener] ${line}`);
-      }
-    }
-  });
-
-  keylistenerProc.stderr?.on('data', (data: Buffer) => {
-    log(`[keylistener] ${data.toString().trim()}`);
-  });
-
-  keylistenerProc.on('error', (err) => {
-    log(`keylistener failed to start: ${err.message}`);
-    keylistenerProc = null;
-  });
-
-  keylistenerProc.on('exit', (code) => {
-    log(`keylistener exited (code=${code})`);
-    keylistenerProc = null;
-  });
-}
-
-function stopKeylistener(): void {
-  if (!keylistenerProc) return;
-  log('Stopping keylistener');
-  try {
-    keylistenerProc.kill('SIGTERM');
-  } catch {
-    // already dead
-  }
-  keylistenerProc = null;
-}
-
 // --- Tray ---
 
 function createTrayIcon(): Electron.NativeImage {
@@ -245,6 +195,13 @@ function updateTrayMenu(): void {
       label: 'Start a session...',
       click: () => showStartWindow(),
     });
+  }
+
+  if (VITE_DEV_SERVER_URL) {
+    template.push(
+      { type: 'separator' },
+      { label: 'Debug Dashboard', click: () => showDebugWindow() },
+    );
   }
 
   template.push(
@@ -326,6 +283,32 @@ function showHudWindow(): void {
   });
 }
 
+let debugWin: BrowserWindow | null = null;
+
+function showDebugWindow(): void {
+  if (debugWin) {
+    debugWin.show();
+    debugWin.focus();
+    return;
+  }
+
+  debugWin = new BrowserWindow({
+    width: 700,
+    height: 800,
+    title: 'Debug Dashboard',
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: getPreloadPath(),
+    },
+  });
+
+  loadRendererPage(debugWin, '/debug');
+  debugWin.on('closed', () => {
+    debugWin = null;
+  });
+}
+
 function showNudgeWindow(): void {
   if (nudgeWin) {
     nudgeWin.show();
@@ -383,10 +366,19 @@ function startSession(intention: string, durationMin: number): void {
   updateTrayMenu();
 
   startScreenpipe();
-  startKeylistener();
 
-  focusTracker = new FocusTracker();
-  focusTracker.apiKey = process.env.SCREENPIPE_API_KEY || '';
+  const dbPath = path.join(os.homedir(), '.screenpipe', 'db.sqlite');
+  try {
+    db = new SqliteScreenpipeDb(new Database(dbPath, { readonly: true }));
+    log(`Opened screenpipe DB: ${dbPath}`);
+  } catch (err) {
+    log(`Failed to open screenpipe DB: ${(err as Error).message}`);
+  }
+
+  const llm = new AnthropicLlmClient(
+    new Anthropic({ dangerouslyAllowBrowser: true }),
+  );
+  focusTracker = new FocusTracker({ db: db!, llm });
 
   focusTracker.onActivity = (activity) => {
     if (hudWin) {
@@ -402,7 +394,13 @@ function startSession(intention: string, durationMin: number): void {
     }
   };
 
-  focusTracker.start(intention, durationMin);
+  focusTracker.onTimelineUpdate = (entries) => {
+    if (hudWin) {
+      hudWin.webContents.send('timeline-update', entries);
+    }
+  };
+
+  focusTracker.start(intention);
 
   timerInterval = setInterval(() => {
     if (sessionState.paused) return;
@@ -446,8 +444,12 @@ function endSession(): void {
     focusTracker = null;
   }
 
+  if (db) {
+    db.close();
+    db = null;
+  }
+
   stopScreenpipe();
-  stopKeylistener();
 
   updateTrayMenu();
 
@@ -524,50 +526,29 @@ ipcMain.handle('get-session-state', () => ({
 
 ipcMain.handle('get-recent-sessions', () => getRecentSessions(5));
 
-ipcMain.handle('capture', async () => {
-  const SCREENPIPE_API = 'http://localhost:3030';
-  const params = new URLSearchParams({
-    q: '',
-    content_type: 'ocr',
-    limit: '3',
-  });
+ipcMain.handle('get-debug-pipeline-state', () => {
+  return focusTracker?.getDebugState() ?? null;
+});
 
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  const apiKey = process.env.SCREENPIPE_API_KEY;
-  if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
-
+ipcMain.handle('capture', () => {
+  if (!db) return { error: 'No active session / DB not connected' };
   try {
-    const res = await fetch(`${SCREENPIPE_API}/search?${params}`, { headers });
-    if (!res.ok) {
-      return { error: `Screenpipe API returned ${res.status}: ${res.statusText}` };
-    }
-    const data = await res.json() as {
-      data?: Array<{
-        content: {
-          app_name: string;
-          window_name: string;
-          text: string;
-          timestamp: string;
-          focused: boolean;
-        };
-      }>;
+    const frames = db.getFrames(
+      new Date(Date.now() - 30_000).toISOString(),
+      new Date().toISOString(),
+      3,
+    );
+    return {
+      frames: frames.map((f) => ({
+        app: f.app_name,
+        window: f.window_name,
+        text: '',
+        timestamp: f.timestamp,
+        focused: f.focused ?? false,
+      })),
     };
-
-    if (!data.data || data.data.length === 0) {
-      return { error: 'No recent captures found. Is screenpipe running?' };
-    }
-
-    const frames = data.data.map((d) => ({
-      app: d.content.app_name,
-      window: d.content.window_name,
-      text: d.content.text,
-      timestamp: d.content.timestamp,
-      focused: d.content.focused,
-    }));
-
-    return { frames };
   } catch (err) {
-    return { error: `Failed to reach screenpipe: ${(err as Error).message}` };
+    return { error: `DB query failed: ${(err as Error).message}` };
   }
 });
 
@@ -581,13 +562,16 @@ app.whenReady().then(() => {
 
 function cleanup(): void {
   stopScreenpipe();
-  stopKeylistener();
   if (focusTracker) focusTracker.stop();
+  if (db) {
+    db.close();
+    db = null;
+  }
 }
 
 app.on('before-quit', cleanup);
 app.on('window-all-closed', () => {
-  // Prevent app from quitting when all windows are closed (tray app)
+  // tray app — don't quit on window close
 });
 
 process.on('SIGTERM', () => {
