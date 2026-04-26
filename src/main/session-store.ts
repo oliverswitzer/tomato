@@ -23,10 +23,14 @@ export function saveSession({
   intention,
   durationMin,
   activities,
+  summary,
+  focusScore,
 }: {
   intention: string;
   durationMin: number;
   activities: Activity[];
+  summary?: string;
+  focusScore?: number;
 }): void {
   const sessions = readSessions();
   sessions.push({
@@ -35,10 +39,8 @@ export function saveSession({
     startedAt: new Date(Date.now() - durationMin * 60_000).toISOString(),
     endedAt: new Date().toISOString(),
     activityCount: activities.length,
-    summary:
-      activities.length > 0
-        ? activities[activities.length - 1].summary
-        : '',
+    summary: summary ?? (activities.length > 0 ? activities[activities.length - 1].summary : ''),
+    focusScore,
   });
 
   if (sessions.length > 50) sessions.splice(0, sessions.length - 50);

@@ -426,7 +426,7 @@ function togglePause(): void {
   updateTrayMenu();
 }
 
-function endSession(): void {
+async function endSession(): Promise<void> {
   sessionState.active = false;
   sessionState.paused = false;
   if (timerInterval) {
@@ -435,10 +435,15 @@ function endSession(): void {
   }
 
   if (focusTracker) {
+    const activities = focusTracker.getActivities();
+    const sessionSummary = await focusTracker.summarizeSession(sessionState.durationMin);
+
     saveSession({
       intention: sessionState.intention,
       durationMin: sessionState.durationMin,
-      activities: focusTracker.getActivities(),
+      activities,
+      summary: sessionSummary?.summary,
+      focusScore: sessionSummary?.focusScore,
     });
     focusTracker.stop();
     focusTracker = null;

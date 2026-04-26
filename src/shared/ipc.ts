@@ -23,6 +23,7 @@ export interface SavedSession {
   endedAt: string;
   activityCount: number;
   summary: string;
+  focusScore?: number;
 }
 
 export interface ScreenpipeFrame {

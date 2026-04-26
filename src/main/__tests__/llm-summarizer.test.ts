@@ -143,4 +143,52 @@ describe('AnthropicLlmClient', () => {
       expect(result!.summary).toContain('Edited TypeScript');
     });
   });
+
+  describe('summarizeSession', () => {
+    const sessionResponse = JSON.stringify({
+      summary: 'Wrote TypeScript code in Cursor for the focus tracker, then briefly checked Messages.',
+      focusScore: 78,
+    });
+
+    const activities = [
+      { summary: 'Editing focus-tracker.ts', timestamp: '2026-04-25T10:00:00Z', apps: ['Cursor'] },
+      { summary: 'Texting in Messages', timestamp: '2026-04-25T10:05:00Z', apps: ['Messages'] },
+      { summary: 'Back to coding', timestamp: '2026-04-25T10:07:00Z', apps: ['Cursor'] },
+    ];
+
+    it('returns summary and focus score', async () => {
+      const client = new AnthropicLlmClient(makeMockAnthropic(sessionResponse));
+      const result = await client.summarizeSession('Build focus tracker', activities, 25);
+
+      expect(result).not.toBeNull();
+      expect(result!.summary).toContain('TypeScript');
+      expect(result!.focusScore).toBe(78);
+    });
+
+    it('clamps focus score to 0-100', async () => {
+      const client = new AnthropicLlmClient(
+        makeMockAnthropic(JSON.stringify({ summary: 'test', focusScore: 150 })),
+      );
+      const result = await client.summarizeSession('test', activities, 25);
+      expect(result!.focusScore).toBe(100);
+    });
+
+    it('returns null on API failure', async () => {
+      const anthropic = { messages: { create: vi.fn().mockRejectedValue(new Error('fail')) } } as any;
+      const client = new AnthropicLlmClient(anthropic);
+      const result = await client.summarizeSession('test', activities, 25);
+      expect(result).toBeNull();
+    });
+
+    it('prompt contains intention and activity log', async () => {
+      const anthropic = makeMockAnthropic(sessionResponse);
+      const client = new AnthropicLlmClient(anthropic);
+      await client.summarizeSession('Build focus tracker', activities, 25);
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).toContain('Build focus tracker');
+      expect(prompt).toContain('Editing focus-tracker.ts');
+      expect(prompt).toContain('25 minutes');
+    });
+  });
 });

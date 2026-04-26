@@ -11,11 +11,21 @@ export interface BatchSummaryResult {
   };
 }
 
+export interface SessionSummaryResult {
+  summary: string;
+  focusScore: number;
+}
+
 export interface LlmClient {
   batchSummarize(
     timeline: ActivityTimeline,
     intention: string,
   ): Promise<BatchSummaryResult | null>;
+  summarizeSession(
+    intention: string,
+    activities: { summary: string; timestamp: string; apps: string[] }[],
+    durationMin: number,
+  ): Promise<SessionSummaryResult | null>;
   getLastPrompt(): string | null;
 }
 
@@ -115,6 +125,67 @@ Analyze the activity and respond with EXACTLY this JSON (no other text):
           confidence: Number(parsed.driftAssessment.confidence) || 0,
           reason: String(parsed.driftAssessment.reason || ''),
         },
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  async summarizeSession(
+    intention: string,
+    activities: { summary: string; timestamp: string; apps: string[] }[],
+    durationMin: number,
+  ): Promise<SessionSummaryResult | null> {
+    const activityLog = activities.length > 0
+      ? activities
+          .map((a) => {
+            const time = a.timestamp.slice(11, 19);
+            return `[${time}] ${a.summary} (${a.apps.join(', ')})`;
+          })
+          .join('\n')
+      : 'No activity was recorded.';
+
+    const prompt = `You are summarizing a completed pomodoro focus session.
+
+## Session intention
+"${intention}"
+
+## Duration
+${durationMin} minutes
+
+## Activity log (${activities.length} entries)
+${activityLog}
+
+## Instructions
+Respond with EXACTLY this JSON (no other text):
+{
+  "summary": "2-3 sentence summary of what the user accomplished during the entire session. Be specific about apps, files, and tasks.",
+  "focusScore": 0 to 100 integer representing how focused the session was. 100 = perfectly on task the whole time, 0 = completely off task. Consider: did the activity relate to the intention? How much time was spent on-task vs off-task?
+}`;
+
+    this.lastPrompt = prompt;
+
+    try {
+      const res = await this.anthropic.messages.create({
+        model: 'claude-haiku-4-5',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: prompt }],
+      });
+
+      const block = res.content.find((b) => b.type === 'text');
+      if (!block || block.type !== 'text') return null;
+
+      const jsonMatch = block.text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) return null;
+
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (typeof parsed.summary !== 'string' || typeof parsed.focusScore !== 'number') {
+        return null;
+      }
+
+      return {
+        summary: parsed.summary,
+        focusScore: Math.max(0, Math.min(100, Math.round(parsed.focusScore))),
       };
     } catch {
       return null;

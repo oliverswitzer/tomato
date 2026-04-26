@@ -177,6 +177,31 @@ export function StartPage() {
                     {s.durationMin} min &middot; {relativeDate(s.endedAt)}
                   </span>
                 </div>
+                {s.focusScore !== undefined && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}>
+                    <div style={{
+                      flex: 1,
+                      height: 4,
+                      background: '#F0EAE2',
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                    }}>
+                      <div style={{
+                        width: `${s.focusScore}%`,
+                        height: '100%',
+                        background: s.focusScore >= 70 ? '#7CB342' : s.focusScore >= 40 ? '#F0A020' : '#E2574C',
+                        borderRadius: 2,
+                      }} />
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#8B8477' }}>
+                      {s.focusScore}%
+                    </span>
+                  </div>
+                )}
                 {s.summary && (
                   <div className="recent-card-desc">{s.summary}</div>
                 )}

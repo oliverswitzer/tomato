@@ -63,6 +63,10 @@ export class FocusTracker {
     return [...this.activities];
   }
 
+  async summarizeSession(durationMin: number): Promise<{ summary: string; focusScore: number } | null> {
+    return this.deps.llm.summarizeSession(this.intention, this.activities, durationMin);
+  }
+
   getDebugState(): DebugPipelineState {
     return {
       currentPollState: this.getLatestPollState(),
