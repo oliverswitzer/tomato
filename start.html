@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: transparent;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #window {
+      background: #FBF7F1;
+      border-radius: 24px;
+      padding: 36px 48px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 22px;
+      height: 100vh;
+      overflow-y: auto;
+      -webkit-app-region: drag;
+    }
+
+    #window::-webkit-scrollbar { width: 0; }
+
+    .no-drag { -webkit-app-region: no-drag; }
+
+    .close-btn {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #E2574C;
+      border: none;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.15s;
+    }
+    .close-btn:hover { opacity: 1; }
+
+    .tomato-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      filter: drop-shadow(0 4px 12px rgba(226, 87, 76, 0.15));
+    }
+
+    .headline-section {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .headline {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 32px;
+      font-weight: 500;
+      color: #2A2A2A;
+      letter-spacing: -0.4px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #8B8477;
+      font-weight: 400;
+    }
+
+    .input-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .input-field {
+      background: #FFFFFF;
+      border: 1.5px solid rgba(226, 87, 76, 0.2);
+      border-radius: 18px;
+      padding: 18px 20px;
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 18px;
+      color: #2A2A2A;
+      outline: none;
+      width: 100%;
+      box-shadow: 0 2px 12px rgba(42, 42, 42, 0.05);
+      transition: border-color 0.2s;
+    }
+    .input-field::placeholder { color: #BAA898; }
+    .input-field:focus { border-color: rgba(226, 87, 76, 0.5); }
+
+    .chips-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #8B8477;
+    }
+
+    .chips-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      background: #FFFFFF;
+      border: 1px solid #EFE8DD;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #2A2A2A;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .chip:hover {
+      background: #F7F2EA;
+      border-color: #E2574C33;
+    }
+    .chip .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .timer-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .timer-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .timer-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #2A2A2A;
+    }
+
+    .timer-hint {
+      font-size: 12px;
+      color: #8B8477;
+    }
+
+    .timer-options {
+      display: flex;
+      gap: 10px;
+    }
+
+    .timer-option {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 14px 12px;
+      border-radius: 14px;
+      background: #FFFFFF;
+      border: 1px solid #EFE8DD;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .timer-option:hover {
+      border-color: #E2574C66;
+    }
+    .timer-option.selected {
+      background: #E2574C;
+      border-color: #E2574C;
+      box-shadow: 0 4px 14px rgba(226, 87, 76, 0.25);
+    }
+    .timer-option .num {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 24px;
+      font-weight: 500;
+      color: #2A2A2A;
+    }
+    .timer-option.selected .num { color: #FFFFFF; }
+    .timer-option .label {
+      font-size: 11px;
+      font-weight: 500;
+      color: #8B8477;
+    }
+    .timer-option.selected .label {
+      color: #FBE5E3;
+      font-weight: 600;
+    }
+
+    .start-btn {
+      width: 100%;
+      padding: 16px 24px;
+      background: #E2574C;
+      border: none;
+      border-radius: 16px;
+      color: #FFFFFF;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(226, 87, 76, 0.3);
+      transition: all 0.2s;
+    }
+    .start-btn:hover {
+      background: #D04A3F;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 28px rgba(226, 87, 76, 0.4);
+    }
+    .start-btn:active {
+      transform: translateY(0);
+    }
+
+    .start-btn .icon-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 11px;
+      background: rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .start-btn .icon-circle svg {
+      width: 10px;
+      height: 10px;
+    }
+
+    .privacy-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #8B8477;
+    }
+
+    .privacy-row svg {
+      width: 12px;
+      height: 12px;
+      opacity: 0.7;
+    }
+
+    .recent-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .recent-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .recent-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #2A2A2A;
+    }
+
+    .recent-date {
+      font-size: 11px;
+      color: #8B8477;
+    }
+
+    .recent-card {
+      background: #FFFFFF;
+      border: 1px solid #EFE8DD;
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .recent-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .recent-card-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #2A2A2A;
+    }
+
+    .recent-card-title .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .recent-card-meta {
+      font-size: 11px;
+      color: #8B8477;
+    }
+
+    .recent-card-desc {
+      font-size: 12px;
+      color: #6B6259;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div id="window">
+    <button class="close-btn no-drag" onclick="closeWindow()"></button>
+
+    <div class="tomato-icon">🍅</div>
+
+    <div class="headline-section">
+      <div class="headline">What are you working on?</div>
+      <div class="subtitle">Set an intention for this session — it helps us keep you on track.</div>
+    </div>
+
+    <div class="input-section no-drag">
+      <input class="input-field" id="intention-input" type="text" placeholder="e.g. Finish the landing page hero copy" autofocus>
+      <div class="chips-label">Or try one:</div>
+      <div class="chips-row">
+        <div class="chip" onclick="selectChip(this)">
+          <span class="dot" style="background: #7CB342"></span>
+          Writing documentation
+        </div>
+        <div class="chip" onclick="selectChip(this)">
+          <span class="dot" style="background: #E2574C"></span>
+          Debugging auth flow
+        </div>
+        <div class="chip" onclick="selectChip(this)">
+          <span class="dot" style="background: #F0A020"></span>
+          Drafting cold email
+        </div>
+      </div>
+    </div>
+
+    <div class="timer-section no-drag">
+      <div class="timer-label-row">
+        <span class="timer-label">Session length</span>
+        <span class="timer-hint">Classic pomodoro is 25 min</span>
+      </div>
+      <div class="timer-options">
+        <div class="timer-option" data-min="15" onclick="selectTimer(this)">
+          <span class="num">15</span>
+          <span class="label">quick</span>
+        </div>
+        <div class="timer-option selected" data-min="25" onclick="selectTimer(this)">
+          <span class="num">25</span>
+          <span class="label">classic</span>
+        </div>
+        <div class="timer-option" data-min="45" onclick="selectTimer(this)">
+          <span class="num">45</span>
+          <span class="label">focus</span>
+        </div>
+        <div class="timer-option" data-min="60" onclick="selectTimer(this)">
+          <span class="num">60</span>
+          <span class="label">deep</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px;" class="no-drag">
+      <button class="start-btn" id="start-btn" onclick="startSession()">
+        <span class="icon-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5,3 19,12 5,21"></polygon>
+          </svg>
+        </span>
+        Start 25-minute session
+      </button>
+      <div class="privacy-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="m7 11v-4a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        Screen reading happens on your Mac. Nothing is uploaded.
+      </div>
+    </div>
+
+    <div class="recent-section no-drag" id="recent-section" style="display: none;">
+      <div class="recent-header">
+        <span class="recent-title">Recent sessions</span>
+        <span class="recent-date" id="recent-date"></span>
+      </div>
+      <div id="recent-cards"></div>
+    </div>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    let selectedMinutes = 25;
+
+    function selectTimer(el) {
+      document.querySelectorAll('.timer-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedMinutes = parseInt(el.dataset.min);
+      document.getElementById('start-btn').textContent = '';
+      document.getElementById('start-btn').innerHTML = `
+        <span class="icon-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5,3 19,12 5,21"></polygon>
+          </svg>
+        </span>
+        Start ${selectedMinutes}-minute session
+      `;
+    }
+
+    function selectChip(el) {
+      const text = el.textContent.trim();
+      document.getElementById('intention-input').value = text;
+    }
+
+    function startSession() {
+      const intention = document.getElementById('intention-input').value.trim();
+      if (!intention) {
+        document.getElementById('intention-input').focus();
+        document.getElementById('intention-input').style.borderColor = 'rgba(226, 87, 76, 0.6)';
+        return;
+      }
+      ipcRenderer.send('start-session', { intention, durationMin: selectedMinutes });
+    }
+
+    function closeWindow() {
+      ipcRenderer.send('close-start');
+    }
+
+    document.getElementById('intention-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') startSession();
+    });
+
+    function relativeDate(iso) {
+      const diff = Date.now() - new Date(iso).getTime();
+      const mins = Math.floor(diff / 60_000);
+      if (mins < 60) return `${mins} min ago`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days === 1) return 'yesterday';
+      if (days < 7) return `${days} days ago`;
+      return new Date(iso).toLocaleDateString();
+    }
+
+    const dotColors = ['#E2574C', '#7CB342', '#F0A020', '#5C6BC0', '#26A69A'];
+
+    async function loadRecentSessions() {
+      const sessions = await ipcRenderer.invoke('get-recent-sessions');
+      if (!sessions || sessions.length === 0) return;
+
+      const section = document.getElementById('recent-section');
+      const cards = document.getElementById('recent-cards');
+      const dateLabel = document.getElementById('recent-date');
+
+      section.style.display = 'flex';
+      dateLabel.textContent = 'This week';
+
+      cards.innerHTML = sessions.map((s, i) => `
+        <div class="recent-card" onclick="selectChip(this)" style="cursor: pointer;">
+          <div class="recent-card-header">
+            <span class="recent-card-title">
+              <span class="dot" style="background: ${dotColors[i % dotColors.length]}"></span>
+              ${s.intention}
+            </span>
+            <span class="recent-card-meta">${s.durationMin} min &middot; ${relativeDate(s.endedAt)}</span>
+          </div>
+          ${s.summary ? `<div class="recent-card-desc">${s.summary}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    loadRecentSessions();
+  </script>
+</body>
+</html>

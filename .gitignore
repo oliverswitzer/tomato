@@ -1,0 +1,6 @@
+node_modules/
+dist/
+release/
+bin/
+tmp-prompt.txt
+*.log
