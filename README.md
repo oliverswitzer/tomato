@@ -22,7 +22,6 @@ At the end of the session, the LLM summarizes what you accomplished and gives a 
 ## Setup
 
 ```bash
-cd pomodoro
 npm install
 
 # Copy the patched screenpipe binary
