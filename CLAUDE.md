@@ -88,3 +88,7 @@ Key modules:
 - `timeline-builder.ts` — assembles timeline, collapses consecutive typing in same app/window
 - `llm-summarizer.ts` — batch summarization + session summary with focus score
 - `focus-tracker.ts` — orchestrator with two timers
+
+## Design references
+
+`*.pen` files are [Pencil](https://pencil.dev/) design documents — a design tool for creating UI mockups and prototypes. When asked to reference designs in a `*.pen` file, always use the `/frontend-design` skill to guide implementation. These files contain design specs that require pixel-perfect, production-grade frontend work.
