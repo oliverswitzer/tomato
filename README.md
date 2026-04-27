@@ -2,6 +2,12 @@
 
 Pomodoro timer for macOS with screen-reading focus tracking. Uses [screenpipe](https://github.com/screenpipe/screenpipe) to observe what you're doing and an LLM to detect when you drift from your intention.
 
+## Download
+
+[**Download Tomato.dmg**](https://github.com/oliverswitzer/tomato/releases/latest/download/Tomato.dmg) — macOS Apple Silicon only.
+
+**How to install (unsigned app):** Open the DMG, drag Tomato to Applications, then right-click the app → Open → Open. macOS requires this extra step for apps downloaded outside the App Store.
+
 ## How it works
 
 1. Set an intention ("Ship the pricing page rewrite") and a timer (15/25/45/60 min)
