@@ -45,31 +45,32 @@ jobs:
       - name: Build app
         run: npm run build
 
-      - name: Build unsigned DMG
+      - name: Package app
         run: |
           npx electron-rebuild
-          CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --publish never
+          CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --dir --publish never
+
+      - name: Ad-hoc sign app
+        run: codesign --sign - --force --deep release/mac-arm64/Tomato.app
+
+      - name: Create DMG
+        run: hdiutil create -volname "Tomato" -srcfolder release/mac-arm64/Tomato.app -ov -format UDZO release/Tomato.dmg
 
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
           name: tomato-dmg
-          path: release/*.dmg
+          path: release/Tomato.dmg
           if-no-files-found: error
 
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          DMG_PATH=$(ls release/*.dmg | head -1)
-          DMG_NAME=$(basename "$DMG_PATH")
-
           # Delete existing 'latest' release if present
           gh release delete latest --yes 2>/dev/null || true
           git push --delete origin latest 2>/dev/null || true
 
-          # Create new release with the DMG renamed to Tomato.dmg
-          cp "$DMG_PATH" release/Tomato.dmg
           gh release create latest \
             --title "Tomato (latest build)" \
             --notes "${{ github.event.inputs.release_notes }}" \
