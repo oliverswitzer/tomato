@@ -28,7 +28,15 @@ vite.stdout.on('data', (data) => {
       env: { ...process.env, VITE_DEV_SERVER_URL: 'http://localhost:5173' },
     });
 
+    const logPath = path.join(
+      process.env.HOME || process.env.USERPROFILE || '.',
+      'Library', 'Application Support', 'tomato', 'tomato.log'
+    );
+    console.log(`\nTailing ${logPath}...\n`);
+    const tail = spawn('tail', ['-f', logPath], { stdio: 'inherit' });
+
     electron.on('close', () => {
+      tail.kill();
       vite.kill();
       process.exit();
     });
