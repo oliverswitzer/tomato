@@ -33,7 +33,7 @@ export interface LlmClient {
 export class AnthropicLlmClient implements LlmClient {
   private lastPrompt: string | null = null;
 
-  constructor(private anthropic: Anthropic) {}
+  constructor(private anthropic: Anthropic, private model: string = 'claude-haiku-4-5') {}
 
   async batchSummarize(
     timeline: ActivityTimeline,
@@ -45,7 +45,7 @@ export class AnthropicLlmClient implements LlmClient {
 
     try {
       const res = await this.anthropic.messages.create({
-        model: 'claude-haiku-4-5',
+        model: this.model,
         max_tokens: 300,
         messages: [{ role: 'user', content: prompt }],
       });
@@ -176,7 +176,7 @@ Respond with EXACTLY this JSON (no other text):
 
     try {
       const res = await this.anthropic.messages.create({
-        model: 'claude-haiku-4-5',
+        model: this.model,
         max_tokens: 300,
         messages: [{ role: 'user', content: prompt }],
       });
