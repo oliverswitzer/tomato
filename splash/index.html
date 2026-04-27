@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tomato — The Smartest Pomodoro on Your Mac</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --cream: #FAF4E8;
+      --cream-light: #FFFBF1;
+      --cream-warm: #FFFAF0;
+      --brown-dark: #2B2620;
+      --brown-body: #6F665B;
+      --brown-muted: #9C9286;
+      --brown-border: rgba(43, 38, 32, 0.12);
+      --red: #D85440;
+      --red-light: #E86A52;
+      --red-pink: #F8E0D8;
+      --red-blush: #FFEDE6;
+      --pill-bg: #F5EFE0;
+      --green: #4FB37A;
+      --green-status: #3FA66E;
+      --dark-bg: #2A2620;
+      --dark-card: #1F1B16;
+      --dark-browser: #26211C;
+      --dark-titlebar: #1B1714;
+      --divider: #EDE4D2;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      color: var(--brown-dark);
+      background: var(--cream);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .serif { font-family: 'Fraunces', Georgia, serif; }
+
+    /* ─── NAV ─── */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tomato-mark {
+      position: relative;
+      width: 22px;
+      height: 22px;
+    }
+
+    .tomato-mark .stem {
+      position: absolute;
+      width: 6px;
+      height: 3px;
+      background: #6B9E48;
+      border-radius: 50%;
+      left: 9px;
+      top: 1px;
+    }
+
+    .tomato-mark .body {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: var(--red);
+      border-radius: 50%;
+      left: 2px;
+      top: 4px;
+    }
+
+    .tomato-mark .shine {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background: var(--red-light);
+      border-radius: 50%;
+      left: 6px;
+      top: 8px;
+    }
+
+    .nav-left .brand-name {
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-right a {
+      font-size: 14px;
+      color: var(--brown-body);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-right a:hover { color: var(--brown-dark); }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--red);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 18px;
+      border-radius: 999px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(216, 84, 64, 0.2);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(216, 84, 64, 0.3);
+    }
+
+    .btn-primary-lg {
+      font-size: 16px;
+      padding: 14px 24px 14px 22px;
+      box-shadow: 0 6px 18px rgba(216, 84, 64, 0.25);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--brown-dark);
+      padding: 14px 24px;
+      border-radius: 999px;
+      border: 1px solid var(--brown-border);
+      text-decoration: none;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-secondary:hover { background: rgba(43, 38, 32, 0.04); }
+
+    /* ─── HERO ─── */
+    .section-hero {
+      background: var(--cream);
+      padding: 24px 96px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--red);
+      letter-spacing: 2.4px;
+      text-transform: uppercase;
+    }
+
+    .hero-headline {
+      font-size: 62px;
+      font-weight: 600;
+      color: var(--brown-dark);
+      letter-spacing: -1.2px;
+      line-height: 1.05;
+      text-align: center;
+      max-width: 900px;
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--brown-body);
+      line-height: 1.55;
+      text-align: center;
+      max-width: 820px;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 14px;
+      padding-top: 6px;
+    }
+
+    .micro-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-top: 6px;
+    }
+
+    .micro-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .micro-row span {
+      font-size: 13px;
+      color: var(--brown-body);
+    }
+
+    .testi {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px 12px 18px;
+      background: var(--cream-warm);
+      border-radius: 999px;
+      border: 1px solid rgba(43, 38, 32, 0.12);
+      box-shadow: 0 6px 18px -6px rgba(43, 38, 32, 0.08);
+    }
+
+    .testi .quote-icon { color: var(--red); flex-shrink: 0; }
+
+    .testi .quote-text {
+      font-family: 'Fraunces', serif;
+      font-size: 14px;
+      font-style: italic;
+      color: var(--brown-dark);
+    }
+
+    .testi .sep {
+      font-size: 14px;
+      color: var(--brown-muted);
+    }
+
+    .testi .author {
+      font-size: 13px;
+      color: var(--brown-muted);
+      white-space: nowrap;
+    }
+
+    /* ─── MAC WINDOW MOCKUP ─── */
+    .mockup-wrap {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .mac-window {
+      width: 560px;
+      background: var(--cream-warm);
+      border-radius: 18px;
+      border: 1px solid rgba(43, 38, 32, 0.06);
+      box-shadow: 0 24px 48px rgba(43, 38, 32, 0.15), 0 6px 14px rgba(43, 38, 32, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      width: 100%;
+    }
+
+    .traffic-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .traffic-dot.red { background: #FF5F57; }
+    .traffic-dot.yellow { background: #FEBC2E; }
+    .traffic-dot.green { background: #28C840; }
+
+    .window-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 6px 32px 18px;
+    }
+
+    .icon-circle {
+      width: 60px;
+      height: 60px;
+      background: var(--red-blush);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-circle .tomato-big {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .window-body .prompt-title {
+      font-family: 'Fraunces', serif;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .mock-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--cream);
+      border-radius: 12px;
+      border: 1px solid rgba(43, 38, 32, 0.1);
+      font-size: 15px;
+      color: var(--brown-dark);
+    }
+
+    .session-pills {
+      display: flex;
+      gap: 8px;
+      padding: 2px 0;
+    }
+
+    .session-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: var(--cream-warm);
+      border: 1px solid rgba(43, 38, 32, 0.12);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .session-pill.active {
+      background: var(--red);
+      border-color: transparent;
+      box-shadow: 0 4px 10px rgba(216, 84, 64, 0.25);
+    }
+
+    .session-pill .pill-num {
+      font-family: 'Fraunces', serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--brown-dark);
+    }
+
+    .session-pill .pill-label {
+      font-size: 11px;
+      color: var(--brown-body);
+    }
+
+    .session-pill.active .pill-num { color: #fff; }
+    .session-pill.active .pill-label { color: #FFE7E0; }
+
+    .start-btn {
+      width: 100%;
+      padding: 14px 20px;
+      background: var(--red);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(216, 84, 64, 0.25);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .start-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(216, 84, 64, 0.35);
+    }
+
+    /* ─── PROBLEM SECTION ─── */
+    .section-problem {
+      background: var(--cream-light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      min-height: 560px;
+      padding: 0 96px;
+    }
+
+    .section-problem .headline {
+      font-size: 60px;
+      font-weight: 600;
+      line-height: 1.1;
+      text-align: center;
+      max-width: 880px;
+    }
+
+    .section-problem .subhead {
+      font-size: 19px;
+      color: var(--brown-body);
+      line-height: 1.5;
+      text-align: center;
+      max-width: 720px;
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--pill-bg);
+      border-radius: 999px;
+    }
+
+    .pill svg { width: 16px; height: 16px; color: var(--brown-dark); }
+    .pill span { font-size: 14px; font-weight: 500; color: var(--brown-dark); }
+
+    /* ─── FEATURES SECTION ─── */
+    .section-features {
+      background: var(--cream);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 48px;
+      min-height: 760px;
+      padding: 64px 96px;
+    }
+
+    .section-heading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .section-heading .headline {
+      font-size: 52px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .section-heading .subhead {
+      font-size: 18px;
+      color: var(--brown-body);
+      line-height: 1.5;
+      text-align: center;
+      max-width: 640px;
+    }
+
+    .feature-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 100%;
+    }
+
+    .feature-row {
+      display: flex;
+      gap: 24px;
+      width: 100%;
+    }
+
+    .feature-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 34px;
+      background: var(--cream-light);
+      border-radius: 20px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+    }
+
+    .feature-icon-tile {
+      width: 56px;
+      height: 56px;
+      background: var(--red-pink);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .feature-icon-tile svg { width: 28px; height: 28px; color: var(--red); }
+
+    .feature-card .card-title {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .feature-card .card-body {
+      font-size: 15px;
+      color: var(--brown-body);
+      line-height: 1.55;
+    }
+
+    /* ─── HOW IT WORKS ─── */
+    .section-how {
+      background: var(--cream-light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 48px;
+      min-height: 780px;
+      padding: 64px 96px;
+    }
+
+    .section-how .section-heading {
+      gap: 16px;
+    }
+
+    .cards-row {
+      display: flex;
+      gap: 24px;
+      width: 100%;
+    }
+
+    .step-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 32px;
+      background: var(--cream);
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(43, 38, 32, 0.08);
+    }
+
+    .step-num {
+      width: 44px;
+      height: 44px;
+      background: var(--red);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .step-card .card-title {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .step-card .card-body {
+      font-size: 14px;
+      color: var(--brown-body);
+      line-height: 1.5;
+    }
+
+    .step-mock {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-top: 12px;
+    }
+
+    .mock-input-sm {
+      padding: 12px;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #E5DDD2;
+      font-size: 13px;
+      color: var(--brown-dark);
+    }
+
+    .mock-start-pill {
+      display: inline-block;
+      padding: 8px 16px;
+      background: var(--red);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 999px;
+      align-self: flex-start;
+    }
+
+    /* Card 2 mock: menubar + HUD */
+    .mock-menubar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 6px 10px;
+      background: var(--brown-dark);
+      border-radius: 6px;
+    }
+
+    .mock-menubar .menu-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--red);
+      border-radius: 50%;
+    }
+
+    .mock-menubar .menu-time {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--cream-light);
+    }
+
+    .mock-hud {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #E5DDD2;
+      box-shadow: 0 4px 12px rgba(43, 38, 32, 0.1);
+    }
+
+    .mock-hud .hud-icon {
+      width: 18px;
+      height: 18px;
+      background: var(--red);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .mock-hud .hud-time {
+      font-family: 'Fraunces', serif;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .mock-hud .hud-intent {
+      font-size: 11px;
+      color: var(--brown-body);
+      flex: 1;
+    }
+
+    .mock-hud .hud-status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--green-status);
+      border-radius: 50%;
+    }
+
+    .mock-hud .hud-status {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--green-status);
+    }
+
+    /* Card 3 mock: nudge */
+    .mock-nudge {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid var(--red-pink);
+      box-shadow: 0 4px 12px rgba(43, 38, 32, 0.1);
+    }
+
+    .nudge-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nudge-icon-bg {
+      width: 22px;
+      height: 22px;
+      background: var(--red-pink);
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nudge-icon-bg .nudge-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--red);
+      border-radius: 50%;
+    }
+
+    .nudge-header .nudge-title {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .nudge-reason {
+      font-size: 11px;
+      color: var(--brown-body);
+      line-height: 1.4;
+    }
+
+    .nudge-actions {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 4px;
+    }
+
+    .ghost-btn {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--brown-body);
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .ghost-btn:hover { background: rgba(43, 38, 32, 0.05); }
+
+    /* ─── SCREENSHOTS ─── */
+    .section-screenshots {
+      background: var(--cream);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 56px;
+      padding: 80px 64px 88px;
+    }
+
+    .section-screenshots .section-heading { gap: 18px; }
+
+    .screenshot-row {
+      display: flex;
+      gap: 28px;
+      justify-content: center;
+    }
+
+    .screenshot-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .screenshot-card:nth-child(1) { width: 360px; }
+    .screenshot-card:nth-child(2) { width: 520px; }
+    .screenshot-card:nth-child(3) { width: 376px; }
+
+    .screenshot-img {
+      border-radius: 18px;
+      box-shadow: 0 18px 42px -10px rgba(43, 38, 32, 0.15);
+      overflow: hidden;
+    }
+
+    .screenshot-card:nth-child(1) .screenshot-img { height: 406px; }
+    .screenshot-card:nth-child(2) .screenshot-img { height: 349px; }
+    .screenshot-card:nth-child(3) .screenshot-img { height: 337px; }
+
+    .screenshot-img img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .screenshot-card .card-title {
+      font-family: 'Fraunces', serif;
+      font-size: 19px;
+      font-weight: 600;
+    }
+
+    .screenshot-card .card-cap {
+      font-size: 14px;
+      color: var(--brown-body);
+      line-height: 1.45;
+    }
+
+    /* ─── IN-ACTION (DARK) ─── */
+    .section-action-outer {
+      background: var(--dark-bg);
+    }
+
+    .section-action {
+      display: flex;
+      align-items: center;
+      gap: 64px;
+      min-height: 820px;
+      padding: 80px 96px;
+      overflow: hidden;
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    .action-left {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      width: 520px;
+      flex-shrink: 0;
+    }
+
+    .action-left .copy-top {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .action-left .eyebrow {
+      color: var(--red-light);
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+
+    .action-left .headline {
+      font-size: 56px;
+      font-weight: 600;
+      color: var(--cream);
+      letter-spacing: -1px;
+      line-height: 1.08;
+    }
+
+    .action-left .subhead {
+      font-size: 18px;
+      color: #C9BFB1;
+      line-height: 1.55;
+    }
+
+    .reassurance-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .reassurance-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .reassurance-icon-box {
+      width: 40px;
+      height: 40px;
+      background: rgba(232, 106, 82, 0.12);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .reassurance-icon-box svg {
+      width: 20px;
+      height: 20px;
+      color: var(--red-light);
+    }
+
+    .reassurance-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .reassurance-text .title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--cream);
+    }
+
+    .reassurance-text .desc {
+      font-size: 14px;
+      color: #C9BFB1;
+    }
+
+    /* Right scene */
+    .action-right {
+      position: relative;
+      width: 720px;
+      height: 520px;
+      background: var(--dark-card);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .scene-glow {
+      position: absolute;
+      width: 520px;
+      height: 520px;
+      left: 240px;
+      top: 60px;
+      background: rgba(232, 106, 82, 0.15);
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+
+    .scene-browser {
+      position: absolute;
+      left: 48px;
+      top: 64px;
+      width: 520px;
+      height: 360px;
+      background: var(--dark-browser);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      opacity: 0.55;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .scene-browser .browser-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px;
+      height: 36px;
+      background: var(--dark-titlebar);
+    }
+
+    .scene-browser .browser-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+
+    .scene-browser .url-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 22px;
+      padding: 0 10px;
+      background: #0F0C0A;
+      border-radius: 6px;
+      width: 260px;
+    }
+
+    .scene-browser .url-pill span {
+      font-size: 11px;
+      font-weight: 500;
+      color: #8A7F73;
+    }
+
+    .scene-browser .browser-body {
+      flex: 1;
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .scene-browser .doc-head {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--cream);
+    }
+
+    .scene-browser .doc-line {
+      height: 10px;
+      background: #3A332C;
+      border-radius: 5px;
+    }
+
+    .scene-browser .doc-gap {
+      height: 6px;
+    }
+
+    .scene-hud {
+      position: absolute;
+      left: 340px;
+      top: 200px;
+      width: 296px;
+      height: 72px;
+      background: var(--cream);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 16px;
+      box-shadow: 0 18px 48px -4px rgba(232, 106, 82, 0.4), 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .scene-hud .hud-icon-box {
+      width: 44px;
+      height: 44px;
+      background: var(--red-light);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .scene-hud .hud-icon-box svg {
+      width: 22px;
+      height: 22px;
+      color: var(--cream);
+    }
+
+    .scene-hud .hud-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+    }
+
+    .scene-hud .hud-time {
+      font-family: 'Fraunces', serif;
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      color: var(--dark-bg);
+    }
+
+    .scene-hud .hud-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #6E6258;
+    }
+
+    .scene-hud .hud-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--red-light);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .scene-nudge {
+      position: absolute;
+      left: 308px;
+      top: 300px;
+      width: 340px;
+      padding: 16px 18px;
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid rgba(232, 106, 82, 0.1);
+      box-shadow: 0 24px 48px -8px rgba(232, 106, 82, 0.3), 0 6px 18px rgba(0, 0, 0, 0.24);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .scene-nudge .nudge-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scene-nudge .nudge-head svg {
+      width: 14px;
+      height: 14px;
+      color: var(--red-light);
+    }
+
+    .scene-nudge .nudge-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      color: var(--red-light);
+      text-transform: uppercase;
+    }
+
+    .scene-nudge .nudge-spacer { flex: 1; }
+
+    .scene-nudge .nudge-conf {
+      font-size: 11px;
+      font-weight: 600;
+      color: #A8998A;
+    }
+
+    .scene-nudge .nudge-body {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--dark-bg);
+      line-height: 1.45;
+    }
+
+    /* ─── CTA + FOOTER ─── */
+    .section-cta-outer {
+      background: var(--cream);
+    }
+
+    .section-cta {
+      display: flex;
+      flex-direction: column;
+      min-height: 600px;
+    }
+
+    .cta-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      padding: 80px 96px 40px;
+      flex: 1;
+    }
+
+    .cta-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 22px;
+      padding: 56px 72px;
+      background: var(--cream-light);
+      border-radius: 28px;
+      box-shadow: 0 24px 60px -8px rgba(216, 84, 64, 0.2);
+    }
+
+    .cta-card .tomato-emoji {
+      font-size: 64px;
+      line-height: 1;
+    }
+
+    .cta-card .heading {
+      font-size: 60px;
+      font-weight: 600;
+      line-height: 1.05;
+      text-align: center;
+    }
+
+    .cta-card .sub {
+      font-size: 18px;
+      color: var(--brown-body);
+      line-height: 1.5;
+      text-align: center;
+      max-width: 600px;
+    }
+
+    .cta-card .btn-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .cta-card .btn-primary {
+      font-size: 16px;
+      padding: 16px 28px;
+      box-shadow: 0 8px 20px -4px rgba(216, 84, 64, 0.4);
+    }
+
+    .cta-card .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--brown-dark);
+      padding: 16px 22px;
+      border-radius: 14px;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+
+    .cta-card .btn-ghost:hover { background: rgba(43, 38, 32, 0.05); }
+    .cta-card .btn-ghost svg { width: 16px; height: 16px; }
+
+    .cta-card .micro-text {
+      font-size: 13px;
+      color: var(--brown-muted);
+    }
+
+    /* Footer */
+    .footer-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 0 96px 40px;
+    }
+
+    .footer-divider {
+      height: 1px;
+      background: var(--divider);
+      width: 100%;
+    }
+
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 4px;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .footer-brand .brand-emoji { font-size: 18px; }
+
+    .footer-brand .brand-name {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .footer-brand .brand-copy {
+      font-size: 13px;
+      color: var(--brown-muted);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 26px;
+    }
+
+    .footer-links a {
+      font-size: 14px;
+      color: var(--brown-body);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--brown-dark); }
+
+    /* ─── FULL-WIDTH BACKGROUND WRAPPERS ─── */
+    .bg-cream { background: var(--cream); }
+    .bg-cream-light { background: var(--cream-light); }
+    .bg-dark { background: var(--dark-bg); }
+
+    /* ─── PAGE WRAPPER ─── */
+    .page-wrap {
+      overflow-x: hidden;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-up {
+      opacity: 0;
+      animation: fadeUp 0.7s ease-out forwards;
+    }
+
+    .fade-up-d1 { animation-delay: 0.1s; }
+    .fade-up-d2 { animation-delay: 0.2s; }
+    .fade-up-d3 { animation-delay: 0.3s; }
+    .fade-up-d4 { animation-delay: 0.4s; }
+    .fade-up-d5 { animation-delay: 0.5s; }
+
+    /* Scroll-triggered fade */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+
+    <!-- ═══ HERO ═══ -->
+    <section class="section-hero">
+
+      <!-- Nav -->
+      <nav class="nav fade-up">
+        <div class="nav-left">
+          <div class="tomato-mark">
+            <div class="stem"></div>
+            <div class="body"></div>
+            <div class="shine"></div>
+          </div>
+          <span class="serif brand-name">Tomato</span>
+        </div>
+        <div class="nav-right">
+          <a href="#features">Features</a>
+          <a href="#privacy">Privacy</a>
+          <a href="https://github.com/oliverswitzer/tomato/releases/latest/download/Tomato.dmg">Download</a>
+          <a href="https://github.com/oliverswitzer/tomato/releases/latest/download/Tomato.dmg" class="btn-primary">Download for Mac</a>
+        </div>
+      </nav>
+
+      <!-- Hero copy -->
+      <div class="hero-copy">
+        <span class="eyebrow fade-up fade-up-d1">THE SMARTEST POMODORO ON YOUR MAC</span>
+        <h1 class="serif hero-headline fade-up fade-up-d2">A Pomodoro smart enough<br>to tell the difference.</h1>
+        <p class="hero-sub fade-up fade-up-d3">Between debugging on Reddit and doom-scrolling Reddit. Between a YouTube tutorial and a YouTube binge. Tomato reads your active window against the intention you typed — and only nudges when you've really drifted. Never blocks. Never shames. An accountability partner that trains your own focus.</p>
+
+        <div class="cta-row fade-up fade-up-d4">
+          <a href="https://github.com/oliverswitzer/tomato/releases/latest/download/Tomato.dmg" class="btn-primary btn-primary-lg">Download for Mac</a>
+          <a href="#how" class="btn-secondary">See how it works</a>
+        </div>
+
+        <div class="micro-row fade-up fade-up-d4">
+          <div class="micro-dot"></div>
+          <span>Free during beta · macOS 13+ · Runs entirely on your device</span>
+        </div>
+
+        <!-- Testimonial -->
+        <div class="testi fade-up fade-up-d5">
+          <svg class="quote-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z"/></svg>
+          <span class="quote-text">"Finally — a focus app that knows when Reddit is for research."</span>
+          <span class="sep">·</span>
+          <span class="author">solo dev, beta tester</span>
+        </div>
+      </div>
+
+      <!-- Mac window mockup -->
+      <div class="mockup-wrap fade-up fade-up-d5">
+        <div class="mac-window">
+          <div class="titlebar">
+            <div class="traffic-dot red"></div>
+            <div class="traffic-dot yellow"></div>
+            <div class="traffic-dot green"></div>
+          </div>
+          <div class="window-body">
+            <div class="icon-circle">
+              <span class="tomato-big">🍅</span>
+            </div>
+            <span class="prompt-title">What are you working on?</span>
+            <div class="mock-input">Finish the landing page hero copy</div>
+            <div class="session-pills">
+              <div class="session-pill">
+                <span class="pill-num serif">15</span>
+                <span class="pill-label">quick</span>
+              </div>
+              <div class="session-pill active">
+                <span class="pill-num serif">25</span>
+                <span class="pill-label">classic</span>
+              </div>
+              <div class="session-pill">
+                <span class="pill-num serif">45</span>
+                <span class="pill-label">focus</span>
+              </div>
+              <div class="session-pill">
+                <span class="pill-num serif">60</span>
+                <span class="pill-label">deep</span>
+              </div>
+            </div>
+            <button class="start-btn">Start 25-minute session</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═══ PROBLEM ═══ -->
+    <section class="section-problem" id="problem">
+      <div class="section-heading reveal">
+        <span class="eyebrow">WHY BLOCKERS DON'T WORK</span>
+        <h2 class="serif headline">App blockers can't tell<br>research from procrastination.</h2>
+      </div>
+      <p class="subhead reveal">You're debugging your code on Reddit. You're watching a YouTube tutorial. A dumb URL blocker doesn't care — it shames you for both. That's not focus. That's friction. Tomato understands what you actually set out to do, and only steps in when you've truly drifted.</p>
+      <div class="pill-row reveal">
+        <div class="pill">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
+          <span>No blanket blocking</span>
+        </div>
+        <div class="pill">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.96 2.66"/><path d="m18 15-2-2"/><path d="m15 18-2-2"/></svg>
+          <span>No shame</span>
+        </div>
+        <div class="pill">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M19.938 10.5a4 4 0 0 1 .585.396"/><path d="M6 18a4 4 0 0 1-1.967-.516"/><path d="M19.967 17.484A4 4 0 0 1 18 18"/></svg>
+          <span>Knows the difference</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ FEATURES ═══ -->
+    <section class="section-features" id="features">
+      <div class="section-heading reveal">
+        <span class="eyebrow" style="font-size: 14px;">WHY IT'S DIFFERENT</span>
+        <h2 class="serif headline">Smart enough to tell the difference.</h2>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-row">
+          <div class="feature-card reveal">
+            <div class="feature-icon-tile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+            <h3 class="serif card-title">Tell Tomato what you meant to do</h3>
+            <p class="card-body">Type the intention before each session. Tomato uses it as the lens for everything that follows — not a list of banned websites.</p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon-tile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M19.938 10.5a4 4 0 0 1 .585.396"/><path d="M6 18a4 4 0 0 1-1.967-.516"/><path d="M19.967 17.484A4 4 0 0 1 18 18"/></svg>
+            </div>
+            <h3 class="serif card-title">Reads context, not URLs</h3>
+            <p class="card-body">A small on-device model peeks at the gist of your active window and asks one question: is this aligned with what you said you'd do? Reddit might be — it depends.</p>
+          </div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-card reveal">
+            <div class="feature-icon-tile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/><path d="M22 8c0-2.3-.8-4.3-2-6"/></svg>
+            </div>
+            <h3 class="serif card-title">Nudges, never blocks</h3>
+            <p class="card-body">No walls, no countdown to lockout, no public shame. When you drift, a friendly card appears — dismiss it, return, or end the session.</p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon-tile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 14.4 9.6 9.6"/><path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z"/><path d="m21.5 21.5-1.4-1.4"/><path d="M3.9 3.9 2.5 2.5"/><path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z"/></svg>
+            </div>
+            <h3 class="serif card-title">Trains your own focus</h3>
+            <p class="card-body">External blockers don't build attention; they outsource it. Tomato gently reflects your patterns back to you, so you re-learn focus as a skill.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ HOW IT WORKS ═══ -->
+    <section class="section-how" id="how">
+      <div class="section-heading reveal">
+        <span class="eyebrow" style="letter-spacing: 2px;">HOW IT WORKS</span>
+        <h2 class="serif headline">Three steps. No willpower required.</h2>
+        <p class="subhead">No app banlists to maintain, no rituals to remember. Just an intention and a friendly observer that already understands what you set out to do.</p>
+      </div>
+      <div class="cards-row">
+        <!-- Step 1 -->
+        <div class="step-card reveal">
+          <div class="step-num">1</div>
+          <h3 class="card-title">Tell it what you mean to do</h3>
+          <p class="card-body">Open Tomato, type your intention (e.g. "Debug the auth flow"), pick a session length, hit start. That sentence is now the lens.</p>
+          <div class="step-mock">
+            <div class="mock-input-sm">Debug the auth flow</div>
+            <span class="mock-start-pill">Start</span>
+          </div>
+        </div>
+        <!-- Step 2 -->
+        <div class="step-card reveal">
+          <div class="step-num">2</div>
+          <h3 class="card-title">Work like you normally would</h3>
+          <p class="card-body">Tomato tucks into your menu bar. A floating HUD shows time remaining and your intention. Open Reddit, open the docs, open whatever you need — nothing is blocked.</p>
+          <div class="step-mock" style="gap: 12px;">
+            <div class="mock-menubar">
+              <div class="menu-dot"></div>
+              <span class="menu-time">24:52</span>
+            </div>
+            <div class="mock-hud">
+              <div class="hud-icon"></div>
+              <span class="hud-time">24:52</span>
+              <span class="hud-intent">Debugging auth flow</span>
+              <div class="hud-status-dot"></div>
+              <span class="hud-status">On track</span>
+            </div>
+          </div>
+        </div>
+        <!-- Step 3 -->
+        <div class="step-card reveal">
+          <div class="step-num">3</div>
+          <h3 class="card-title">Drifted? Tomato says something</h3>
+          <p class="card-body">When the gist of your active window stops matching your intention for too long, a calm card appears with a one-line reason and a confidence score. Get back, snooze it, or call the session.</p>
+          <div class="step-mock" style="gap: 8px;">
+            <div class="mock-nudge">
+              <div class="nudge-header">
+                <div class="nudge-icon-bg"><div class="nudge-dot"></div></div>
+                <span class="nudge-title">Possible distraction</span>
+              </div>
+              <p class="nudge-reason">Twitter doesn't look like "debug the auth flow"</p>
+              <div class="nudge-actions">
+                <button class="ghost-btn">Got it</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ SCREENSHOTS ═══ -->
+    <section class="section-screenshots" id="screenshots">
+      <div class="section-heading reveal">
+        <span class="eyebrow">PEEK INSIDE</span>
+        <h2 class="serif headline">What it looks like.</h2>
+        <p class="subhead">Designed to feel like part of macOS, not on top of it. A few real moments from a session.</p>
+      </div>
+      <div class="screenshot-row">
+        <div class="screenshot-card reveal">
+          <div class="screenshot-img">
+            <img src="assets/Gwc4H.png" alt="Tomato start session screen showing intention input">
+          </div>
+          <h3 class="card-title">Set the intention</h3>
+          <p class="card-cap">One line is enough — Tomato remembers.</p>
+        </div>
+        <div class="screenshot-card reveal">
+          <div class="screenshot-img">
+            <img src="assets/z40dm.png" alt="Tomato drift nudge floating over desktop">
+          </div>
+          <h3 class="card-title">A nudge when you drift</h3>
+          <p class="card-cap">Floating, friendly, dismissable in one click.</p>
+        </div>
+        <div class="screenshot-card reveal">
+          <div class="screenshot-img">
+            <img src="assets/HFxoA.png" alt="Tomato HUD showing timer and on-track status">
+          </div>
+          <h3 class="card-title">On track at a glance</h3>
+          <p class="card-cap">A quiet HUD with your timer, intent, and current state.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ IN-ACTION (DARK) ═══ -->
+    <section class="section-action-outer" id="privacy">
+      <div class="section-action">
+        <div class="action-left">
+          <div class="copy-top reveal">
+            <span class="eyebrow">PRIVATE MEMORY · ON YOUR MAC</span>
+            <h2 class="serif headline">It pays attention. Then it remembers — only for you.</h2>
+            <p class="subhead">Tomato keeps a private journal of your focus sessions, built from textual metadata like window titles and tabs — never from screen pixels. Soon you'll be able to ask it "what did I work on yesterday?" or pull a weekly recap, all from your own machine.</p>
+          </div>
+          <div class="reassurance-stack reveal">
+            <div class="reassurance-row">
+              <div class="reassurance-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+              </div>
+              <div class="reassurance-text">
+                <span class="title">Local-only inference</span>
+                <span class="desc">Runs on your machine. Nothing leaves it.</span>
+              </div>
+            </div>
+            <div class="reassurance-row">
+              <div class="reassurance-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+              </div>
+              <div class="reassurance-text">
+                <span class="title">Yours to query</span>
+                <span class="desc">Daily recap, weekly summary — coming soon, on-device.</span>
+              </div>
+            </div>
+            <div class="reassurance-row">
+              <div class="reassurance-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <div class="reassurance-text">
+                <span class="title">No account required</span>
+                <span class="desc">No login, no telemetry, no cloud sync.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right scene -->
+        <div class="action-right reveal">
+          <div class="scene-glow"></div>
+          <div class="scene-browser">
+            <div class="browser-titlebar">
+              <div class="browser-dot" style="background:#FF5F57;"></div>
+              <div class="browser-dot" style="background:#FEBC2E;"></div>
+              <div class="browser-dot" style="background:#28C840;"></div>
+              <div class="url-pill"><span>docs.tomatoapp.io/getting-started</span></div>
+            </div>
+            <div class="browser-body">
+              <span class="doc-head">Writing the architecture doc</span>
+              <div class="doc-line"></div>
+              <div class="doc-line"></div>
+              <div class="doc-line" style="width:73%;"></div>
+              <div class="doc-gap"></div>
+              <div class="doc-line"></div>
+              <div class="doc-line" style="width:58%;"></div>
+            </div>
+          </div>
+          <div class="scene-hud">
+            <div class="hud-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>
+            </div>
+            <div class="hud-text">
+              <span class="hud-time">24:52</span>
+              <span class="hud-label">Writing documentation</span>
+            </div>
+            <div class="hud-dot"></div>
+          </div>
+          <div class="scene-nudge">
+            <div class="nudge-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              <span class="nudge-eyebrow">POSSIBLE DISTRACTION</span>
+              <span class="nudge-spacer"></span>
+              <span class="nudge-conf">82%</span>
+            </div>
+            <p class="nudge-body">You drifted to Twitter. Want to refocus on writing documentation?</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ CTA + FOOTER ═══ -->
+    <section class="section-cta-outer" id="download">
+      <div class="section-cta">
+        <div class="cta-wrap">
+          <div class="cta-card reveal">
+            <span class="tomato-emoji">🍅</span>
+            <h2 class="serif heading">Stop fighting your apps.</h2>
+            <p class="sub">Tomato is a Pomodoro timer that actually understands what you set out to do — and trusts you to steer. Free during the beta. Local-only. No account.</p>
+            <div class="btn-row">
+              <a href="https://github.com/oliverswitzer/tomato/releases/latest/download/Tomato.dmg" class="btn-primary" id="dmg-download-link">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                Download for Mac
+              </a>
+              <a href="https://github.com/oliverswitzer/tomato" class="btn-ghost">
+                View on GitHub
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+              </a>
+            </div>
+            <span class="micro-text">macOS 13+   •   Universal Binary   •   28MB   •   No account required</span>
+          </div>
+          <div class="footer-wrap">
+            <div class="footer-divider"></div>
+            <div class="footer-row">
+              <div class="footer-brand">
+                <span class="brand-emoji">🍅</span>
+                <span class="serif brand-name">Tomato</span>
+                <span class="brand-copy">  ·  © 2026  ·  A focus partner for macOS</span>
+              </div>
+              <div class="footer-links">
+                <a href="#">Privacy</a>
+                <a href="#">Changelog</a>
+                <a href="https://github.com/oliverswitzer/tomato">GitHub</a>
+                <a href="#">Contact</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
