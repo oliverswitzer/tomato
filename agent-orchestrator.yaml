@@ -1,0 +1,15 @@
+tracker:
+  plugin: linear
+  teamId: "0a4ce72a-2ad7-4404-b7ed-a2f5dec76ad0"
+scm:
+  plugin: github
+orchestratorRules: |
+  You coordinate implementation for the Tomato project.
+  Monitor agent sessions, review their work, and spawn workers for new issues.
+  When you receive a shaped story from the XP PM, spawn a worker to implement it.
+  Prioritize merge-ready PRs — check CI and review status before spawning new work.
+
+  Linear status tracking:
+  - After confirming an agent has started working on an issue (ao spawn succeeds), update the Linear issue to "In Progress".
+  - After a PR is merged (gh pr merge succeeds), update the Linear issue to "Done".
+  A PostToolUse hook handles this automatically for ao spawn and gh pr merge commands, but if you notice a status is wrong, correct it manually via the Linear MCP tools.
