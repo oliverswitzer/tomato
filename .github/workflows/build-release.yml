@@ -1,9 +1,12 @@
 name: Build & Release DMG
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      release_notes:
+        description: 'Release notes for this build'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -66,7 +69,5 @@ jobs:
           cp "$DMG_PATH" release/Tomato.dmg
           gh release create latest \
             --title "Tomato (latest build)" \
-            --notes "Built from \`$(git rev-parse --short HEAD)\` on $(date -u +%Y-%m-%d).
-
-          > **macOS install:** Right-click the app → Open → Open (required for apps outside the App Store)." \
+            --notes "${{ github.event.inputs.release_notes }}" \
             release/Tomato.dmg
