@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download Tomato — Install Instructions for macOS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --cream: #FAF4E8;
+      --cream-light: #FFFBF1;
+      --cream-warm: #FFFAF0;
+      --brown-dark: #2B2620;
+      --brown-body: #6F665B;
+      --brown-muted: #9C9286;
+      --brown-border: rgba(43, 38, 32, 0.12);
+      --red: #D85440;
+      --red-light: #E86A52;
+      --red-pink: #F8E0D8;
+      --red-blush: #FFEDE6;
+      --pill-bg: #F5EFE0;
+      --green: #4FB37A;
+      --green-status: #3FA66E;
+      --divider: #EDE4D2;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      color: var(--brown-dark);
+      background: var(--cream);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .serif { font-family: 'Fraunces', Georgia, serif; }
+
+    /* ─── NAV ─── */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-left a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .tomato-mark {
+      position: relative;
+      width: 22px;
+      height: 22px;
+    }
+
+    .tomato-mark .stem {
+      position: absolute;
+      width: 6px;
+      height: 3px;
+      background: #6B9E48;
+      border-radius: 50%;
+      left: 9px;
+      top: 1px;
+    }
+
+    .tomato-mark .body {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: var(--red);
+      border-radius: 50%;
+      left: 2px;
+      top: 4px;
+    }
+
+    .tomato-mark .shine {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background: var(--red-light);
+      border-radius: 50%;
+      left: 6px;
+      top: 8px;
+    }
+
+    .nav-left .brand-name {
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-right a {
+      font-size: 14px;
+      color: var(--brown-body);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-right a:hover { color: var(--brown-dark); }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--red);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 18px;
+      border-radius: 999px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(216, 84, 64, 0.2);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(216, 84, 64, 0.3);
+    }
+
+    .btn-primary-lg {
+      font-size: 16px;
+      padding: 14px 24px 14px 22px;
+      box-shadow: 0 6px 18px rgba(216, 84, 64, 0.25);
+    }
+
+    /* ─── HERO ─── */
+    .section-hero {
+      background: var(--cream);
+      padding: 24px 96px 64px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .hero-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding-top: 48px;
+      max-width: 720px;
+      text-align: center;
+    }
+
+    .hero-icon {
+      width: 80px;
+      height: 80px;
+      background: var(--red-blush);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      box-shadow: 0 8px 24px rgba(216, 84, 64, 0.15);
+    }
+
+    .hero-headline {
+      font-size: 48px;
+      font-weight: 600;
+      color: var(--brown-dark);
+      letter-spacing: -1px;
+      line-height: 1.1;
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--brown-body);
+      line-height: 1.55;
+      max-width: 560px;
+    }
+
+    .download-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      background: var(--cream-warm);
+      border-radius: 999px;
+      border: 1px solid var(--brown-border);
+    }
+
+    .download-status .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse-dot 1.5s ease-in-out infinite;
+    }
+
+    .download-status span {
+      font-size: 14px;
+      color: var(--brown-body);
+    }
+
+    .download-status a {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--red);
+      text-decoration: none;
+    }
+
+    .download-status a:hover {
+      text-decoration: underline;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ─── STEPS SECTION ─── */
+    .section-steps {
+      background: var(--cream-light);
+      padding: 80px 96px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 48px;
+    }
+
+    .section-heading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--red);
+      letter-spacing: 2.4px;
+      text-transform: uppercase;
+    }
+
+    .section-heading .headline {
+      font-size: 42px;
+      font-weight: 600;
+      text-align: center;
+      letter-spacing: -0.5px;
+    }
+
+    .section-heading .subhead {
+      font-size: 17px;
+      color: var(--brown-body);
+      line-height: 1.55;
+      text-align: center;
+      max-width: 600px;
+    }
+
+    .steps-grid {
+      display: flex;
+      gap: 24px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    .step-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 32px;
+      background: var(--cream);
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(43, 38, 32, 0.08);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .step-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(43, 38, 32, 0.12);
+    }
+
+    .step-num {
+      width: 44px;
+      height: 44px;
+      background: var(--red);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .step-card .card-title {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .step-card .card-body {
+      font-size: 14px;
+      color: var(--brown-body);
+      line-height: 1.55;
+    }
+
+    /* Step illustrations */
+    .step-illustration {
+      margin-top: auto;
+      padding-top: 8px;
+    }
+
+    .mock-dmg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 20px;
+      background: var(--cream-light);
+      border-radius: 12px;
+      border: 1px solid var(--brown-border);
+    }
+
+    .mock-dmg-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mock-dmg-icon .icon-box {
+      width: 52px;
+      height: 52px;
+      background: var(--red-blush);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .mock-dmg-icon span {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--brown-body);
+    }
+
+    .mock-arrow {
+      color: var(--brown-muted);
+      font-size: 20px;
+    }
+
+    .mock-folder-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mock-folder-icon .icon-box {
+      width: 52px;
+      height: 52px;
+      background: #DCEAF8;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mock-folder-icon .icon-box svg {
+      width: 26px;
+      height: 26px;
+      color: #4A90D9;
+    }
+
+    .mock-folder-icon span {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--brown-body);
+    }
+
+    .mock-context-menu {
+      background: var(--cream-light);
+      border-radius: 10px;
+      border: 1px solid var(--brown-border);
+      box-shadow: 0 4px 16px rgba(43, 38, 32, 0.1);
+      overflow: hidden;
+    }
+
+    .mock-menu-item {
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--brown-body);
+      border-bottom: 1px solid rgba(43, 38, 32, 0.06);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mock-menu-item:last-child {
+      border-bottom: none;
+    }
+
+    .mock-menu-item.highlight {
+      background: var(--red);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .mock-menu-item .menu-shortcut {
+      margin-left: auto;
+      font-size: 11px;
+      opacity: 0.6;
+    }
+
+    .mock-dialog {
+      background: var(--cream-light);
+      border-radius: 12px;
+      border: 1px solid var(--brown-border);
+      box-shadow: 0 4px 16px rgba(43, 38, 32, 0.1);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .mock-dialog .dialog-text {
+      font-size: 12px;
+      color: var(--brown-body);
+      line-height: 1.45;
+    }
+
+    .mock-dialog .dialog-text strong {
+      color: var(--brown-dark);
+    }
+
+    .mock-dialog .dialog-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .mock-dialog .dialog-btn {
+      padding: 5px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid var(--brown-border);
+      background: var(--cream);
+      color: var(--brown-body);
+    }
+
+    .mock-dialog .dialog-btn.primary {
+      background: var(--red);
+      color: #fff;
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    .mock-settings {
+      background: var(--cream-light);
+      border-radius: 12px;
+      border: 1px solid var(--brown-border);
+      box-shadow: 0 4px 16px rgba(43, 38, 32, 0.1);
+      overflow: hidden;
+    }
+
+    .mock-settings-header {
+      padding: 10px 14px;
+      background: var(--cream);
+      border-bottom: 1px solid var(--brown-border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mock-settings-header svg {
+      width: 14px;
+      height: 14px;
+      color: var(--brown-muted);
+    }
+
+    .mock-settings-header span {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--brown-dark);
+    }
+
+    .mock-settings-body {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mock-settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .mock-settings-row .setting-text {
+      font-size: 11px;
+      color: var(--brown-body);
+      line-height: 1.4;
+    }
+
+    .mock-open-anyway {
+      padding: 5px 12px;
+      background: var(--red);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    /* ─── TRUST SECTION ─── */
+    .section-trust {
+      background: var(--cream);
+      padding: 64px 96px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .trust-card {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      padding: 32px 40px;
+      background: var(--cream-light);
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(43, 38, 32, 0.06);
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .trust-icon-box {
+      width: 56px;
+      height: 56px;
+      background: #E8F5ED;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .trust-icon-box svg {
+      width: 28px;
+      height: 28px;
+      color: var(--green);
+    }
+
+    .trust-text {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .trust-text .trust-title {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .trust-text .trust-desc {
+      font-size: 15px;
+      color: var(--brown-body);
+      line-height: 1.55;
+    }
+
+    .trust-badges {
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .trust-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: var(--cream);
+      border-radius: 999px;
+      border: 1px solid var(--brown-border);
+    }
+
+    .trust-badge svg {
+      width: 14px;
+      height: 14px;
+      color: var(--green);
+    }
+
+    .trust-badge span {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--brown-dark);
+    }
+
+    /* ─── EXPLAINER SECTION ─── */
+    .section-explainer {
+      background: var(--cream-light);
+      padding: 80px 96px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+    }
+
+    .explainer-card {
+      max-width: 720px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .explainer-card .explainer-title {
+      font-family: 'Fraunces', serif;
+      font-size: 32px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .explainer-body {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .explainer-body p {
+      font-size: 16px;
+      color: var(--brown-body);
+      line-height: 1.65;
+    }
+
+    .explainer-body p strong {
+      color: var(--brown-dark);
+      font-weight: 600;
+    }
+
+    .explainer-callout {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 18px 20px;
+      background: var(--red-blush);
+      border-radius: 14px;
+      border: 1px solid var(--red-pink);
+    }
+
+    .explainer-callout svg {
+      width: 20px;
+      height: 20px;
+      color: var(--red);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .explainer-callout p {
+      font-size: 14px;
+      color: var(--brown-dark);
+      line-height: 1.55;
+    }
+
+    /* ─── FOOTER ─── */
+    .section-footer {
+      background: var(--cream);
+      padding: 0 96px 40px;
+    }
+
+    .footer-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .footer-divider {
+      height: 1px;
+      background: var(--divider);
+      width: 100%;
+    }
+
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 4px;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .footer-brand .brand-emoji { font-size: 18px; }
+
+    .footer-brand .brand-name {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .footer-brand .brand-copy {
+      font-size: 13px;
+      color: var(--brown-muted);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 26px;
+    }
+
+    .footer-links a {
+      font-size: 14px;
+      color: var(--brown-body);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--brown-dark); }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-up {
+      opacity: 0;
+      animation: fadeUp 0.7s ease-out forwards;
+    }
+
+    .fade-up-d1 { animation-delay: 0.1s; }
+    .fade-up-d2 { animation-delay: 0.2s; }
+    .fade-up-d3 { animation-delay: 0.3s; }
+    .fade-up-d4 { animation-delay: 0.4s; }
+    .fade-up-d5 { animation-delay: 0.5s; }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .section-hero { padding: 20px 24px 48px; }
+      .section-steps { padding: 56px 24px; }
+      .section-trust { padding: 48px 24px; }
+      .section-explainer { padding: 56px 24px; }
+      .section-footer { padding: 0 24px 32px; }
+
+      .nav-right a:not(.btn-primary) { display: none; }
+
+      .hero-headline { font-size: 32px; }
+      .hero-sub { font-size: 16px; }
+      .hero-content { padding-top: 32px; }
+
+      .steps-grid {
+        flex-direction: column;
+      }
+
+      .section-heading .headline { font-size: 30px; }
+
+      .trust-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+        padding: 28px 24px;
+      }
+
+      .trust-badges {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .explainer-card .explainer-title { font-size: 26px; }
+
+      .footer-row {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+
+      .footer-links { gap: 16px; }
+
+      .download-status {
+        flex-direction: column;
+        gap: 6px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+
+    <!-- ═══ HERO ═══ -->
+    <section class="section-hero">
+      <nav class="nav fade-up">
+        <div class="nav-left">
+          <a href="index.html">
+            <div class="tomato-mark">
+              <div class="stem"></div>
+              <div class="body"></div>
+              <div class="shine"></div>
+            </div>
+            <span class="serif brand-name">Tomato</span>
+          </a>
+        </div>
+        <div class="nav-right">
+          <a href="index.html">Home</a>
+          <a href="index.html#features">Features</a>
+          <a href="index.html#privacy">Privacy</a>
+          <a href="https://github.com/oliverswitzer/tomato/releases/latest/download/Tomato.dmg" class="btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            Download
+          </a>
+        </div>
+      </nav>
+
+      <div class="hero-content">
+        <div class="hero-icon fade-up fade-up-d1">🍅</div>
+        <h1 class="serif hero-headline fade-up fade-up-d2">Your download is starting…</h1>
+        <p class="hero-sub fade-up fade-up-d3">Tomato.dmg should begin downloading automatically. Follow the steps below to install and open the app on your Mac.</p>
+        <div class="download-status fade-up fade-up-d4">
+          <div class="status-dot"></div>
+          <span>Download not starting?</span>
+          <a href="https://github.com/oliverswitzer/tomato/releases/latest/download/Tomato.dmg">Click here to download manually</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ INSTALL STEPS ═══ -->
+    <section class="section-steps" id="steps">
+      <div class="section-heading reveal">
+        <span class="eyebrow">INSTALL GUIDE</span>
+        <h2 class="serif headline">Three steps to get started.</h2>
+        <p class="subhead">Tomato isn't on the Mac App Store yet, so macOS will show a couple of warnings. This is normal for all apps distributed outside the App Store — here's how to handle them.</p>
+      </div>
+
+      <div class="steps-grid">
+        <!-- Step 1 -->
+        <div class="step-card reveal">
+          <div class="step-num">1</div>
+          <h3 class="card-title">Open the DMG and drag to Applications</h3>
+          <p class="card-body">Double-click <strong>Tomato.dmg</strong> in your Downloads folder. Drag the Tomato icon into the Applications folder.</p>
+          <div class="step-illustration">
+            <div class="mock-dmg">
+              <div class="mock-dmg-icon">
+                <div class="icon-box">🍅</div>
+                <span>Tomato</span>
+              </div>
+              <span class="mock-arrow">→</span>
+              <div class="mock-folder-icon">
+                <div class="icon-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>
+                </div>
+                <span>Applications</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-card reveal">
+          <div class="step-num">2</div>
+          <h3 class="card-title">Right-click and choose "Open"</h3>
+          <p class="card-body">Don't double-click. Instead, <strong>right-click</strong> (or Control-click) Tomato in Applications and select <strong>Open</strong>. A dialog will appear — click <strong>"Open"</strong> to confirm.</p>
+          <div class="step-illustration">
+            <div class="mock-context-menu">
+              <div class="mock-menu-item">New Folder</div>
+              <div class="mock-menu-item">Get Info <span class="menu-shortcut">⌘I</span></div>
+              <div class="mock-menu-item highlight">Open</div>
+              <div class="mock-menu-item">Move to Trash</div>
+            </div>
+            <div style="height: 10px;"></div>
+            <div class="mock-dialog">
+              <p class="dialog-text"><strong>"Tomato" is from an unidentified developer.</strong> Are you sure you want to open it?</p>
+              <div class="dialog-buttons">
+                <span class="dialog-btn">Cancel</span>
+                <span class="dialog-btn primary">Open</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-card reveal">
+          <div class="step-num">3</div>
+          <h3 class="card-title">If needed: allow in System Settings</h3>
+          <p class="card-body">On some Macs, you may need to go to <strong>System Settings → Privacy & Security</strong>, scroll down, and click <strong>"Open Anyway"</strong> next to the Tomato message.</p>
+          <div class="step-illustration">
+            <div class="mock-settings">
+              <div class="mock-settings-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>Privacy & Security</span>
+              </div>
+              <div class="mock-settings-body">
+                <p style="font-size: 11px; color: var(--brown-body); line-height: 1.4;">"Tomato" was blocked from opening because it is not from an identified developer.</p>
+                <div class="mock-settings-row">
+                  <span class="setting-text"></span>
+                  <span class="mock-open-anyway">Open Anyway</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ TRUST BADGE ═══ -->
+    <section class="section-trust">
+      <div class="trust-card reveal">
+        <div class="trust-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+        <div class="trust-text">
+          <h3 class="trust-title">Open source and privacy-first</h3>
+          <p class="trust-desc">Tomato is fully open source. All inference runs on your device — no data leaves your Mac. No account, no telemetry, no cloud.</p>
+        </div>
+        <div class="trust-badges">
+          <div class="trust-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            <span>Open source</span>
+          </div>
+          <div class="trust-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Local-only</span>
+          </div>
+          <div class="trust-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span>No tracking</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ EXPLAINER ═══ -->
+    <section class="section-explainer">
+      <div class="explainer-card reveal">
+        <h2 class="explainer-title">Why does macOS show a warning?</h2>
+        <div class="explainer-body">
+          <p>macOS includes a security feature called <strong>Gatekeeper</strong> that warns you when you open an app that hasn't been notarized by Apple. This isn't a sign that the app is unsafe — it means the developer distributes it independently, outside the Mac App Store.</p>
+          <p>Tomato is an open-source project. Apple's notarization process requires a paid developer account ($99/year), which we haven't set up yet during the beta. The right-click → Open method tells macOS you trust this app, and you'll only need to do it once.</p>
+          <div class="explainer-callout">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            <p>You can verify everything Tomato does by reading the source code on <a href="https://github.com/oliverswitzer/tomato" style="color: var(--red); font-weight: 600;">GitHub</a>. All processing happens locally on your Mac — nothing is sent to external servers.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ FOOTER ═══ -->
+    <section class="section-footer">
+      <div class="footer-wrap">
+        <div class="footer-divider"></div>
+        <div class="footer-row">
+          <div class="footer-brand">
+            <span class="brand-emoji">🍅</span>
+            <span class="serif brand-name">Tomato</span>
+            <span class="brand-copy">  ·  © 2026  ·  A focus partner for macOS</span>
+          </div>
+          <div class="footer-links">
+            <a href="index.html#privacy">Privacy</a>
+            <a href="#">Changelog</a>
+            <a href="https://github.com/oliverswitzer/tomato">GitHub</a>
+            <a href="#">Contact</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    // Auto-trigger download on page load
+    window.addEventListener('load', () => {
+      window.location.href = 'https://github.com/oliverswitzer/tomato/releases/latest/download/Tomato.dmg';
+    });
+
+    // Scroll reveal animation
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
