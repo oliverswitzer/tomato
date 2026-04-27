@@ -39,7 +39,7 @@
           "fill": {
             "type": "image",
             "enabled": true,
-            "url": "pomodoro/assets/app-icon.png",
+            "url": "../../stay-app/pomodoro/assets/app-icon.png",
             "mode": "fit"
           },
           "cornerRadius": 48,
@@ -732,7 +732,7 @@
                       "fill": {
                         "type": "image",
                         "enabled": true,
-                        "url": "images/generated-1777044630920.png",
+                        "url": "../../stay-app/images/generated-1777044630920.png",
                         "mode": "fill"
                       },
                       "width": 20,
@@ -750,7 +750,7 @@
                       "fill": {
                         "type": "image",
                         "enabled": true,
-                        "url": "images/generated-1777044636986.png",
+                        "url": "../../stay-app/images/generated-1777044636986.png",
                         "mode": "fill"
                       },
                       "width": 20,
@@ -768,7 +768,7 @@
                       "fill": {
                         "type": "image",
                         "enabled": true,
-                        "url": "images/generated-1777044621950.png",
+                        "url": "../../stay-app/images/generated-1777044621950.png",
                         "mode": "fill"
                       },
                       "width": 20,
@@ -786,7 +786,7 @@
                       "fill": {
                         "type": "image",
                         "enabled": true,
-                        "url": "images/generated-1777044624127.png",
+                        "url": "../../stay-app/images/generated-1777044624127.png",
                         "mode": "fill"
                       },
                       "width": 20,
@@ -890,7 +890,7 @@
                       "fill": {
                         "type": "image",
                         "enabled": true,
-                        "url": "images/generated-1777044629113.png",
+                        "url": "../../stay-app/images/generated-1777044629113.png",
                         "mode": "fill"
                       },
                       "width": 20,
@@ -908,7 +908,7 @@
                       "fill": {
                         "type": "image",
                         "enabled": true,
-                        "url": "images/generated-1777044622374.png",
+                        "url": "../../stay-app/images/generated-1777044622374.png",
                         "mode": "fill"
                       },
                       "width": 20,
@@ -926,7 +926,7 @@
                       "fill": {
                         "type": "image",
                         "enabled": true,
-                        "url": "images/generated-1777044628804.png",
+                        "url": "../../stay-app/images/generated-1777044628804.png",
                         "mode": "fill"
                       },
                       "width": 20,
@@ -1030,7 +1030,7 @@
                       "fill": {
                         "type": "image",
                         "enabled": true,
-                        "url": "images/generated-1777044626056.png",
+                        "url": "../../stay-app/images/generated-1777044626056.png",
                         "mode": "fill"
                       },
                       "width": 20,
@@ -1048,7 +1048,7 @@
                       "fill": {
                         "type": "image",
                         "enabled": true,
-                        "url": "images/generated-1777044629486.png",
+                        "url": "../../stay-app/images/generated-1777044629486.png",
                         "mode": "fill"
                       },
                       "width": 20,
@@ -1066,7 +1066,7 @@
                       "fill": {
                         "type": "image",
                         "enabled": true,
-                        "url": "images/generated-1777044630906.png",
+                        "url": "../../stay-app/images/generated-1777044630906.png",
                         "mode": "fill"
                       },
                       "width": 20,
@@ -1096,7 +1096,7 @@
       "fill": {
         "type": "image",
         "enabled": true,
-        "url": "images/generated-1777043986969.png",
+        "url": "../../stay-app/images/generated-1777043986969.png",
         "mode": "fill"
       },
       "cornerRadius": 28,
@@ -1300,7 +1300,7 @@
                       "id": "lE0ON",
                       "name": "tomTime",
                       "fill": "#FFFFFF",
-                      "content": "18:42",
+                      "content": "14:52",
                       "fontFamily": "Geist Mono",
                       "fontSize": 12,
                       "fontWeight": "600"
@@ -3065,7 +3065,7 @@
                       "id": "RxTzu",
                       "name": "pillTxt",
                       "fill": "#2E6B12",
-                      "content": "ON TRACK · 25 MIN",
+                      "content": "ON TRACK · 15 MIN",
                       "fontFamily": "Geist Mono",
                       "fontSize": 11,
                       "fontWeight": "600",
@@ -3125,7 +3125,7 @@
                   "fill": {
                     "type": "image",
                     "enabled": true,
-                    "url": "pomodoro/assets/app-icon.png",
+                    "url": "../../stay-app/pomodoro/assets/app-icon.png",
                     "mode": "fit"
                   }
                 },
@@ -3142,7 +3142,7 @@
                       "id": "PmmEj",
                       "name": "timer",
                       "fill": "#1A1A1A",
-                      "content": "24:52",
+                      "content": "14:52",
                       "fontFamily": "Geist Mono",
                       "fontSize": 32,
                       "fontWeight": "600"
@@ -3152,9 +3152,10 @@
                       "id": "deK1E",
                       "name": "task",
                       "fill": "#2A2A2A",
-                      "content": "Writing documentation",
+                      "content": "Debugging Tomato app authentication",
                       "fontFamily": "Newsreader",
-                      "fontSize": 16
+                      "fontSize": 16,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -3205,7 +3206,7 @@
           "fill": {
             "type": "image",
             "enabled": true,
-            "url": "images/generated-1777044269789.png",
+            "url": "../../stay-app/images/generated-1777044269789.png",
             "mode": "fill"
           },
           "layout": "none"
@@ -4288,7 +4289,7 @@
                   "fill": {
                     "type": "image",
                     "enabled": true,
-                    "url": "pomodoro/assets/app-icon.png",
+                    "url": "../../stay-app/pomodoro/assets/app-icon.png",
                     "mode": "fit"
                   }
                 },
@@ -4316,7 +4317,8 @@
                       "fill": "#2A2A2A",
                       "content": "Writing documentation",
                       "fontFamily": "Newsreader",
-                      "fontSize": 16
+                      "fontSize": 16,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -4372,6 +4374,7 @@
                   "content": "First summary in a few minutes…",
                   "fontFamily": "Newsreader",
                   "fontSize": 14,
+                  "fontWeight": "normal",
                   "fontStyle": "italic"
                 }
               ]
@@ -4567,7 +4570,7 @@
           "fill": {
             "type": "image",
             "enabled": true,
-            "url": "images/generated-1777044050833.png",
+            "url": "../../stay-app/images/generated-1777044050833.png",
             "mode": "fill"
           },
           "width": 1280,
@@ -4715,12 +4718,10 @@
                   "type": "frame",
                   "id": "nYLSF",
                   "name": "tChip",
-                  "fill": "#E2574C26",
+                  "fill": "#00000033",
                   "cornerRadius": 8,
                   "stroke": {
-                    "align": "inside",
-                    "thickness": 1,
-                    "fill": "#E2574C55"
+                    "thickness": 0
                   },
                   "gap": 6,
                   "padding": [
@@ -4733,17 +4734,17 @@
                       "type": "frame",
                       "id": "vVR0V",
                       "name": "tChipAv",
-                      "width": 14,
-                      "height": 14,
-                      "fill": "#F5EFE5",
-                      "cornerRadius": 4
+                      "width": 10,
+                      "height": 10,
+                      "fill": "#E2574C",
+                      "cornerRadius": 5
                     },
                     {
                       "type": "text",
                       "id": "Ti74E",
                       "name": "tChipT",
-                      "fill": "#FFD9D2",
-                      "content": "12:08",
+                      "fill": "#FFFFFF",
+                      "content": "14:52",
                       "fontFamily": "Geist Mono",
                       "fontSize": 11,
                       "fontWeight": "600"
@@ -7024,7 +7025,7 @@
                                       "fill": {
                                         "type": "image",
                                         "enabled": true,
-                                        "url": "images/generated-1777046088788.png",
+                                        "url": "../../stay-app/images/generated-1777046088788.png",
                                         "mode": "fill"
                                       },
                                       "width": 48,
@@ -7696,7 +7697,7 @@
                               "fill": {
                                 "type": "image",
                                 "enabled": true,
-                                "url": "images/generated-1777046131056.png",
+                                "url": "../../stay-app/images/generated-1777046131056.png",
                                 "mode": "fill"
                               },
                               "width": "fill_container",
@@ -8414,7 +8415,7 @@
                               "fill": {
                                 "type": "image",
                                 "enabled": true,
-                                "url": "images/generated-1777046106917.png",
+                                "url": "../../stay-app/images/generated-1777046106917.png",
                                 "mode": "fill"
                               },
                               "width": "fill_container",
@@ -8547,7 +8548,7 @@
                   "fill": {
                     "type": "image",
                     "enabled": true,
-                    "url": "pomodoro/assets/app-icon.png",
+                    "url": "../../stay-app/pomodoro/assets/app-icon.png",
                     "mode": "fit"
                   }
                 },
@@ -8572,7 +8573,7 @@
                       "id": "Wyhsd",
                       "name": "intent",
                       "fill": "#2A2A2A",
-                      "content": "Writing documentation",
+                      "content": "Debugging Tomato app authentication",
                       "fontFamily": "Newsreader",
                       "fontSize": 16,
                       "fontWeight": "normal"
@@ -8624,7 +8625,7 @@
                   "fill": "#6B6259",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "User made minor edits to sign.sh file in the tomato-app project, adding comments about font sizing and debugging notes. Activity was brief with a context switch to Messages app in the middle.",
+                  "content": "User has been scrolling the LinkedIn feed in Chrome for the last several minutes.",
                   "lineHeight": 1.45,
                   "fontFamily": "Newsreader",
                   "fontSize": 14,
@@ -8662,7 +8663,7 @@
                   "fill": "#2A2A2A",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "Typing appears fragmented and contains incomplete thoughts ('testing some stuff', 'anywathis') rather than coherent documentation writing. The brief Messages interruption and scattered edits suggest loss of focus from the stated documentation intention.",
+                  "content": "LinkedIn doesn't match your intent to debug Tomato authentication.",
                   "lineHeight": 1.45,
                   "fontFamily": "Inter",
                   "fontSize": 13,
@@ -8673,7 +8674,7 @@
                   "id": "zPy3A",
                   "name": "otFooter",
                   "fill": "#8B8477",
-                  "content": "Building · 75% confidence",
+                  "content": "Browsing · 92% confidence",
                   "fontFamily": "Inter",
                   "fontSize": 11,
                   "fontWeight": "500"
@@ -8757,7 +8758,7 @@
                   "fill": "#2A2A2A",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "User made minor edits to sign.sh file in the tomato-app project, adding comments about font sizing and debugging notes. Activity was brief with a context switch to Messages app in the middle.",
+                  "content": "Switched from Cursor to Chrome and started scrolling the LinkedIn feed.",
                   "lineHeight": 1.4,
                   "fontFamily": "Inter",
                   "fontSize": 13,
@@ -8768,7 +8769,7 @@
                   "id": "6zoxi",
                   "name": "aeFooter",
                   "fill": "#8B8477",
-                  "content": "Cursor, Messages",
+                  "content": "Chrome, LinkedIn",
                   "fontFamily": "Inter",
                   "fontSize": 12,
                   "fontWeight": "500"
@@ -9076,7 +9077,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "pomodoro/assets/app-icon.png",
+                            "url": "../../stay-app/pomodoro/assets/app-icon.png",
                             "mode": "fit"
                           },
                           "cornerRadius": 4
@@ -9213,7 +9214,7 @@
                               "fill": {
                                 "type": "image",
                                 "enabled": true,
-                                "url": "pomodoro/assets/app-icon.png",
+                                "url": "../../stay-app/pomodoro/assets/app-icon.png",
                                 "mode": "fit"
                               },
                               "cornerRadius": 7
@@ -9713,7 +9714,7 @@
                       "fill": {
                         "type": "image",
                         "enabled": true,
-                        "url": "pomodoro/assets/app-icon.png",
+                        "url": "../../stay-app/pomodoro/assets/app-icon.png",
                         "mode": "fit"
                       },
                       "cornerRadius": 14
@@ -9779,7 +9780,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "pomodoro/assets/app-icon.png",
+                            "url": "../../stay-app/pomodoro/assets/app-icon.png",
                             "mode": "fit"
                           },
                           "cornerRadius": 14
@@ -9877,7 +9878,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "pomodoro/assets/app-icon.png",
+                            "url": "../../stay-app/pomodoro/assets/app-icon.png",
                             "mode": "fit"
                           },
                           "cornerRadius": 14
@@ -9971,7 +9972,7 @@
                           "fill": {
                             "type": "image",
                             "enabled": true,
-                            "url": "pomodoro/assets/app-icon.png",
+                            "url": "../../stay-app/pomodoro/assets/app-icon.png",
                             "mode": "fit"
                           },
                           "cornerRadius": 14
@@ -10077,7 +10078,7 @@
               "fill": {
                 "type": "image",
                 "enabled": true,
-                "url": "pomodoro/assets/app-icon.png",
+                "url": "../../stay-app/pomodoro/assets/app-icon.png",
                 "mode": "fit"
               },
               "cornerRadius": 48,
@@ -10844,6 +10845,3845 @@
                       "fontWeight": "600"
                     }
                   ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "rqal4",
+      "x": -1020,
+      "y": 2409,
+      "name": "06 Splash Landing Page",
+      "clip": true,
+      "width": 1440,
+      "fill": "#FAF4E8",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "PKb6b",
+          "name": "section/hero",
+          "width": "fill_container",
+          "fill": "#FAF4E8",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            24,
+            96,
+            20,
+            96
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "K4eR1",
+              "name": "nav",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "V8pWh",
+                  "name": "navLeft",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "rpj5N",
+                      "name": "tomato-mark",
+                      "width": 22,
+                      "height": 22,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "O5Lff",
+                          "x": 9,
+                          "y": 1,
+                          "fill": "#6B9E48",
+                          "width": 6,
+                          "height": 3
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "VrdwO",
+                          "x": 2,
+                          "y": 4,
+                          "fill": "#D85440",
+                          "width": 18,
+                          "height": 18
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "xBr8H",
+                          "x": 6,
+                          "y": 8,
+                          "fill": "#E86A52",
+                          "width": 5,
+                          "height": 5
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "E322A",
+                      "fill": "#2B2620",
+                      "content": "Tomato",
+                      "fontFamily": "Fraunces",
+                      "fontSize": 22,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "UAbj7",
+                  "name": "navRight",
+                  "gap": 28,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "t69nr",
+                      "fill": "#6F665B",
+                      "content": "Features",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Cny6x",
+                      "fill": "#6F665B",
+                      "content": "Privacy",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "XCI2X",
+                      "fill": "#6F665B",
+                      "content": "Download",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "aIHlO",
+                      "name": "navBtn",
+                      "fill": "#D85440",
+                      "cornerRadius": 999,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#D8544033",
+                        "offset": {
+                          "x": 0,
+                          "y": 4
+                        },
+                        "blur": 12
+                      },
+                      "padding": [
+                        10,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Eu2xn",
+                          "fill": "#FFFFFF",
+                          "content": "Download for Mac",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Kk2xB",
+              "name": "hero-copy",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "nZs1R",
+                  "name": "eyebrow",
+                  "fill": "#D85440",
+                  "content": "THE SMARTEST POMODORO ON YOUR MAC",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "600",
+                  "letterSpacing": 2.4
+                },
+                {
+                  "type": "text",
+                  "id": "3HakL",
+                  "fill": "#2B2620",
+                  "textGrowth": "fixed-width",
+                  "width": 900,
+                  "content": "A Pomodoro smart enough\nto tell the difference.",
+                  "lineHeight": 1.05,
+                  "textAlign": "center",
+                  "fontFamily": "Fraunces",
+                  "fontSize": 62,
+                  "fontWeight": "600",
+                  "letterSpacing": -1.2
+                },
+                {
+                  "type": "text",
+                  "id": "SHKVw",
+                  "fill": "#6F665B",
+                  "textGrowth": "fixed-width",
+                  "width": 820,
+                  "content": "Between debugging on Reddit and doom-scrolling Reddit. Between a YouTube tutorial and a YouTube binge. Tomato reads your active window against the intention you typed — and only nudges when you've really drifted. Never blocks. Never shames. An accountability partner that trains your own focus.",
+                  "lineHeight": 1.55,
+                  "textAlign": "center",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "RshXC",
+                  "name": "ctaRow",
+                  "gap": 14,
+                  "padding": [
+                    6,
+                    0,
+                    0,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "FcqfJ",
+                      "name": "ctaPrimary",
+                      "fill": "#D85440",
+                      "cornerRadius": 999,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#D8544040",
+                        "offset": {
+                          "x": 0,
+                          "y": 6
+                        },
+                        "blur": 18
+                      },
+                      "gap": 8,
+                      "padding": [
+                        14,
+                        24,
+                        14,
+                        22
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "OIkD5",
+                          "fill": "#FFFFFF",
+                          "content": "Download for Mac",
+                          "fontFamily": "Inter",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Ozx2y",
+                      "name": "ctaSec",
+                      "cornerRadius": 999,
+                      "stroke": {
+                        "thickness": 1,
+                        "fill": "#2B26201F"
+                      },
+                      "gap": 8,
+                      "padding": [
+                        14,
+                        24
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "5oNRo",
+                          "fill": "#2B2620",
+                          "content": "See how it works",
+                          "fontFamily": "Inter",
+                          "fontSize": 16,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ggjmB",
+                  "name": "microRow",
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    0,
+                    0,
+                    0
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "Aixer",
+                      "fill": "#4FB37A",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "VLllN",
+                      "fill": "#6F665B",
+                      "content": "Free during beta · macOS 13+ · Runs entirely on your device",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "uYRQz",
+                  "name": "testi",
+                  "fill": "#FFFAF0",
+                  "cornerRadius": 999,
+                  "stroke": {
+                    "thickness": 1,
+                    "fill": "#2B26201F"
+                  },
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#2B262014",
+                    "offset": {
+                      "x": 0,
+                      "y": 6
+                    },
+                    "blur": 18,
+                    "spread": -6
+                  },
+                  "gap": 12,
+                  "padding": [
+                    12,
+                    20,
+                    12,
+                    18
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon_font",
+                      "id": "aNNMd",
+                      "name": "quoteIcon",
+                      "width": 14,
+                      "height": 14,
+                      "iconFontName": "quote",
+                      "iconFontFamily": "lucide",
+                      "fill": "#D85440"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Xy2Lk",
+                      "name": "quoteText",
+                      "fill": "#2B2620",
+                      "content": "\"Finally — a focus app that knows when Reddit is for research.\"",
+                      "fontFamily": "Fraunces",
+                      "fontSize": 14,
+                      "fontWeight": "normal",
+                      "fontStyle": "italic"
+                    },
+                    {
+                      "type": "text",
+                      "id": "dsnvN",
+                      "name": "sep",
+                      "fill": "#9C9286",
+                      "content": "·",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "nmj28",
+                      "name": "quoteAuthor",
+                      "fill": "#9C9286",
+                      "content": "solo dev, beta tester",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ONkgV",
+              "name": "mockup-wrap",
+              "width": "fill_container",
+              "justifyContent": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Hn0gm",
+                  "name": "mac-window",
+                  "width": 560,
+                  "fill": "#FFFAF0",
+                  "cornerRadius": 18,
+                  "stroke": {
+                    "thickness": 1,
+                    "fill": "#2B26200F"
+                  },
+                  "effect": [
+                    {
+                      "type": "shadow",
+                      "shadowType": "outer",
+                      "color": "#2B262026",
+                      "offset": {
+                        "x": 0,
+                        "y": 24
+                      },
+                      "blur": 48
+                    },
+                    {
+                      "type": "shadow",
+                      "shadowType": "outer",
+                      "color": "#2B26201A",
+                      "offset": {
+                        "x": 0,
+                        "y": 6
+                      },
+                      "blur": 14
+                    }
+                  ],
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "5TMDi",
+                      "name": "titlebar",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "padding": [
+                        12,
+                        14
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "kAeKl",
+                          "fill": "#FF5F57",
+                          "width": 12,
+                          "height": 12
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "PDXGE",
+                          "fill": "#FEBC2E",
+                          "width": 12,
+                          "height": 12
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "RP9Vr",
+                          "fill": "#28C840",
+                          "width": 12,
+                          "height": 12
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "UZ7K9",
+                      "name": "window-body",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 14,
+                      "padding": [
+                        6,
+                        32,
+                        18,
+                        32
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "pF6sN",
+                          "name": "iconCircle",
+                          "width": 60,
+                          "height": 60,
+                          "fill": "#FFEDE6",
+                          "cornerRadius": 999,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "uesX3",
+                              "name": "tomato-big",
+                              "width": 40,
+                              "height": 40,
+                              "layout": "none",
+                              "children": [
+                                {
+                                  "type": "ellipse",
+                                  "id": "FoN4J",
+                                  "x": 14,
+                                  "y": 2,
+                                  "fill": "#6B9E48",
+                                  "width": 12,
+                                  "height": 5
+                                },
+                                {
+                                  "type": "ellipse",
+                                  "id": "pa5ct",
+                                  "x": 3,
+                                  "y": 6,
+                                  "fill": "#D85440",
+                                  "width": 34,
+                                  "height": 34
+                                },
+                                {
+                                  "type": "ellipse",
+                                  "id": "S1mID",
+                                  "x": 9,
+                                  "y": 14,
+                                  "fill": "#E86A52",
+                                  "width": 10,
+                                  "height": 10
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "TiyDm",
+                          "fill": "#2B2620",
+                          "content": "What are you working on?",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 24,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "8dxMw",
+                          "name": "input",
+                          "width": "fill_container",
+                          "fill": "#FAF4E8",
+                          "cornerRadius": 12,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#2B26201A"
+                          },
+                          "padding": [
+                            12,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "MlxcG",
+                              "fill": "#2B2620",
+                              "content": "Finish the landing page hero copy",
+                              "fontFamily": "Inter",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "V4dGB",
+                          "name": "session-pills",
+                          "gap": 8,
+                          "padding": [
+                            2,
+                            0
+                          ],
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "qJdkB",
+                              "name": "pill1",
+                              "fill": "#FFFAF0",
+                              "cornerRadius": 999,
+                              "stroke": {
+                                "thickness": 1,
+                                "fill": "#2B26201F"
+                              },
+                              "layout": "vertical",
+                              "gap": 1,
+                              "padding": [
+                                10,
+                                16
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "6WPnF",
+                                  "fill": "#2B2620",
+                                  "content": "15",
+                                  "fontFamily": "Fraunces",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "LGwkH",
+                                  "fill": "#6F665B",
+                                  "content": "quick",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "mdBmk",
+                              "name": "pill2",
+                              "fill": "#D85440",
+                              "cornerRadius": 999,
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "color": "#D8544040",
+                                "offset": {
+                                  "x": 0,
+                                  "y": 4
+                                },
+                                "blur": 10
+                              },
+                              "layout": "vertical",
+                              "gap": 1,
+                              "padding": [
+                                10,
+                                16
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "rsifJ",
+                                  "fill": "#FFFFFF",
+                                  "content": "25",
+                                  "fontFamily": "Fraunces",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "syG1z",
+                                  "fill": "#FFE7E0",
+                                  "content": "classic",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "CnJDZ",
+                              "name": "pill3",
+                              "fill": "#FFFAF0",
+                              "cornerRadius": 999,
+                              "stroke": {
+                                "thickness": 1,
+                                "fill": "#2B26201F"
+                              },
+                              "layout": "vertical",
+                              "gap": 1,
+                              "padding": [
+                                10,
+                                16
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "bltKA",
+                                  "fill": "#2B2620",
+                                  "content": "45",
+                                  "fontFamily": "Fraunces",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "kXkuZ",
+                                  "fill": "#6F665B",
+                                  "content": "focus",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "JP59I",
+                              "name": "pill4",
+                              "fill": "#FFFAF0",
+                              "cornerRadius": 999,
+                              "stroke": {
+                                "thickness": 1,
+                                "fill": "#2B26201F"
+                              },
+                              "layout": "vertical",
+                              "gap": 1,
+                              "padding": [
+                                10,
+                                16
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "BNpkx",
+                                  "fill": "#2B2620",
+                                  "content": "60",
+                                  "fontFamily": "Fraunces",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "eHtes",
+                                  "fill": "#6F665B",
+                                  "content": "deep",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "A7VkL",
+                          "name": "start-btn",
+                          "width": "fill_container",
+                          "fill": "#D85440",
+                          "cornerRadius": 14,
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "color": "#D8544040",
+                            "offset": {
+                              "x": 0,
+                              "y": 6
+                            },
+                            "blur": 16
+                          },
+                          "padding": [
+                            14,
+                            20
+                          ],
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "meGJI",
+                              "fill": "#FFFFFF",
+                              "content": "Start 25-minute session",
+                              "fontFamily": "Inter",
+                              "fontSize": 16,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "MRyiF",
+          "name": "section/problem",
+          "width": "fill_container",
+          "height": 560,
+          "fill": "#FFFBF1",
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            0,
+            96
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "1fuL0",
+              "name": "topBlock",
+              "layout": "vertical",
+              "gap": 14,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "21UhS",
+                  "name": "eyebrow",
+                  "fill": "#D85440",
+                  "content": "WHY BLOCKERS DON'T WORK",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "600",
+                  "letterSpacing": 2.4
+                },
+                {
+                  "type": "text",
+                  "id": "X0lr8",
+                  "name": "headline",
+                  "fill": "#2B2620",
+                  "textGrowth": "fixed-width",
+                  "width": 880,
+                  "content": "App blockers can't tell research from procrastination.",
+                  "lineHeight": 1.1,
+                  "textAlign": "center",
+                  "fontFamily": "Fraunces",
+                  "fontSize": 60,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "juODk",
+              "name": "subhead",
+              "fill": "#6F665B",
+              "textGrowth": "fixed-width",
+              "width": 720,
+              "content": "You're debugging your code on Reddit. You're watching a YouTube tutorial. A dumb URL blocker doesn't care — it shames you for both. That's not focus. That's friction. Tomato understands what you actually set out to do, and only steps in when you've truly drifted.",
+              "lineHeight": 1.5,
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 19,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "shCGP",
+              "name": "pillRow",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "iV2EB",
+                  "name": "pill1",
+                  "fill": "#F5EFE0",
+                  "cornerRadius": 999,
+                  "gap": 8,
+                  "padding": [
+                    8,
+                    14
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon_font",
+                      "id": "ZUnki",
+                      "name": "icon1",
+                      "width": 16,
+                      "height": 16,
+                      "iconFontName": "ban",
+                      "iconFontFamily": "lucide",
+                      "fill": "#2B2620"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Y3Tlv",
+                      "name": "label1",
+                      "fill": "#2B2620",
+                      "content": "No blanket blocking",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "0ygRY",
+                  "name": "pill2",
+                  "fill": "#F5EFE0",
+                  "cornerRadius": 999,
+                  "gap": 8,
+                  "padding": [
+                    8,
+                    14
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon_font",
+                      "id": "Ppl4P",
+                      "name": "icon2",
+                      "width": 16,
+                      "height": 16,
+                      "iconFontName": "heart-handshake",
+                      "iconFontFamily": "lucide",
+                      "fill": "#2B2620"
+                    },
+                    {
+                      "type": "text",
+                      "id": "i0uuJ",
+                      "name": "label2",
+                      "fill": "#2B2620",
+                      "content": "No shame",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "bYIue",
+                  "name": "pill3",
+                  "fill": "#F5EFE0",
+                  "cornerRadius": 999,
+                  "gap": 8,
+                  "padding": [
+                    8,
+                    14
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon_font",
+                      "id": "Rtb6l",
+                      "name": "icon3",
+                      "width": 16,
+                      "height": 16,
+                      "iconFontName": "brain-circuit",
+                      "iconFontFamily": "lucide",
+                      "fill": "#2B2620"
+                    },
+                    {
+                      "type": "text",
+                      "id": "e0qAw",
+                      "name": "label3",
+                      "fill": "#2B2620",
+                      "content": "Knows the difference",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Sw6TX",
+          "name": "section/features",
+          "width": "fill_container",
+          "height": 760,
+          "fill": "#FAF4E8",
+          "layout": "vertical",
+          "gap": 48,
+          "padding": [
+            64,
+            96
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "ksdCc",
+              "name": "heading",
+              "layout": "vertical",
+              "gap": 14,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "t1Xne",
+                  "name": "eyebrow",
+                  "fill": "#D85440",
+                  "content": "WHY IT'S DIFFERENT",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "600",
+                  "letterSpacing": 2.4
+                },
+                {
+                  "type": "text",
+                  "id": "vG8Q0",
+                  "name": "headline",
+                  "fill": "#2B2620",
+                  "content": "Smart enough to tell the difference.",
+                  "textAlign": "center",
+                  "fontFamily": "Fraunces",
+                  "fontSize": 52,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "5jULc",
+              "name": "grid",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "FsVm3",
+                  "name": "row1",
+                  "width": "fill_container",
+                  "gap": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "tGkbr",
+                      "name": "card1",
+                      "width": "fill_container",
+                      "fill": "#FFFBF1",
+                      "cornerRadius": 20,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#0000001A",
+                        "offset": {
+                          "x": 0,
+                          "y": 10
+                        },
+                        "blur": 28
+                      },
+                      "layout": "vertical",
+                      "gap": 18,
+                      "padding": 34,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "cU6LA",
+                          "name": "tile1",
+                          "width": 56,
+                          "height": 56,
+                          "fill": "#F8E0D8",
+                          "cornerRadius": 14,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "ZBRhI",
+                              "name": "icon1",
+                              "width": 28,
+                              "height": 28,
+                              "iconFontName": "target",
+                              "iconFontFamily": "lucide",
+                              "fill": "#D85440"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "Nx9Al",
+                          "name": "title1",
+                          "fill": "#2B2620",
+                          "content": "Tell Tomato what you meant to do",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 24,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "mFK4Z",
+                          "name": "body1",
+                          "fill": "#6F665B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Type the intention before each session. Tomato uses it as the lens for everything that follows — not a list of banned websites.",
+                          "lineHeight": 1.55,
+                          "fontFamily": "Inter",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "sCQta",
+                      "name": "card2",
+                      "width": "fill_container",
+                      "fill": "#FFFBF1",
+                      "cornerRadius": 20,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#0000001A",
+                        "offset": {
+                          "x": 0,
+                          "y": 10
+                        },
+                        "blur": 28
+                      },
+                      "layout": "vertical",
+                      "gap": 18,
+                      "padding": 34,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "d9OC5",
+                          "name": "tile2",
+                          "width": 56,
+                          "height": 56,
+                          "fill": "#F8E0D8",
+                          "cornerRadius": 14,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "KcIbW",
+                              "name": "icon2",
+                              "width": 28,
+                              "height": 28,
+                              "iconFontName": "brain-circuit",
+                              "iconFontFamily": "lucide",
+                              "fill": "#D85440"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "kS5Yq",
+                          "name": "title2",
+                          "fill": "#2B2620",
+                          "content": "Reads context, not URLs",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 24,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "BejlH",
+                          "name": "body2",
+                          "fill": "#6F665B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "A small on-device model peeks at the gist of your active window and asks one question: is this aligned with what you said you'd do? Reddit might be — it depends.",
+                          "lineHeight": 1.55,
+                          "fontFamily": "Inter",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "lG8iy",
+                  "name": "row2",
+                  "width": "fill_container",
+                  "gap": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "BV4Dz",
+                      "name": "card3",
+                      "width": "fill_container",
+                      "fill": "#FFFBF1",
+                      "cornerRadius": 20,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#0000001A",
+                        "offset": {
+                          "x": 0,
+                          "y": 10
+                        },
+                        "blur": 28
+                      },
+                      "layout": "vertical",
+                      "gap": 18,
+                      "padding": 34,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "WTD36",
+                          "name": "tile3",
+                          "width": 56,
+                          "height": 56,
+                          "fill": "#F8E0D8",
+                          "cornerRadius": 14,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "nINj8",
+                              "name": "icon3",
+                              "width": 28,
+                              "height": 28,
+                              "iconFontName": "bell-ring",
+                              "iconFontFamily": "lucide",
+                              "fill": "#D85440"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "GgtqM",
+                          "name": "title3",
+                          "fill": "#2B2620",
+                          "content": "Nudges, never blocks",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 24,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "3gT04",
+                          "name": "body3",
+                          "fill": "#6F665B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "No walls, no countdown to lockout, no public shame. When you drift, a friendly card appears — dismiss it, return, or end the session.",
+                          "lineHeight": 1.55,
+                          "fontFamily": "Inter",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "DoPfg",
+                      "name": "card4",
+                      "width": "fill_container",
+                      "fill": "#FFFBF1",
+                      "cornerRadius": 20,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#0000001A",
+                        "offset": {
+                          "x": 0,
+                          "y": 10
+                        },
+                        "blur": 28
+                      },
+                      "layout": "vertical",
+                      "gap": 18,
+                      "padding": 34,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "0xnXl",
+                          "name": "tile4",
+                          "width": 56,
+                          "height": 56,
+                          "fill": "#F8E0D8",
+                          "cornerRadius": 14,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "CUCn0",
+                              "name": "icon4",
+                              "width": 28,
+                              "height": 28,
+                              "iconFontName": "dumbbell",
+                              "iconFontFamily": "lucide",
+                              "fill": "#D85440"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "ZzzzS",
+                          "name": "title4",
+                          "fill": "#2B2620",
+                          "content": "Trains your own focus",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 24,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "mGCZo",
+                          "name": "body4",
+                          "fill": "#6F665B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "External blockers don't build attention; they outsource it. Tomato gently reflects your patterns back to you, so you re-learn focus as a skill.",
+                          "lineHeight": 1.55,
+                          "fontFamily": "Inter",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "QeFD7",
+          "name": "section/how-it-works",
+          "width": "fill_container",
+          "height": 780,
+          "fill": "#FFFBF1",
+          "layout": "vertical",
+          "gap": 48,
+          "padding": [
+            64,
+            96
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "PCKzq",
+              "name": "heading",
+              "layout": "vertical",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "giQVy",
+                  "name": "eyebrow",
+                  "fill": "#D85440",
+                  "content": "HOW IT WORKS",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "600",
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "IsVqM",
+                  "name": "headline",
+                  "fill": "#2B2620",
+                  "content": "Three steps. No willpower required.",
+                  "textAlign": "center",
+                  "fontFamily": "Fraunces",
+                  "fontSize": 52,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "Ckk6Q",
+                  "name": "subhead",
+                  "fill": "#6F665B",
+                  "textGrowth": "fixed-width",
+                  "width": 640,
+                  "content": "No app banlists to maintain, no rituals to remember. Just an intention and a friendly observer that already understands what you set out to do.",
+                  "lineHeight": 1.5,
+                  "textAlign": "center",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "iaINh",
+              "name": "cardsRow",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "qjz5h",
+                  "name": "card1",
+                  "width": "fill_container",
+                  "fill": "#FAF4E8",
+                  "cornerRadius": 20,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#2B262014",
+                    "offset": {
+                      "x": 0,
+                      "y": 8
+                    },
+                    "blur": 24
+                  },
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "2QeYJ",
+                      "name": "num1",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "#D85440",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "KWEGB",
+                          "name": "num1Text",
+                          "fill": "#FFFFFF",
+                          "content": "1",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 22,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "wrfpp",
+                      "name": "title1",
+                      "fill": "#2B2620",
+                      "content": "Tell it what you mean to do",
+                      "fontFamily": "Fraunces",
+                      "fontSize": 22,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ZB1zH",
+                      "name": "body1",
+                      "fill": "#6F665B",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Open Tomato, type your intention (e.g. \"Debug the auth flow\"), pick a session length, hit start. That sentence is now the lens.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "KLUhu",
+                      "name": "mock1",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": [
+                        12,
+                        0,
+                        0,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "nLOCf",
+                          "name": "input1",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#E5DDD2"
+                          },
+                          "padding": 12,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "BXCUA",
+                              "name": "input1Text",
+                              "fill": "#2B2620",
+                              "content": "Debug the auth flow",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "aimo2",
+                          "name": "startPill",
+                          "fill": "#D85440",
+                          "cornerRadius": 999,
+                          "padding": [
+                            8,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "cLY9y",
+                              "name": "startText",
+                              "fill": "#FFFFFF",
+                              "content": "Start",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "GHVlV",
+                  "name": "card2",
+                  "width": "fill_container",
+                  "fill": "#FAF4E8",
+                  "cornerRadius": 20,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#2B262014",
+                    "offset": {
+                      "x": 0,
+                      "y": 8
+                    },
+                    "blur": 24
+                  },
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "idZH0",
+                      "name": "num2",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "#D85440",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "l2N9n",
+                          "name": "num2Text",
+                          "fill": "#FFFFFF",
+                          "content": "2",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 22,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "sdcWb",
+                      "name": "title2",
+                      "fill": "#2B2620",
+                      "content": "Work like you normally would",
+                      "fontFamily": "Fraunces",
+                      "fontSize": 22,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "pcgLg",
+                      "name": "body2",
+                      "fill": "#6F665B",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Tomato tucks into your menu bar. A floating HUD shows time remaining and your intention. Open Reddit, open the docs, open whatever you need — nothing is blocked.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "QxDIR",
+                      "name": "mock2",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": [
+                        12,
+                        0,
+                        0,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "7rNaL",
+                          "name": "menubar",
+                          "width": "fill_container",
+                          "fill": "#2B2620",
+                          "cornerRadius": 6,
+                          "gap": 8,
+                          "padding": [
+                            6,
+                            10
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "CAL10",
+                              "fill": "#D85440",
+                              "width": 10,
+                              "height": 10
+                            },
+                            {
+                              "type": "text",
+                              "id": "0xqUg",
+                              "fill": "#FFFBF1",
+                              "content": "24:52",
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "9LDmF",
+                          "name": "hud",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 12,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#E5DDD2"
+                          },
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "color": "#2B26201A",
+                            "offset": {
+                              "x": 0,
+                              "y": 4
+                            },
+                            "blur": 12
+                          },
+                          "gap": 10,
+                          "padding": 12,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "L09Bm",
+                              "name": "hudIcon",
+                              "fill": "#D85440",
+                              "width": 18,
+                              "height": 18
+                            },
+                            {
+                              "type": "text",
+                              "id": "CkRLc",
+                              "name": "hudTime",
+                              "fill": "#2B2620",
+                              "content": "24:52",
+                              "fontFamily": "Fraunces",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "wHF2z",
+                              "name": "hudIntent",
+                              "fill": "#6F665B",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Debugging auth flow",
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "ellipse",
+                              "id": "VxmNF",
+                              "name": "hudDot",
+                              "fill": "#3FA66E",
+                              "width": 8,
+                              "height": 8
+                            },
+                            {
+                              "type": "text",
+                              "id": "QleQE",
+                              "name": "hudStatus",
+                              "fill": "#3FA66E",
+                              "content": "On track",
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ZEYOd",
+                  "name": "card3",
+                  "width": "fill_container",
+                  "fill": "#FAF4E8",
+                  "cornerRadius": 20,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#2B262014",
+                    "offset": {
+                      "x": 0,
+                      "y": 8
+                    },
+                    "blur": 24
+                  },
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "MJocX",
+                      "name": "num3",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "#D85440",
+                      "cornerRadius": 22,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "R68Mf",
+                          "name": "num3Text",
+                          "fill": "#FFFFFF",
+                          "content": "3",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 22,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "wsS13",
+                      "name": "title3",
+                      "fill": "#2B2620",
+                      "content": "Drifted? Tomato says something",
+                      "fontFamily": "Fraunces",
+                      "fontSize": 22,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "T2rTA",
+                      "name": "body3",
+                      "fill": "#6F665B",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "When the gist of your active window stops matching your intention for too long, a calm card appears with a one-line reason and a confidence score. Get back, snooze it, or call the session.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "wVv2n",
+                      "name": "mock3",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "padding": [
+                        12,
+                        0,
+                        0,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "s94un",
+                          "name": "nudge",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 12,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F8E0D8"
+                          },
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "color": "#2B26201A",
+                            "offset": {
+                              "x": 0,
+                              "y": 4
+                            },
+                            "blur": 12
+                          },
+                          "layout": "vertical",
+                          "gap": 10,
+                          "padding": 14,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "rYDB6",
+                              "name": "nudgeHeader",
+                              "width": "fill_container",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "sUy8D",
+                                  "name": "nudgeIconBg",
+                                  "width": 22,
+                                  "height": 22,
+                                  "fill": "#F8E0D8",
+                                  "cornerRadius": 11,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "ellipse",
+                                      "id": "pb5DG",
+                                      "name": "nudgeIconDot",
+                                      "fill": "#D85440",
+                                      "width": 8,
+                                      "height": 8
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "gfiQM",
+                                  "name": "nudgeTitle",
+                                  "fill": "#2B2620",
+                                  "content": "Possible distraction",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "HEi5P",
+                              "name": "nudgeReason",
+                              "fill": "#6F665B",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Twitter doesn't look like \"debug the auth flow\"",
+                              "lineHeight": 1.4,
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "e7l1S",
+                              "name": "nudgeActions",
+                              "width": "fill_container",
+                              "gap": 8,
+                              "padding": [
+                                4,
+                                0,
+                                0,
+                                0
+                              ],
+                              "justifyContent": "end",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "iOJKk",
+                                  "name": "ghostBtn",
+                                  "cornerRadius": 6,
+                                  "padding": [
+                                    6,
+                                    12
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "Mq9K8",
+                                      "name": "ghostText",
+                                      "fill": "#6F665B",
+                                      "content": "Got it",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 11,
+                                      "fontWeight": "500"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "p54Jv",
+          "name": "section/screenshots",
+          "width": "fill_container",
+          "fill": "#FAF4E8",
+          "layout": "vertical",
+          "gap": 56,
+          "padding": [
+            80,
+            64,
+            88,
+            64
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "hcCrv",
+              "name": "headBlock",
+              "layout": "vertical",
+              "gap": 18,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "gWedn",
+                  "name": "eyebrow",
+                  "fill": "#D85440",
+                  "content": "PEEK INSIDE",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "600",
+                  "letterSpacing": 2.4
+                },
+                {
+                  "type": "text",
+                  "id": "swYEY",
+                  "name": "headline",
+                  "fill": "#2B2620",
+                  "content": "What it looks like.",
+                  "textAlign": "center",
+                  "fontFamily": "Fraunces",
+                  "fontSize": 52,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "98opS",
+                  "name": "subhead",
+                  "fill": "#6F665B",
+                  "textGrowth": "fixed-width",
+                  "width": 600,
+                  "content": "Designed to feel like part of macOS, not on top of it. A few real moments from a session.",
+                  "lineHeight": 1.5,
+                  "textAlign": "center",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "WYohh",
+              "name": "cardRow",
+              "gap": 28,
+              "justifyContent": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "0jtKv",
+                  "name": "card1",
+                  "width": 360,
+                  "layout": "vertical",
+                  "gap": 14,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "jyjRI",
+                      "name": "img1",
+                      "clip": true,
+                      "width": "fill_container",
+                      "height": 406,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "../../stay-app/assets/screenshots/Gwc4H.png",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": 18,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#2B262026",
+                        "offset": {
+                          "x": 0,
+                          "y": 18
+                        },
+                        "blur": 42,
+                        "spread": -10
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "id": "7D2YB",
+                      "name": "title1",
+                      "fill": "#2B2620",
+                      "content": "Set the intention",
+                      "fontFamily": "Fraunces",
+                      "fontSize": 19,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "HVnxQ",
+                      "name": "cap1",
+                      "fill": "#6F665B",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "One line is enough — Tomato remembers.",
+                      "lineHeight": 1.45,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "DTApQ",
+                  "name": "card2",
+                  "width": 520,
+                  "layout": "vertical",
+                  "gap": 14,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "3PFE5",
+                      "name": "img2",
+                      "clip": true,
+                      "width": "fill_container",
+                      "height": 349,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "../../stay-app/assets/screenshots/z40dm.png",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": 18,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#2B262026",
+                        "offset": {
+                          "x": 0,
+                          "y": 18
+                        },
+                        "blur": 42,
+                        "spread": -10
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "id": "qLZUt",
+                      "name": "title2",
+                      "fill": "#2B2620",
+                      "content": "A nudge when you drift",
+                      "fontFamily": "Fraunces",
+                      "fontSize": 19,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "nu1DD",
+                      "name": "cap2",
+                      "fill": "#6F665B",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Floating, friendly, dismissable in one click.",
+                      "lineHeight": 1.45,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "D9WDY",
+                  "name": "card3",
+                  "width": 376,
+                  "layout": "vertical",
+                  "gap": 14,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "CHUZ3",
+                      "name": "img3",
+                      "clip": true,
+                      "width": "fill_container",
+                      "height": 337,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "../../stay-app/assets/screenshots/HFxoA.png",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": 18,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#2B262026",
+                        "offset": {
+                          "x": 0,
+                          "y": 18
+                        },
+                        "blur": 42,
+                        "spread": -10
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "id": "ExPWu",
+                      "name": "title3",
+                      "fill": "#2B2620",
+                      "content": "On track at a glance",
+                      "fontFamily": "Fraunces",
+                      "fontSize": 19,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "cNmfu",
+                      "name": "cap3",
+                      "fill": "#6F665B",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "A quiet HUD with your timer, intent, and current state.",
+                      "lineHeight": 1.45,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "bvQDs",
+          "name": "section/in-action",
+          "clip": true,
+          "width": "fill_container",
+          "height": 820,
+          "fill": "#2A2620",
+          "gap": 64,
+          "padding": [
+            80,
+            96
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "pCAdy",
+              "name": "left/copy",
+              "width": 520,
+              "fill": "#00000000",
+              "layout": "vertical",
+              "gap": 32,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "vsOUo",
+                  "name": "copy-top",
+                  "width": "fill_container",
+                  "fill": "#00000000",
+                  "layout": "vertical",
+                  "gap": 20,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "RloTa",
+                      "name": "eyebrow",
+                      "fill": "#E86A52",
+                      "content": "PRIVATE MEMORY · ON YOUR MAC",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "700",
+                      "letterSpacing": 2
+                    },
+                    {
+                      "type": "text",
+                      "id": "4mrJs",
+                      "name": "headline",
+                      "fill": "#FAF4E8",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "It pays attention. Then it remembers — only for you.",
+                      "lineHeight": 1.08,
+                      "fontFamily": "Fraunces",
+                      "fontSize": 56,
+                      "fontWeight": "600",
+                      "letterSpacing": -1
+                    },
+                    {
+                      "type": "text",
+                      "id": "1w4TD",
+                      "name": "subhead",
+                      "fill": "#C9BFB1",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Tomato keeps a private journal of your focus sessions, built from textual metadata like window titles and tabs — never from screen pixels. Soon you'll be able to ask it \"what did I work on yesterday?\" or pull a weekly recap, all from your own machine.",
+                      "lineHeight": 1.55,
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "PKpWd",
+                  "name": "reassurance-stack",
+                  "width": "fill_container",
+                  "fill": "#00000000",
+                  "layout": "vertical",
+                  "gap": 18,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "jRDCu",
+                      "name": "row-shield",
+                      "width": "fill_container",
+                      "fill": "#00000000",
+                      "gap": 14,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Ra5IR",
+                          "name": "icon-box",
+                          "width": 40,
+                          "height": 40,
+                          "fill": "#E86A521F",
+                          "cornerRadius": 10,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "eTcED",
+                              "name": "icon1",
+                              "width": 20,
+                              "height": 20,
+                              "iconFontName": "shield-check",
+                              "iconFontFamily": "lucide",
+                              "fill": "#E86A52"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "ZQUQm",
+                          "name": "row1Text",
+                          "width": "fill_container",
+                          "fill": "#00000000",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "nLrmZ",
+                              "name": "row1Title",
+                              "fill": "#FAF4E8",
+                              "content": "Local-only inference",
+                              "fontFamily": "Inter",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "5q46L",
+                              "name": "row1Desc",
+                              "fill": "#C9BFB1",
+                              "content": "Runs on your machine. Nothing leaves it.",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "b2bDi",
+                      "name": "row-eraser",
+                      "width": "fill_container",
+                      "fill": "#00000000",
+                      "gap": 14,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "ga7aq",
+                          "name": "icon2Box",
+                          "width": 40,
+                          "height": 40,
+                          "fill": "#E86A521F",
+                          "cornerRadius": 10,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "Ys1Y4",
+                              "name": "icon2",
+                              "width": 20,
+                              "height": 20,
+                              "iconFontName": "eraser",
+                              "iconFontFamily": "lucide",
+                              "fill": "#E86A52"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "7auOV",
+                          "name": "row2Text",
+                          "width": "fill_container",
+                          "fill": "#00000000",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "unlHC",
+                              "name": "row2Title",
+                              "fill": "#FAF4E8",
+                              "content": "Yours to query",
+                              "fontFamily": "Inter",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "G796p",
+                              "name": "row2Desc",
+                              "fill": "#C9BFB1",
+                              "content": "Daily recap, weekly summary — coming soon, on-device.",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "8nM34",
+                      "name": "row-lock",
+                      "width": "fill_container",
+                      "fill": "#00000000",
+                      "gap": 14,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "8bOpk",
+                          "name": "icon3Box",
+                          "width": 40,
+                          "height": 40,
+                          "fill": "#E86A521F",
+                          "cornerRadius": 10,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "9pigD",
+                              "name": "icon3",
+                              "width": 20,
+                              "height": 20,
+                              "iconFontName": "lock",
+                              "iconFontFamily": "lucide",
+                              "fill": "#E86A52"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "uctqc",
+                          "name": "row3Text",
+                          "width": "fill_container",
+                          "fill": "#00000000",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Th6f1",
+                              "name": "row3Title",
+                              "fill": "#FAF4E8",
+                              "content": "No account required",
+                              "fontFamily": "Inter",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "6MhRT",
+                              "name": "row3Desc",
+                              "fill": "#C9BFB1",
+                              "content": "No login, no telemetry, no cloud sync.",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TBqOQ",
+              "name": "right/scene",
+              "clip": true,
+              "width": 720,
+              "height": 520,
+              "fill": "#1F1B16",
+              "cornerRadius": 24,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#FFFFFF0F"
+              },
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#00000066",
+                "offset": {
+                  "x": 0,
+                  "y": 30
+                },
+                "blur": 60
+              },
+              "layout": "none",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "6s3jQ",
+                  "x": 240,
+                  "y": 60,
+                  "name": "glow",
+                  "fill": "#E86A5226",
+                  "width": 520,
+                  "height": 520,
+                  "effect": {
+                    "type": "blur",
+                    "radius": 80
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "A6OiL",
+                  "x": 48,
+                  "y": 64,
+                  "name": "browser",
+                  "opacity": 0.55,
+                  "clip": true,
+                  "width": 520,
+                  "height": 360,
+                  "fill": "#26211C",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#FFFFFF14"
+                  },
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "SIBZE",
+                      "name": "titlebar",
+                      "width": "fill_container",
+                      "height": 36,
+                      "fill": "#1B1714",
+                      "gap": 8,
+                      "padding": [
+                        0,
+                        14
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "8431o",
+                          "name": "dot1",
+                          "fill": "#FF5F57",
+                          "width": 11,
+                          "height": 11
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "xEu0R",
+                          "name": "dot2",
+                          "fill": "#FEBC2E",
+                          "width": 11,
+                          "height": 11
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "ZWsqk",
+                          "name": "dot3",
+                          "fill": "#28C840",
+                          "width": 11,
+                          "height": 11
+                        },
+                        {
+                          "type": "frame",
+                          "id": "O6i3M",
+                          "name": "urlPill",
+                          "width": 260,
+                          "height": 22,
+                          "fill": "#0F0C0A",
+                          "cornerRadius": 6,
+                          "padding": [
+                            0,
+                            10
+                          ],
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "M3znK",
+                              "name": "urlText",
+                              "fill": "#8A7F73",
+                              "content": "docs.tomatoapp.io/getting-started",
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "yx2Xv",
+                      "name": "body",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "fill": "#00000000",
+                      "layout": "vertical",
+                      "gap": 14,
+                      "padding": [
+                        28,
+                        32
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "M1TPG",
+                          "name": "docHead",
+                          "fill": "#FAF4E8",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Writing the architecture doc",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 22,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 5,
+                          "id": "95c4J",
+                          "name": "docLine1",
+                          "fill": "#3A332C",
+                          "width": "fill_container",
+                          "height": 10
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 5,
+                          "id": "m8rFV",
+                          "name": "docLine2",
+                          "fill": "#3A332C",
+                          "width": "fill_container",
+                          "height": 10
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 5,
+                          "id": "4G2cP",
+                          "name": "docLine3",
+                          "fill": "#3A332C",
+                          "width": 380,
+                          "height": 10
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Gvfhk",
+                          "name": "docGap",
+                          "width": "fill_container",
+                          "height": 6,
+                          "fill": "#00000000"
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 5,
+                          "id": "iXiAp",
+                          "name": "docLine4",
+                          "fill": "#3A332C",
+                          "width": "fill_container",
+                          "height": 10
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 5,
+                          "id": "dSyT6",
+                          "name": "docLine5",
+                          "fill": "#3A332C",
+                          "width": 300,
+                          "height": 10
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "HzOy7",
+                  "x": 340,
+                  "y": 200,
+                  "name": "hud-card",
+                  "width": 296,
+                  "height": 72,
+                  "fill": "#FAF4E8",
+                  "cornerRadius": 18,
+                  "effect": [
+                    {
+                      "type": "shadow",
+                      "shadowType": "outer",
+                      "color": "#E86A5266",
+                      "offset": {
+                        "x": 0,
+                        "y": 18
+                      },
+                      "blur": 48,
+                      "spread": -4
+                    },
+                    {
+                      "type": "shadow",
+                      "shadowType": "outer",
+                      "color": "#0000004D",
+                      "offset": {
+                        "x": 0,
+                        "y": 8
+                      },
+                      "blur": 20
+                    }
+                  ],
+                  "gap": 14,
+                  "padding": [
+                    0,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "WWqXb",
+                      "name": "hudIconBox",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "#E86A52",
+                      "cornerRadius": 12,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "1T0qc",
+                          "name": "hudIcon",
+                          "width": 22,
+                          "height": 22,
+                          "iconFontName": "timer",
+                          "iconFontFamily": "lucide",
+                          "fill": "#FAF4E8"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ecnvD",
+                      "name": "hudText",
+                      "width": "fill_container",
+                      "fill": "#00000000",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "xioMd",
+                          "name": "hudTime",
+                          "fill": "#2A2620",
+                          "content": "24:52",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 24,
+                          "fontWeight": "600",
+                          "letterSpacing": -0.5
+                        },
+                        {
+                          "type": "text",
+                          "id": "KRENJ",
+                          "name": "hudLabel",
+                          "fill": "#6E6258",
+                          "content": "Writing documentation",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "ellipse",
+                      "id": "sDRuK",
+                      "name": "hudDot",
+                      "fill": "#E86A52",
+                      "width": 8,
+                      "height": 8
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "bWNlW",
+                  "x": 308,
+                  "y": 300,
+                  "name": "nudge-card",
+                  "width": 340,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 16,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E86A521A"
+                  },
+                  "effect": [
+                    {
+                      "type": "shadow",
+                      "shadowType": "outer",
+                      "color": "#E86A524D",
+                      "offset": {
+                        "x": 0,
+                        "y": 24
+                      },
+                      "blur": 48,
+                      "spread": -8
+                    },
+                    {
+                      "type": "shadow",
+                      "shadowType": "outer",
+                      "color": "#0000003D",
+                      "offset": {
+                        "x": 0,
+                        "y": 6
+                      },
+                      "blur": 18
+                    }
+                  ],
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    16,
+                    18
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "7duxI",
+                      "name": "nudgeHead",
+                      "width": "fill_container",
+                      "fill": "#00000000",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "Q7yDl",
+                          "name": "nudgeIcon",
+                          "width": 14,
+                          "height": 14,
+                          "iconFontName": "triangle-alert",
+                          "iconFontFamily": "lucide",
+                          "fill": "#E86A52"
+                        },
+                        {
+                          "type": "text",
+                          "id": "EJyix",
+                          "name": "nudgeEyebrow",
+                          "fill": "#E86A52",
+                          "content": "POSSIBLE DISTRACTION",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "700",
+                          "letterSpacing": 1.4
+                        },
+                        {
+                          "type": "frame",
+                          "id": "RmTSv",
+                          "name": "nudgeSpacer",
+                          "width": "fill_container",
+                          "height": 1,
+                          "fill": "#00000000"
+                        },
+                        {
+                          "type": "text",
+                          "id": "BgSwe",
+                          "name": "nudgeConf",
+                          "fill": "#A8998A",
+                          "content": "82%",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "VIe6I",
+                      "name": "nudgeBody",
+                      "fill": "#2A2620",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "You drifted to Twitter. Want to refocus on writing documentation?",
+                      "lineHeight": 1.45,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "B2kO0",
+          "name": "section/cta-footer",
+          "width": "fill_container",
+          "height": 600,
+          "fill": "#FAF4E8",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "z3j1v",
+              "name": "wrap",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 40,
+              "padding": [
+                80,
+                96,
+                40,
+                96
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "9EbB6",
+                  "name": "ctaCard",
+                  "width": "fill_container",
+                  "fill": "#FFFBF1",
+                  "cornerRadius": 28,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#D8544033",
+                    "offset": {
+                      "x": 0,
+                      "y": 24
+                    },
+                    "blur": 60,
+                    "spread": -8
+                  },
+                  "layout": "vertical",
+                  "gap": 22,
+                  "padding": [
+                    56,
+                    72
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "zXrEZ",
+                      "name": "tomato",
+                      "fill": "#2B2620",
+                      "content": "🍅",
+                      "fontFamily": "Inter",
+                      "fontSize": 64,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "x6ZBW",
+                      "name": "heading",
+                      "fill": "#2B2620",
+                      "content": "Stop fighting your apps.",
+                      "lineHeight": 1.05,
+                      "textAlign": "center",
+                      "fontFamily": "Fraunces",
+                      "fontSize": 60,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "QkCyp",
+                      "name": "sub",
+                      "fill": "#6F665B",
+                      "textGrowth": "fixed-width",
+                      "width": 600,
+                      "content": "Tomato is a Pomodoro timer that actually understands what you set out to do — and trusts you to steer. Free during the beta. Local-only. No account.",
+                      "lineHeight": 1.5,
+                      "textAlign": "center",
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "wdIDY",
+                      "name": "btnRow",
+                      "gap": 12,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Cp7LV",
+                          "name": "btnPrimary",
+                          "fill": "#D85440",
+                          "cornerRadius": 14,
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "color": "#D8544066",
+                            "offset": {
+                              "x": 0,
+                              "y": 8
+                            },
+                            "blur": 20,
+                            "spread": -4
+                          },
+                          "gap": 10,
+                          "padding": [
+                            16,
+                            28
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "zoJ14",
+                              "name": "btnIcon",
+                              "width": 18,
+                              "height": 18,
+                              "iconFontName": "apple",
+                              "iconFontFamily": "lucide",
+                              "fill": "#FFFFFF"
+                            },
+                            {
+                              "type": "text",
+                              "id": "VX6Wx",
+                              "name": "btnText",
+                              "fill": "#FFFFFF",
+                              "content": "Download for Mac",
+                              "fontFamily": "Inter",
+                              "fontSize": 16,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "4jcn5",
+                          "name": "btnSecondary",
+                          "cornerRadius": 14,
+                          "gap": 8,
+                          "padding": [
+                            16,
+                            22
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "EWs9W",
+                              "name": "btnSecondaryText",
+                              "fill": "#2B2620",
+                              "content": "View on GitHub",
+                              "fontFamily": "Inter",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "icon_font",
+                              "id": "WrNKZ",
+                              "name": "btnSecondaryIcon",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "arrow-up-right",
+                              "iconFontFamily": "lucide",
+                              "fill": "#2B2620"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "p6JSb",
+                      "name": "microText",
+                      "fill": "#9C9286",
+                      "content": "macOS 13+   •   Universal Binary   •   28MB   •   No account required",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Wimun",
+                  "name": "footerWrap",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 18,
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "N7NYO",
+                      "name": "divider",
+                      "fill": "#EDE4D2",
+                      "width": "fill_container",
+                      "height": 1
+                    },
+                    {
+                      "type": "frame",
+                      "id": "YDNvs",
+                      "name": "footerRow",
+                      "width": "fill_container",
+                      "padding": [
+                        8,
+                        4
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "EryTt",
+                          "name": "brandBlock",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "vIsOd",
+                              "name": "brandTomato",
+                              "fill": "#2B2620",
+                              "content": "🍅",
+                              "fontFamily": "Inter",
+                              "fontSize": 18,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "4IinJ",
+                              "name": "brandName",
+                              "fill": "#2B2620",
+                              "content": "Tomato",
+                              "fontFamily": "Fraunces",
+                              "fontSize": 18,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "pP4NZ",
+                              "name": "brandCopy",
+                              "fill": "#9C9286",
+                              "content": "  ·  © 2026  ·  A focus partner for macOS",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "xnNjr",
+                          "name": "linkRow",
+                          "gap": 26,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "2hDCe",
+                              "name": "link1",
+                              "fill": "#6F665B",
+                              "content": "Privacy",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "I3Juk",
+                              "name": "link2",
+                              "fill": "#6F665B",
+                              "content": "Changelog",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "gWxuI",
+                              "name": "link3",
+                              "fill": "#6F665B",
+                              "content": "GitHub",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "0JJsJ",
+                              "name": "link4",
+                              "fill": "#6F665B",
+                              "content": "Contact",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "VpJLL",
+      "x": 3840,
+      "y": -278,
+      "name": "07 Download Page",
+      "clip": true,
+      "width": 1440,
+      "fill": "#FAF4E8",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "gGtK6",
+          "name": "nav",
+          "width": "fill_container",
+          "padding": [
+            24,
+            96
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "tBKkJ",
+              "name": "navLeft",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "J1uCI",
+                  "name": "tomato-mark",
+                  "width": 22,
+                  "height": 22,
+                  "fill": "#D85440",
+                  "cornerRadius": 11,
+                  "layout": "none"
+                },
+                {
+                  "type": "text",
+                  "id": "LCCuo",
+                  "name": "logo",
+                  "fill": "#2B2620",
+                  "content": "Tomato",
+                  "fontFamily": "Fraunces",
+                  "fontSize": 22,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "SXoHx",
+              "name": "navRight",
+              "gap": 28,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "az9V1",
+                  "name": "backLink",
+                  "fill": "#6F665B",
+                  "content": "← Back to Tomato",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "tbQgS",
+          "name": "section/hero",
+          "width": "fill_container",
+          "fill": "#FAF4E8",
+          "layout": "vertical",
+          "gap": 20,
+          "padding": [
+            64,
+            96,
+            48,
+            96
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "gnagj",
+              "name": "eyebrow",
+              "fill": "#D85440",
+              "content": "THANK YOU",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "600",
+              "letterSpacing": 2.4
+            },
+            {
+              "type": "text",
+              "id": "1yYUy",
+              "name": "heading",
+              "fill": "#2B2620",
+              "textGrowth": "fixed-width",
+              "width": 800,
+              "content": "Your download is starting…",
+              "lineHeight": 1.1,
+              "textAlign": "center",
+              "fontFamily": "Fraunces",
+              "fontSize": 52,
+              "fontWeight": "600",
+              "letterSpacing": -1
+            },
+            {
+              "type": "text",
+              "id": "a7ooB",
+              "name": "sub",
+              "fill": "#6F665B",
+              "content": "If it doesn't start automatically, click the button below.",
+              "lineHeight": 1.5,
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "ZBY4K",
+              "name": "downloadBtn",
+              "fill": "#D85440",
+              "cornerRadius": 999,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#D8544040",
+                "offset": {
+                  "x": 0,
+                  "y": 6
+                },
+                "blur": 18
+              },
+              "gap": 8,
+              "padding": [
+                14,
+                24,
+                14,
+                22
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "xVOYh",
+                  "name": "btnIcon",
+                  "width": 18,
+                  "height": 18,
+                  "iconFontName": "download",
+                  "iconFontFamily": "lucide",
+                  "fill": "#FFFFFF"
+                },
+                {
+                  "type": "text",
+                  "id": "wisP3",
+                  "name": "btnText",
+                  "fill": "#FFFFFF",
+                  "content": "Download Tomato.dmg",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "2EARo",
+              "name": "micro",
+              "gap": 8,
+              "padding": [
+                8,
+                0,
+                0,
+                0
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "djCNi",
+                  "name": "dot",
+                  "fill": "#4FB37A",
+                  "width": 8,
+                  "height": 8
+                },
+                {
+                  "type": "text",
+                  "id": "JTHhQ",
+                  "name": "microText",
+                  "fill": "#9C9286",
+                  "content": "Free during beta · macOS 13+ · 206 MB",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "hAJxg",
+          "name": "section/install-steps",
+          "width": "fill_container",
+          "fill": "#FFFBF1",
+          "layout": "vertical",
+          "gap": 48,
+          "padding": [
+            64,
+            96
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "Y5MgJ",
+              "name": "stepsHead",
+              "layout": "vertical",
+              "gap": 14,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "pIzyJ",
+                  "name": "stepsEye",
+                  "fill": "#D85440",
+                  "content": "FIRST TIME ON MACOS?",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "600",
+                  "letterSpacing": 2.4
+                },
+                {
+                  "type": "text",
+                  "id": "yOBWD",
+                  "name": "stepsTitle",
+                  "fill": "#2B2620",
+                  "content": "How to install Tomato",
+                  "fontFamily": "Fraunces",
+                  "fontSize": 40,
+                  "fontWeight": "600",
+                  "letterSpacing": -0.8
+                },
+                {
+                  "type": "text",
+                  "id": "R6MA5",
+                  "name": "stepsSub",
+                  "fill": "#6F665B",
+                  "textGrowth": "fixed-width",
+                  "width": 620,
+                  "content": "macOS shows a warning for all apps downloaded outside the App Store.\nThis is normal — here's how to get past it.",
+                  "lineHeight": 1.55,
+                  "textAlign": "center",
+                  "fontFamily": "Inter",
+                  "fontSize": 17,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "i1xyu",
+              "name": "stepCards",
+              "width": 720,
+              "layout": "vertical",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "2ZyyJ",
+                  "name": "step1",
+                  "width": "fill_container",
+                  "fill": "#FFFAF0",
+                  "cornerRadius": 16,
+                  "stroke": {
+                    "thickness": 1,
+                    "fill": "#2B26200F"
+                  },
+                  "gap": 20,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "JJSfY",
+                      "name": "num1",
+                      "width": 40,
+                      "height": 40,
+                      "fill": "#D85440",
+                      "cornerRadius": 20,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Q0vXS",
+                          "name": "num1t",
+                          "fill": "#FFFFFF",
+                          "content": "1",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 20,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "qecKq",
+                      "name": "body1",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "TpiXZ",
+                          "name": "t1",
+                          "fill": "#2B2620",
+                          "content": "Open the DMG and drag to Applications",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 20,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "A8icz",
+                          "name": "d1",
+                          "fill": "#6F665B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Double-click Tomato.dmg, then drag the Tomato icon into your Applications folder.",
+                          "lineHeight": 1.5,
+                          "fontFamily": "Inter",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "yc8l6",
+                  "name": "step2",
+                  "width": "fill_container",
+                  "fill": "#FFFAF0",
+                  "cornerRadius": 16,
+                  "stroke": {
+                    "thickness": 1,
+                    "fill": "#2B26200F"
+                  },
+                  "gap": 20,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "77ik2",
+                      "name": "num2",
+                      "width": 40,
+                      "height": 40,
+                      "fill": "#D85440",
+                      "cornerRadius": 20,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "WeNAp",
+                          "name": "num2t",
+                          "fill": "#FFFFFF",
+                          "content": "2",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 20,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "4OEFP",
+                      "name": "body2",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Cime2",
+                          "name": "t2",
+                          "fill": "#2B2620",
+                          "content": "Right-click → Open → Open",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 20,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "YZxss",
+                          "name": "d2",
+                          "fill": "#6F665B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Don't double-click. Instead, right-click (or Control-click) the Tomato app in Applications and choose \"Open\" from the menu. A dialog will appear — click \"Open\" again.",
+                          "lineHeight": 1.5,
+                          "fontFamily": "Inter",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "phg8S",
+                  "name": "step3",
+                  "width": "fill_container",
+                  "fill": "#FFFAF0",
+                  "cornerRadius": 16,
+                  "stroke": {
+                    "thickness": 1,
+                    "fill": "#2B26200F"
+                  },
+                  "gap": 20,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "FBUK2",
+                      "name": "num3",
+                      "width": 40,
+                      "height": 40,
+                      "fill": "#9C9286",
+                      "cornerRadius": 20,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "am551",
+                          "name": "num3t",
+                          "fill": "#FFFFFF",
+                          "content": "3",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 20,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ko4YJ",
+                      "name": "body3",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "eR0wE",
+                          "name": "t3",
+                          "fill": "#2B2620",
+                          "content": "Still blocked? Use System Settings",
+                          "fontFamily": "Fraunces",
+                          "fontSize": 20,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "XcWpQ",
+                          "name": "d3",
+                          "fill": "#6F665B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Open System Settings → Privacy & Security. Scroll down — you'll see \"Tomato was blocked.\" Click \"Open Anyway\" and confirm. You only need to do this once.",
+                          "lineHeight": 1.5,
+                          "fontFamily": "Inter",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "dD8V2",
+          "name": "section/trust",
+          "width": "fill_container",
+          "fill": "#FAF4E8",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            56,
+            96
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "MKEZe",
+              "name": "trustBadge",
+              "fill": "#FFFAF0",
+              "cornerRadius": 12,
+              "stroke": {
+                "thickness": 1,
+                "fill": "#2B26200F"
+              },
+              "gap": 12,
+              "padding": [
+                16,
+                24
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "JrH7w",
+                  "name": "shield",
+                  "width": 20,
+                  "height": 20,
+                  "iconFontName": "shield-check",
+                  "iconFontFamily": "lucide",
+                  "fill": "#4FB37A"
+                },
+                {
+                  "type": "text",
+                  "id": "gA1A7",
+                  "name": "trustText",
+                  "fill": "#2B2620",
+                  "content": "Tomato runs entirely on your Mac. No data leaves your device.",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "IrMcN",
+              "name": "whyNote",
+              "width": 560,
+              "layout": "vertical",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "WC0Xl",
+                  "name": "whyTitle",
+                  "fill": "#2B2620",
+                  "content": "Why does macOS show a warning?",
+                  "textAlign": "center",
+                  "fontFamily": "Fraunces",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "EhDOx",
+                  "name": "whyBody",
+                  "fill": "#6F665B",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Apple shows this dialog for every app downloaded outside the Mac App Store — including trusted tools like VS Code, Firefox, and Figma. It's a security checkpoint, not a red flag.",
+                  "lineHeight": 1.55,
+                  "textAlign": "center",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "R1hCL",
+          "name": "footer",
+          "width": "fill_container",
+          "fill": "#FAF4E8",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": [
+            40,
+            96
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "FyAks",
+              "name": "footerLine",
+              "width": "fill_container",
+              "height": 1,
+              "fill": "#2B26200F"
+            },
+            {
+              "type": "frame",
+              "id": "amFry",
+              "name": "footerRow",
+              "width": "fill_container",
+              "padding": [
+                16,
+                0,
+                0,
+                0
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "f97fk",
+                  "name": "footerLeft",
+                  "fill": "#9C9286",
+                  "content": "Tomato · Focus, not friction.",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "uyngS",
+                  "name": "footerRight",
+                  "fill": "#9C9286",
+                  "content": "Built with care in Brooklyn",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
                 }
               ]
             }
