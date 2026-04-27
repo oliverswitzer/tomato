@@ -770,10 +770,6 @@
       border-radius: 18px;
       box-shadow: 0 18px 42px -10px rgba(43, 38, 32, 0.15);
       overflow: hidden;
-      background: var(--cream-light);
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     .screenshot-card:nth-child(1) .screenshot-img { height: 406px; }
@@ -781,6 +777,7 @@
     .screenshot-card:nth-child(3) .screenshot-img { height: 337px; }
 
     .screenshot-img img {
+      display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -796,59 +793,6 @@
       font-size: 14px;
       color: var(--brown-body);
       line-height: 1.45;
-    }
-
-    /* Screenshot placeholder mockups */
-    .screenshot-mock {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      background: var(--cream-warm);
-      overflow: hidden;
-    }
-
-    .screenshot-mock .sm-titlebar {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 10px 12px;
-      background: var(--cream);
-      border-bottom: 1px solid var(--divider);
-    }
-
-    .screenshot-mock .sm-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-
-    .screenshot-mock .sm-content {
-      flex: 1;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .screenshot-mock .sm-icon {
-      font-size: 32px;
-    }
-
-    .screenshot-mock .sm-label {
-      font-family: 'Fraunces', serif;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--brown-dark);
-      text-align: center;
-    }
-
-    .screenshot-mock .sm-sub {
-      font-size: 12px;
-      color: var(--brown-body);
-      text-align: center;
     }
 
     /* ─── IN-ACTION (DARK) ─── */
@@ -1553,62 +1497,21 @@
       <div class="screenshot-row">
         <div class="screenshot-card reveal">
           <div class="screenshot-img">
-            <div class="screenshot-mock">
-              <div class="sm-titlebar">
-                <div class="sm-dot" style="background:#FF5F57;"></div>
-                <div class="sm-dot" style="background:#FEBC2E;"></div>
-                <div class="sm-dot" style="background:#28C840;"></div>
-              </div>
-              <div class="sm-content">
-                <span class="sm-icon">🍅</span>
-                <span class="sm-label">What are you working on?</span>
-                <span class="sm-sub">Set your intention, pick a session length</span>
-              </div>
-            </div>
+            <img src="assets/Gwc4H.png" alt="Tomato start session screen showing intention input">
           </div>
           <h3 class="card-title">Set the intention</h3>
           <p class="card-cap">One line is enough — Tomato remembers.</p>
         </div>
         <div class="screenshot-card reveal">
           <div class="screenshot-img">
-            <div class="screenshot-mock" style="background: var(--cream);">
-              <div class="sm-titlebar">
-                <div class="sm-dot" style="background:#FF5F57;"></div>
-                <div class="sm-dot" style="background:#FEBC2E;"></div>
-                <div class="sm-dot" style="background:#28C840;"></div>
-              </div>
-              <div class="sm-content" style="gap:10px;">
-                <div style="width:100%;max-width:280px;padding:14px 16px;background:var(--cream-warm);border-radius:14px;border:1px solid rgba(232,106,82,0.15);display:flex;flex-direction:column;gap:6px;">
-                  <div style="display:flex;align-items:center;gap:6px;">
-                    <div style="width:8px;height:8px;background:var(--red);border-radius:50%;"></div>
-                    <span style="font-size:11px;font-weight:600;color:var(--red);letter-spacing:1px;text-transform:uppercase;">Nudge</span>
-                  </div>
-                  <span style="font-size:12px;color:var(--brown-dark);font-weight:500;">You drifted — want to refocus?</span>
-                </div>
-                <span class="sm-sub">Floating, friendly, one click to dismiss</span>
-              </div>
-            </div>
+            <img src="assets/z40dm.png" alt="Tomato drift nudge floating over desktop">
           </div>
           <h3 class="card-title">A nudge when you drift</h3>
           <p class="card-cap">Floating, friendly, dismissable in one click.</p>
         </div>
         <div class="screenshot-card reveal">
           <div class="screenshot-img">
-            <div class="screenshot-mock" style="background: #1a1815;">
-              <div class="sm-titlebar" style="background: #141210; border-color: #2a2520;">
-                <div class="sm-dot" style="background:#FF5F57;"></div>
-                <div class="sm-dot" style="background:#FEBC2E;"></div>
-                <div class="sm-dot" style="background:#28C840;"></div>
-              </div>
-              <div class="sm-content" style="gap:10px;">
-                <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--cream);border-radius:12px;box-shadow:0 8px 24px rgba(232,106,82,0.3);">
-                  <div style="width:10px;height:10px;background:var(--red);border-radius:50%;"></div>
-                  <span style="font-family:'Fraunces',serif;font-size:16px;font-weight:600;color:var(--brown-dark);">24:52</span>
-                  <span style="font-size:11px;color:var(--brown-body);">On track</span>
-                </div>
-                <span class="sm-sub" style="color:#9C9286;">Timer, intent, and status at a glance</span>
-              </div>
-            </div>
+            <img src="assets/HFxoA.png" alt="Tomato HUD showing timer and on-track status">
           </div>
           <h3 class="card-title">On track at a glance</h3>
           <p class="card-cap">A quiet HUD with your timer, intent, and current state.</p>
