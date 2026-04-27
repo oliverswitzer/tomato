@@ -89,6 +89,12 @@ Key modules:
 - `llm-summarizer.ts` — batch summarization + session summary with focus score
 - `focus-tracker.ts` — orchestrator with two timers
 
+## Splash page (Vercel)
+
+The `splash/` directory is deployed to Vercel as a static site. Vercel auto-deploys on push to main and creates preview URLs on PRs.
+
+**After any splash page change:** verify the Vercel deploy succeeded and that the live site matches the design. Check the Vercel preview URL on the PR (posted as a comment by the Vercel bot) or the production URL after merge. Use Chrome DevTools or screenshots to confirm visual correctness.
+
 ## Design references
 
 `*.pen` files are [Pencil](https://pencil.dev/) design documents — a design tool for creating UI mockups and prototypes. When asked to reference designs in a `*.pen` file, always use the `/frontend-design` skill to guide implementation. These files contain design specs that require pixel-perfect, production-grade frontend work.
