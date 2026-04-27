@@ -5,3 +5,4 @@ bin/
 tmp-prompt.txt
 *.log
 .envrc
+.claude/scheduled_tasks.lock
