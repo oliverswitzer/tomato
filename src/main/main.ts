@@ -764,11 +764,18 @@ app.whenReady().then(async () => {
 
   createTray();
 
+  const hasApiKey = keychain.getApiKey() !== null;
+  const wasSkipped = keychain.wasSkipped();
+  log(`Onboarding state: hasApiKey=${hasApiKey}, wasSkipped=${wasSkipped}`);
+
   if (!screenOk || !a11yOk) {
+    log('Routing to permissions window');
     showPermissionsWindow();
-  } else if (!keychain.getApiKey() && !keychain.wasSkipped()) {
+  } else if (!hasApiKey && !wasSkipped) {
+    log('Routing to API key onboarding');
     showApiKeyWindow();
   } else {
+    log('Routing to start window');
     showStartWindow();
   }
 });
