@@ -633,7 +633,16 @@ ipcMain.on('permissions-complete', () => {
 });
 
 ipcMain.handle('validate-api-key', async (_event, key: string) => {
-  return validateApiKey(key);
+  const redacted = key.length > 4 ? `…${key.slice(-4)}` : '***';
+  log(`Validating API key ${redacted}`);
+  try {
+    const result = await validateApiKey(key);
+    log(`Validation result: valid=${result.valid}${!result.valid ? `, error=${(result as any).error}` : ''}`);
+    return result;
+  } catch (err) {
+    log(`Validation threw: ${(err as Error).message}`);
+    return { valid: false, error: (err as Error).message, retryable: true };
+  }
 });
 
 ipcMain.handle('save-api-key', async (_event, key: string, selectedModel: string) => {

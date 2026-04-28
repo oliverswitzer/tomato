@@ -37,6 +37,7 @@ export async function validateApiKey(
         'x-api-key': trimmed,
         'anthropic-version': '2023-06-01',
       },
+      signal: AbortSignal.timeout(15_000),
     });
   } catch {
     return {
