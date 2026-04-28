@@ -1,6 +1,7 @@
 #!/bin/bash
-# Wipe all app state, rebuild, and repackage — simulates a first-time install.
-# Usage: bash scripts/fresh-pack.sh
+# Wipe onboarding state, rebuild, and repackage — simulates a first-time install.
+# Usage: bash scripts/fresh-pack.sh [--clean]
+#   --clean  Also delete sessions.json and tomato.log
 
 set -e
 
@@ -8,6 +9,11 @@ APP_ID="com.tomato.pomodoro"
 DATA_DIR="$HOME/Library/Application Support/tomato"
 APP_PATH="/Applications/Tomato.app"
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
+CLEAN=false
+if [ "$1" = "--clean" ]; then
+  CLEAN=true
+fi
 
 echo "Resetting Tomato onboarding state..."
 
@@ -21,6 +27,11 @@ tccutil reset Accessibility "$APP_ID" 2>/dev/null && echo "  ✓ Accessibility p
 # Remove API key and onboarding config
 rm -f "$DATA_DIR/api-key.enc" && echo "  ✓ API key removed"
 rm -f "$DATA_DIR/onboarding.json" && echo "  ✓ Onboarding config removed"
+
+if [ "$CLEAN" = true ]; then
+  rm -f "$DATA_DIR/sessions.json" && echo "  ✓ Session history removed"
+  rm -f "$DATA_DIR/tomato.log" && echo "  ✓ Log file removed"
+fi
 
 # Remove existing app from Applications
 if [ -d "$APP_PATH" ]; then
