@@ -17,35 +17,32 @@ const pages: Record<string, ComponentType> = {
 };
 
 function getHashRoute(): string {
-  return window.location.hash.slice(1) || '';
+  return window.location.hash.slice(1) || '/start';
 }
 
 export function App() {
-  const [route, setRoute] = useState(getHashRoute);
-  const [ready, setReady] = useState(!!getHashRoute());
+  const hashRoute = getHashRoute();
+  const needsOnboardingCheck = hashRoute === '/start';
+  const [route, setRoute] = useState(needsOnboardingCheck ? '' : hashRoute);
 
   useEffect(() => {
-    const onHashChange = () => {
-      setRoute(getHashRoute());
-      setReady(true);
-    };
+    const onHashChange = () => setRoute(getHashRoute());
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
   useEffect(() => {
-    if (ready) return;
+    if (!needsOnboardingCheck) return;
     window.tomato.getOnboardingState().then((state) => {
       if (!state.hasApiKey && !state.wasSkipped) {
         setRoute('/api-key');
       } else {
         setRoute('/start');
       }
-      setReady(true);
     });
-  }, [ready]);
+  }, []);
 
-  if (!ready) return null;
+  if (!route) return null;
 
   const Page = pages[route] ?? StartPage;
   return <Page />;
