@@ -240,8 +240,19 @@ function updateTrayMenu(): void {
 // --- Windows ---
 
 function showPermissionsWindow(): void {
+  showOnboardingWindow('/permissions');
+}
+
+function showApiKeyWindow(): void {
+  showOnboardingWindow('/api-key');
+}
+
+function showOnboardingWindow(hash: string): void {
   if (startWin) {
-    loadRendererPage(startWin, '/permissions');
+    loadRendererPage(startWin, hash);
+    startWin.setSize(760, 780);
+    const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
+    startWin.setPosition(Math.round((screenWidth - 760) / 2), 60);
     startWin.show();
     startWin.focus();
     return;
@@ -268,7 +279,7 @@ function showPermissionsWindow(): void {
     },
   });
 
-  loadRendererPage(startWin, '/permissions');
+  loadRendererPage(startWin, hash);
   startWin.on('closed', () => {
     startWin = null;
   });
@@ -625,11 +636,7 @@ ipcMain.on('open-accessibility-permission-settings', () => {
 });
 
 ipcMain.on('permissions-complete', () => {
-  if (startWin) {
-    startWin.close();
-    startWin = null;
-  }
-  showStartWindow();
+  showApiKeyWindow();
 });
 
 ipcMain.handle('validate-api-key', async (_event, key: string) => {
@@ -733,11 +740,16 @@ app.whenReady().then(async () => {
 
   createTray();
 
+  const hasApiKey = keychain.getApiKey() !== null;
+
   if (!screenOk || !a11yOk) {
     log('Routing to permissions window');
     showPermissionsWindow();
+  } else if (!hasApiKey) {
+    log('Routing to API key onboarding');
+    showApiKeyWindow();
   } else {
-    log('Routing to start window (renderer handles onboarding redirect)');
+    log('Routing to start window');
     showStartWindow();
   }
 });
