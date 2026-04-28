@@ -38,6 +38,17 @@ if [ -d "$APP_PATH" ]; then
   rm -rf "$APP_PATH" && echo "  ✓ Removed $APP_PATH"
 fi
 
+# Ensure bundled binaries are in bin/ for electron-builder
+echo ""
+if [ -n "$SCREENPIPE_BIN" ] && [ -f "$SCREENPIPE_BIN" ]; then
+  mkdir -p "$SCRIPT_DIR/bin"
+  cp "$SCREENPIPE_BIN" "$SCRIPT_DIR/bin/screenpipe"
+  echo "  ✓ Copied screenpipe from SCREENPIPE_BIN"
+elif [ ! -f "$SCRIPT_DIR/bin/screenpipe" ]; then
+  echo "  ⚠ No screenpipe binary found. Set SCREENPIPE_BIN or place it in bin/."
+  echo "    Sessions will crash without it."
+fi
+
 # Rebuild and package
 echo ""
 echo "Running npm run pack..."
