@@ -25,7 +25,6 @@ const api: TomatoApi = {
   validateApiKey: (key: string) => ipcRenderer.invoke('validate-api-key', key),
   saveApiKey: (key: string, selectedModel: string) => ipcRenderer.invoke('save-api-key', key, selectedModel),
   getOnboardingState: () => ipcRenderer.invoke('get-onboarding-state'),
-  skipApiKey: () => ipcRenderer.send('skip-api-key'),
   apiKeyComplete: () => ipcRenderer.send('api-key-complete'),
 
   onSessionState: (callback) => {

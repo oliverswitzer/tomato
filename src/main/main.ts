@@ -648,16 +648,11 @@ ipcMain.handle('save-api-key', async (_event, key: string, selectedModel: string
 });
 
 ipcMain.handle('get-onboarding-state', () => {
-  if (!keychain) return { hasApiKey: false, wasSkipped: false, selectedModel: null };
+  if (!keychain) return { hasApiKey: false, selectedModel: null };
   return {
     hasApiKey: keychain.getApiKey() !== null,
-    wasSkipped: keychain.wasSkipped(),
     selectedModel: keychain.getSelectedModel(),
   };
-});
-
-ipcMain.on('skip-api-key', () => {
-  if (keychain) keychain.setSkipped(true);
 });
 
 ipcMain.on('api-key-complete', () => {

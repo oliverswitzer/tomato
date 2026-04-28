@@ -34,11 +34,7 @@ export function App() {
   useEffect(() => {
     if (!needsOnboardingCheck) return;
     window.tomato.getOnboardingState().then((state) => {
-      if (!state.hasApiKey && !state.wasSkipped) {
-        setRoute('/api-key');
-      } else {
-        setRoute('/start');
-      }
+      setRoute(state.hasApiKey ? '/start' : '/api-key');
     });
   }, []);
 

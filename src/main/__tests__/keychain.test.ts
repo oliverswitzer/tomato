@@ -49,23 +49,6 @@ describe('ElectronKeychainStore', () => {
     });
   });
 
-  describe('skip state', () => {
-    it('defaults to not skipped', () => {
-      expect(store.wasSkipped()).toBe(false);
-    });
-
-    it('persists skip state', () => {
-      store.setSkipped(true);
-      expect(store.wasSkipped()).toBe(true);
-    });
-
-    it('can reset skip state', () => {
-      store.setSkipped(true);
-      store.setSkipped(false);
-      expect(store.wasSkipped()).toBe(false);
-    });
-  });
-
   describe('selected model', () => {
     it('defaults to null', () => {
       expect(store.getSelectedModel()).toBeNull();
@@ -74,13 +57,6 @@ describe('ElectronKeychainStore', () => {
     it('persists selected model', () => {
       store.setSelectedModel('claude-haiku-4-5-20251001');
       expect(store.getSelectedModel()).toBe('claude-haiku-4-5-20251001');
-    });
-
-    it('skip and model share the same JSON file without overwriting each other', () => {
-      store.setSkipped(true);
-      store.setSelectedModel('claude-3-haiku-20240307');
-      expect(store.wasSkipped()).toBe(true);
-      expect(store.getSelectedModel()).toBe('claude-3-haiku-20240307');
     });
   });
 

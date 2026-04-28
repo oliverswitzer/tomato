@@ -229,20 +229,8 @@ export function ApiKeyPage() {
           )}
         </button>
 
-        <button
-          onClick={() => {
-            window.tomato.skipApiKey();
-            window.tomato.apiKeyComplete();
-          }}
-          disabled={isVerifying}
-          className="text-[13px] font-medium transition-colors hover:text-[#6B6259]"
-          style={{ color: '#8B8477' }}
-        >
-          Skip for now
-        </button>
         <p className="text-[11px] text-center" style={{ color: '#BAA898', maxWidth: 360 }}>
-          Without an API key, Tomato works as a plain pomodoro timer.
-          You can add your key later in Settings.
+          Tomato needs an Anthropic API key to summarize your activity and detect drift.
         </p>
       </div>
     </div>

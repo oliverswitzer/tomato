@@ -76,7 +76,6 @@ export interface ApiKeyValidationResult {
 
 export interface OnboardingState {
   hasApiKey: boolean;
-  wasSkipped: boolean;
   selectedModel: string | null;
 }
 
@@ -103,7 +102,6 @@ export interface TomatoApi {
   validateApiKey(key: string): Promise<ApiKeyValidationResult>;
   saveApiKey(key: string, selectedModel: string): Promise<{ success: boolean; error?: string }>;
   getOnboardingState(): Promise<OnboardingState>;
-  skipApiKey(): void;
   apiKeyComplete(): void;
 
   onSessionState(callback: (state: SessionStateWithActivities) => void): () => void;

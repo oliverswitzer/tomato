@@ -6,8 +6,6 @@ export interface KeychainStore {
   saveApiKey(key: string): void;
   getApiKey(): string | null;
   deleteApiKey(): void;
-  setSkipped(skipped: boolean): void;
-  wasSkipped(): boolean;
   setSelectedModel(model: string): void;
   getSelectedModel(): string | null;
 }
@@ -41,14 +39,6 @@ export class ElectronKeychainStore implements KeychainStore {
     } catch {
       // file doesn't exist
     }
-  }
-
-  setSkipped(skipped: boolean): void {
-    this.writeJson('onboarding.json', { ...this.readJson('onboarding.json'), skipped });
-  }
-
-  wasSkipped(): boolean {
-    return this.readJson('onboarding.json')?.skipped === true;
   }
 
   setSelectedModel(model: string): void {
