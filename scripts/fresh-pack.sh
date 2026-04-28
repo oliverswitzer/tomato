@@ -1,6 +1,6 @@
 #!/bin/bash
-# Reset all onboarding state, rebuild, and repackage for testing.
-# Usage: bash scripts/reset-onboarding.sh
+# Wipe all app state, rebuild, and repackage — simulates a first-time install.
+# Usage: bash scripts/fresh-pack.sh
 
 set -e
 
