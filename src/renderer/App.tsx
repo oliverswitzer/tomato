@@ -16,27 +16,36 @@ const pages: Record<string, ComponentType> = {
   '/api-key': ApiKeyPage,
 };
 
-function getRoute(): string {
-  return window.location.hash.slice(1) || '/start';
+function getHashRoute(): string {
+  return window.location.hash.slice(1) || '';
 }
 
 export function App() {
-  const [route, setRoute] = useState(getRoute);
+  const [route, setRoute] = useState(getHashRoute);
+  const [ready, setReady] = useState(!!getHashRoute());
 
   useEffect(() => {
-    const onHashChange = () => setRoute(getRoute());
+    const onHashChange = () => {
+      setRoute(getHashRoute());
+      setReady(true);
+    };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
   useEffect(() => {
-    if (route !== '/start' || window.location.hash) return;
+    if (ready) return;
     window.tomato.getOnboardingState().then((state) => {
       if (!state.hasApiKey && !state.wasSkipped) {
-        window.location.hash = '/api-key';
+        setRoute('/api-key');
+      } else {
+        setRoute('/start');
       }
+      setReady(true);
     });
-  }, [route]);
+  }, [ready]);
+
+  if (!ready) return null;
 
   const Page = pages[route] ?? StartPage;
   return <Page />;

@@ -274,41 +274,6 @@ function showPermissionsWindow(): void {
   });
 }
 
-function showApiKeyWindow(): void {
-  if (startWin) {
-    loadRendererPage(startWin, '/api-key');
-    startWin.show();
-    startWin.focus();
-    return;
-  }
-
-  const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
-  const winWidth = 760;
-  const winHeight = 780;
-
-  startWin = new BrowserWindow({
-    width: winWidth,
-    height: winHeight,
-    x: Math.round((screenWidth - winWidth) / 2),
-    y: 60,
-    frame: false,
-    transparent: true,
-    resizable: false,
-    hasShadow: true,
-    vibrancy: 'under-window',
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: getPreloadPath(),
-    },
-  });
-
-  loadRendererPage(startWin, '/api-key');
-  startWin.on('closed', () => {
-    startWin = null;
-  });
-}
-
 function showStartWindow(): void {
   if (startWin) {
     startWin.show();
@@ -661,10 +626,10 @@ ipcMain.on('open-accessibility-permission-settings', () => {
 
 ipcMain.on('permissions-complete', () => {
   if (startWin) {
-    loadRendererPage(startWin, '/api-key');
-  } else {
-    showApiKeyWindow();
+    startWin.close();
+    startWin = null;
   }
+  showStartWindow();
 });
 
 ipcMain.handle('validate-api-key', async (_event, key: string) => {
@@ -764,18 +729,11 @@ app.whenReady().then(async () => {
 
   createTray();
 
-  const hasApiKey = keychain.getApiKey() !== null;
-  const wasSkipped = keychain.wasSkipped();
-  log(`Onboarding state: hasApiKey=${hasApiKey}, wasSkipped=${wasSkipped}`);
-
   if (!screenOk || !a11yOk) {
     log('Routing to permissions window');
     showPermissionsWindow();
-  } else if (!hasApiKey && !wasSkipped) {
-    log('Routing to API key onboarding');
-    showApiKeyWindow();
   } else {
-    log('Routing to start window');
+    log('Routing to start window (renderer handles onboarding redirect)');
     showStartWindow();
   }
 });
