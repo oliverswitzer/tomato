@@ -7,6 +7,7 @@ export function HudPage() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [driftInfo, setDriftInfo] = useState<{ reason: string; confidence: number; level2Classification: string } | null>(null);
+  const [apiError, setApiError] = useState<{ type: 'auth' | 'model_deprecated'; message: string } | null>(null);
   const [sessionEnded, setSessionEnded] = useState(false);
   const [state, setState] = useState<SessionStateWithActivities>({
     active: false,
@@ -50,6 +51,9 @@ export function HudPage() {
       }),
       window.tomato.onSessionEnded(() => {
         setSessionEnded(true);
+      }),
+      window.tomato.onApiError((data) => {
+        setApiError(data);
       }),
     ];
 
@@ -113,6 +117,47 @@ export function HudPage() {
       <div className="progress-wrap">
         <div className="progress-bar" style={{ width: `${progress}%` }} />
       </div>
+
+      {apiError && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              background: apiError.type === 'auth' ? '#FEE4E2' : '#FFF3E0',
+              borderRadius: 10,
+              padding: '8px 12px',
+              margin: '0 2px',
+            }}
+            className="no-drag"
+          >
+            <span style={{
+              flex: 1,
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 11,
+              color: apiError.type === 'auth' ? '#7A2E25' : '#5D4037',
+              lineHeight: 1.4,
+            }}>
+              {apiError.message}
+            </span>
+            <button
+              onClick={() => window.tomato.openSettings()}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 11,
+                fontWeight: 600,
+                color: '#B86B60',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                padding: 0,
+              }}
+            >
+              Settings &rarr;
+            </button>
+          </div>
+        )}
 
       {isExpanded && (
         <div id="expanded" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

@@ -5,6 +5,7 @@ import { NudgePage } from './pages/NudgePage';
 import { DebugDashboard } from './pages/DebugDashboard';
 import { PermissionsPage } from './pages/PermissionsPage';
 import { ApiKeyPage } from './pages/ApiKeyPage';
+import { SettingsPage } from './pages/SettingsPage';
 import type { ComponentType } from 'react';
 
 const pages: Record<string, ComponentType> = {
@@ -14,6 +15,7 @@ const pages: Record<string, ComponentType> = {
   '/debug': DebugDashboard,
   '/permissions': PermissionsPage,
   '/api-key': ApiKeyPage,
+  '/settings': SettingsPage,
 };
 
 function getHashRoute(): string {

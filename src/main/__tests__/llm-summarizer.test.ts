@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { AnthropicLlmClient } from '../llm-summarizer';
+import { AnthropicLlmClient, LlmAuthError, LlmModelNotFoundError } from '../llm-summarizer';
 import type { ActivityTimeline } from '../timeline-builder';
 
 function makeMockAnthropic(responseText: string) {
@@ -199,6 +199,51 @@ describe('AnthropicLlmClient', () => {
       const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
       expect(prompt).toContain('1 minutes');
       expect(prompt).not.toContain('25 minutes');
+    });
+  });
+
+  describe('batchSummarize error classification', () => {
+    it('throws LlmAuthError on 401', async () => {
+      const error = new Error('401 Unauthorized') as any;
+      error.status = 401;
+      const anthropic = {
+        messages: { create: vi.fn().mockRejectedValue(error) },
+      } as any;
+      const client = new AnthropicLlmClient(anthropic);
+
+      await expect(client.batchSummarize(sampleTimeline(), 'test')).rejects.toThrow(LlmAuthError);
+    });
+
+    it('throws LlmAuthError on 403', async () => {
+      const error = new Error('403 Forbidden') as any;
+      error.status = 403;
+      const anthropic = {
+        messages: { create: vi.fn().mockRejectedValue(error) },
+      } as any;
+      const client = new AnthropicLlmClient(anthropic);
+
+      await expect(client.batchSummarize(sampleTimeline(), 'test')).rejects.toThrow(LlmAuthError);
+    });
+
+    it('throws LlmModelNotFoundError on 404', async () => {
+      const error = new Error('404 Not Found') as any;
+      error.status = 404;
+      const anthropic = {
+        messages: { create: vi.fn().mockRejectedValue(error) },
+      } as any;
+      const client = new AnthropicLlmClient(anthropic);
+
+      await expect(client.batchSummarize(sampleTimeline(), 'test')).rejects.toThrow(LlmModelNotFoundError);
+    });
+
+    it('returns null on other errors (network, 500, etc.)', async () => {
+      const anthropic = {
+        messages: { create: vi.fn().mockRejectedValue(new Error('network timeout')) },
+      } as any;
+      const client = new AnthropicLlmClient(anthropic);
+
+      const result = await client.batchSummarize(sampleTimeline(), 'test');
+      expect(result).toBeNull();
     });
   });
 });

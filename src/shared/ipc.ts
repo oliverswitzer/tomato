@@ -80,6 +80,22 @@ export interface OnboardingState {
   selectedModel: string | null;
 }
 
+export interface ModelInfo {
+  id: string;
+  priceTier: '$' | '$$' | '$$$';
+}
+
+export interface SettingsState {
+  hasApiKey: boolean;
+  maskedKey: string | null;
+  selectedModel: string | null;
+}
+
+export interface ApiErrorEvent {
+  type: 'auth' | 'model_deprecated';
+  message: string;
+}
+
 export interface TomatoApi {
   startSession(intention: string, durationMin: number): void;
   togglePause(): void;
@@ -104,6 +120,14 @@ export interface TomatoApi {
   saveApiKey(key: string, selectedModel: string): Promise<{ success: boolean; error?: string }>;
   getOnboardingState(): Promise<OnboardingState>;
   apiKeyComplete(): void;
+
+  fetchModels(): Promise<{ models: ModelInfo[]; error?: string }>;
+  getSettingsState(): Promise<SettingsState>;
+  updateModel(modelId: string): void;
+  quitApp(): void;
+  openSettings(): void;
+
+  onApiError(callback: (data: ApiErrorEvent) => void): () => void;
 
   onSessionState(callback: (state: SessionStateWithActivities) => void): () => void;
   onActivityUpdate(callback: (activity: Activity) => void): () => void;

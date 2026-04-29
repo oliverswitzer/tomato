@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { FocusTracker } from '../focus-tracker';
+import { LlmAuthError, LlmModelNotFoundError } from '../llm-summarizer';
 import type { ScreenpipeDb } from '../screenpipe-db';
 import type { LlmClient, BatchSummaryResult } from '../llm-summarizer';
 import type { Activity, PollState } from '../../shared/ipc';
@@ -300,6 +301,64 @@ describe('FocusTracker', () => {
     await vi.advanceTimersByTimeAsync(10000);
 
     expect(llm.batchSummarize).not.toHaveBeenCalled();
+
+    tracker.stop();
+  });
+
+  it('401 from LLM pauses batch timer and emits onApiError', async () => {
+    const db = mockDb();
+    const llm = mockLlm();
+    (llm.batchSummarize as ReturnType<typeof vi.fn>).mockRejectedValue(new LlmAuthError());
+    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+
+    const apiErrors: { type: string; message: string }[] = [];
+    tracker.onApiError = (data) => apiErrors.push(data);
+
+    const pollStates: PollState[] = [];
+    tracker.onPollState = (state) => pollStates.push(state);
+
+    tracker.start('test');
+    await vi.advanceTimersByTimeAsync(10000);
+
+    expect(apiErrors).toHaveLength(1);
+    expect(apiErrors[0].type).toBe('auth');
+
+    const callCount = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls.length;
+    await vi.advanceTimersByTimeAsync(10000);
+    expect((llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls.length).toBe(callCount);
+
+    const pollCountBefore = pollStates.length;
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(pollStates.length).toBeGreaterThan(pollCountBefore);
+
+    tracker.stop();
+  });
+
+  it('404 from LLM triggers model fallback and emits onApiError', async () => {
+    const db = mockDb();
+    const llm = mockLlm();
+    (llm.batchSummarize as ReturnType<typeof vi.fn>)
+      .mockRejectedValueOnce(new LlmModelNotFoundError('old-model'))
+      .mockResolvedValue({
+        summary: 'Back to normal.',
+        level2Classification: 'Building',
+        driftAssessment: { isDrifting: false, confidence: 0.9, reason: 'On task.' },
+      });
+    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+
+    const apiErrors: { type: string; message: string }[] = [];
+    tracker.onApiError = (data) => apiErrors.push(data);
+
+    tracker.start('test');
+    await vi.advanceTimersByTimeAsync(10000);
+
+    expect(apiErrors).toHaveLength(1);
+    expect(apiErrors[0].type).toBe('model_deprecated');
+
+    const activities: Activity[] = [];
+    tracker.onActivity = (a) => activities.push(a);
+    await vi.advanceTimersByTimeAsync(10000);
+    expect(activities).toHaveLength(1);
 
     tracker.stop();
   });

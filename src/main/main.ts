@@ -22,7 +22,7 @@ import { AnthropicLlmClient } from './llm-summarizer';
 import { saveSession, getRecentSessions } from './session-store';
 import { ElectronKeychainStore } from './keychain';
 import { validateApiKey } from './api-key-validator';
-import { DEFAULT_MODEL } from '../config/model-pricing';
+import { DEFAULT_MODEL, getPriceTier } from '../config/model-pricing';
 import type { SessionState } from '../shared/ipc';
 
 const APP_ROOT = path.join(__dirname, '..', '..');
@@ -232,6 +232,11 @@ function updateTrayMenu(): void {
 
   template.push(
     { type: 'separator' },
+    { label: 'Settings...', click: () => showSettingsWindow() },
+  );
+
+  template.push(
+    { type: 'separator' },
     { label: 'Quit Tomato', role: 'quit' },
   );
 
@@ -246,6 +251,10 @@ function showPermissionsWindow(): void {
 
 function showApiKeyWindow(): void {
   showOnboardingWindow('/api-key');
+}
+
+function showSettingsWindow(): void {
+  showOnboardingWindow('/settings');
 }
 
 function showOnboardingWindow(hash: string): void {
@@ -473,6 +482,16 @@ function startSession(intention: string, durationMin: number): void {
     }
   };
 
+  focusTracker.onApiError = (data) => {
+    log(`API error: type=${data.type}, message=${data.message}`);
+    if (timerWin) {
+      timerWin.webContents.send('api-error', data);
+    }
+    if (data.type === 'model_deprecated' && keychain) {
+      keychain.setSelectedModel(DEFAULT_MODEL);
+    }
+  };
+
   focusTracker.onTimelineUpdate = (entries) => {
     if (timerWin) {
       timerWin.webContents.send('timeline-update', entries);
@@ -689,6 +708,56 @@ ipcMain.on('api-key-complete', () => {
     startWin = null;
   }
   showStartWindow();
+});
+
+ipcMain.handle('fetch-models', async () => {
+  const apiKey = keychain?.getApiKey();
+  if (!apiKey) return { models: [], error: 'No API key saved' };
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/models', {
+      method: 'GET',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      signal: AbortSignal.timeout(15_000),
+    });
+
+    if (!response.ok) {
+      return { models: [], error: `Anthropic returned ${response.status}` };
+    }
+
+    const body = await response.json() as { data?: { id: string }[] };
+    const modelIds = (body.data ?? []).map((m) => m.id);
+    const models = modelIds.map((id) => ({ id, priceTier: getPriceTier(id) }));
+    return { models };
+  } catch {
+    return { models: [], error: "Couldn't reach Anthropic — check your connection." };
+  }
+});
+
+ipcMain.handle('get-settings-state', () => {
+  if (!keychain) return { hasApiKey: false, maskedKey: null, selectedModel: null };
+  const rawKey = keychain.getApiKey();
+  return {
+    hasApiKey: rawKey !== null,
+    maskedKey: rawKey ? `sk-ant-•••••${rawKey.slice(-4)}` : null,
+    selectedModel: keychain.getSelectedModel(),
+  };
+});
+
+ipcMain.on('update-model', (_event, { modelId }: { modelId: string }) => {
+  keychain?.setSelectedModel(modelId);
+  log(`Model updated to ${modelId}`);
+});
+
+ipcMain.on('quit-app', () => {
+  app.quit();
+});
+
+ipcMain.on('open-settings', () => {
+  showSettingsWindow();
 });
 
 ipcMain.handle('get-debug-pipeline-state', () => {

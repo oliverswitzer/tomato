@@ -4,6 +4,8 @@ import { app } from 'electron';
 import type { Activity, PollState, DebugPipelineState } from '../shared/ipc';
 import type { ScreenpipeDb } from './screenpipe-db';
 import type { LlmClient, BatchSummaryResult } from './llm-summarizer';
+import { LlmAuthError, LlmModelNotFoundError } from './llm-summarizer';
+import { DEFAULT_MODEL } from '../config/model-pricing';
 import { TimelineBuilder, type TimelineEntry, type ActivityTimeline } from './timeline-builder';
 
 const DEFAULT_TICK_MS = 15_000;
@@ -43,6 +45,7 @@ export class FocusTracker {
   onDrift: ((data: { reason: string; confidence: number; level2Classification: string }) => void) | null = null;
   onPollState: ((state: PollState) => void) | null = null;
   onTimelineUpdate: ((entries: TimelineEntry[]) => void) | null = null;
+  onApiError: ((data: { type: 'auth' | 'model_deprecated'; message: string }) => void) | null = null;
 
   constructor(private deps: FocusTrackerDeps) {
     this.tickMs = deps.tickIntervalMs ?? DEFAULT_TICK_MS;
@@ -167,10 +170,33 @@ export class FocusTracker {
 
     this.pendingLlmCall = true;
     log(`batch: calling LLM with ${timeline.entries.length} entries, intention="${this.intention}"`);
-    const result = await this.deps.llm.batchSummarize(timeline, this.intention, {
-      durationMin: this.durationMin,
-      batchWindowSec: Math.round(this.batchMs / 1000),
-    });
+
+    let result;
+    try {
+      result = await this.deps.llm.batchSummarize(timeline, this.intention, {
+        durationMin: this.durationMin,
+        batchWindowSec: Math.round(this.batchMs / 1000),
+      });
+    } catch (err) {
+      this.pendingLlmCall = false;
+      if (err instanceof LlmAuthError) {
+        log('batch: auth error — pausing batch timer');
+        if (this.batchTimer) {
+          clearInterval(this.batchTimer);
+          this.batchTimer = null;
+        }
+        this.onApiError?.({ type: 'auth', message: 'Your API key was rejected. Open Settings to fix it.' });
+        return;
+      }
+      if (err instanceof LlmModelNotFoundError) {
+        log(`batch: model 404 for ${err.model} — falling back to ${DEFAULT_MODEL}`);
+        this.deps.llm.setModel?.(DEFAULT_MODEL);
+        this.onApiError?.({ type: 'model_deprecated', message: `Switched to ${DEFAULT_MODEL} — your selected model is no longer available.` });
+        return;
+      }
+      log(`batch: unexpected error: ${(err as Error).message}`);
+      return;
+    }
     this.pendingLlmCall = false;
 
     if (!result) {
