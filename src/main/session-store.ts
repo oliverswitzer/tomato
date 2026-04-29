@@ -22,22 +22,27 @@ function writeSessions(sessions: SavedSession[]): void {
 export function saveSession({
   intention,
   durationMin,
+  startedAt,
   activities,
   summary,
   focusScore,
 }: {
   intention: string;
   durationMin: number;
+  startedAt: string;
   activities: Activity[];
   summary?: string;
   focusScore?: number;
 }): void {
+  const endedAt = new Date().toISOString();
+  const actualDurationSec = Math.round((Date.now() - new Date(startedAt).getTime()) / 1000);
   const sessions = readSessions();
   sessions.push({
     intention,
     durationMin,
-    startedAt: new Date(Date.now() - durationMin * 60_000).toISOString(),
-    endedAt: new Date().toISOString(),
+    actualDurationSec,
+    startedAt,
+    endedAt,
     activityCount: activities.length,
     summary: summary ?? (activities.length > 0 ? activities[activities.length - 1].summary : ''),
     focusScore,

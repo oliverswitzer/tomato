@@ -31,6 +31,10 @@ function mockLlm(result?: BatchSummaryResult): LlmClient {
       level2Classification: 'Building',
       driftAssessment: { isDrifting: false, confidence: 0.9, reason: 'On task.' },
     }),
+    summarizeSession: vi.fn().mockResolvedValue({
+      summary: 'Worked on focus tracker.',
+      focusScore: 85,
+    }),
     getLastPrompt: vi.fn().mockReturnValue('mock prompt'),
   };
 }
@@ -183,6 +187,25 @@ describe('FocusTracker', () => {
 
     expect(pollStates).toHaveLength(1);
     expect(pollStates[0].screenpipeStatus).toBe('error');
+
+    tracker.stop();
+  });
+
+  it('summarizeSession passes the given durationMin to LLM', async () => {
+    const db = mockDb();
+    const llm = mockLlm();
+    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+
+    tracker.start('Build focus tracker', 25);
+    await vi.advanceTimersByTimeAsync(10000);
+
+    await tracker.summarizeSession(1);
+
+    expect(llm.summarizeSession).toHaveBeenCalledWith(
+      'Build focus tracker',
+      expect.any(Array),
+      1,
+    );
 
     tracker.stop();
   });

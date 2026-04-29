@@ -58,6 +58,7 @@ let sessionState: SessionState = {
   remainingSec: 0,
   paused: false,
 };
+let sessionStartedAt: string | null = null;
 
 function getPreloadPath(): string {
   return path.join(__dirname, '..', 'preload', 'preload.js');
@@ -418,6 +419,7 @@ function showNudgeWindow(): void {
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 function startSession(intention: string, durationMin: number): void {
+  sessionStartedAt = new Date().toISOString();
   sessionState = {
     active: true,
     intention,
@@ -511,28 +513,35 @@ async function endSession(): Promise<void> {
     timerInterval = null;
   }
 
+  const startedAt = sessionStartedAt ?? new Date().toISOString();
+  const actualElapsedSec = Math.round((Date.now() - new Date(startedAt).getTime()) / 1000);
+  const actualDurationMin = Math.max(1, Math.round(actualElapsedSec / 60));
+
   if (focusTracker) {
-    const activities = focusTracker.getActivities();
+    if (actualElapsedSec >= 15) {
+      const activities = focusTracker.getActivities();
 
-    let summary: string | undefined;
-    let focusScore: number | undefined;
+      let summary: string | undefined;
+      let focusScore: number | undefined;
 
-    if (activities.length > 0) {
-      const sessionSummary = await focusTracker.summarizeSession(sessionState.durationMin);
-      summary = sessionSummary?.summary;
-      focusScore = sessionSummary?.focusScore;
-    } else {
-      summary = 'No activity was tracked during this session.';
-      focusScore = 0;
+      if (activities.length > 0) {
+        const sessionSummary = await focusTracker.summarizeSession(actualDurationMin);
+        summary = sessionSummary?.summary;
+        focusScore = sessionSummary?.focusScore;
+      } else {
+        summary = 'No activity was tracked during this session.';
+        focusScore = 0;
+      }
+
+      saveSession({
+        intention: sessionState.intention,
+        durationMin: sessionState.durationMin,
+        startedAt,
+        activities,
+        summary,
+        focusScore,
+      });
     }
-
-    saveSession({
-      intention: sessionState.intention,
-      durationMin: sessionState.durationMin,
-      activities,
-      summary,
-      focusScore,
-    });
     focusTracker.stop();
     focusTracker = null;
   }
