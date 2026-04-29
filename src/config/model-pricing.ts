@@ -20,3 +20,11 @@ export function cheapestHaikuFromList(availableModelIds: string[]): string | nul
 }
 
 export const DEFAULT_MODEL = 'claude-haiku-4-5-20251001';
+
+export type PriceTier = '$' | '$$' | '$$$';
+
+export function getPriceTier(modelId: string): PriceTier {
+  if (modelId.includes('haiku')) return '$';
+  if (modelId.includes('sonnet')) return '$$';
+  return '$$$';
+}

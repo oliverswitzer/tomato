@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import type { TomatoApi, SessionStateWithActivities, Activity, TimelineEntryIpc } from '../shared/ipc';
+import type { TomatoApi, SessionStateWithActivities, Activity, TimelineEntryIpc, ApiErrorEvent } from '../shared/ipc';
 
 const api: TomatoApi = {
   startSession: (intention, durationMin) =>
@@ -26,6 +26,18 @@ const api: TomatoApi = {
   saveApiKey: (key: string, selectedModel: string) => ipcRenderer.invoke('save-api-key', key, selectedModel),
   getOnboardingState: () => ipcRenderer.invoke('get-onboarding-state'),
   apiKeyComplete: () => ipcRenderer.send('api-key-complete'),
+
+  fetchModels: () => ipcRenderer.invoke('fetch-models'),
+  getSettingsState: () => ipcRenderer.invoke('get-settings-state'),
+  updateModel: (modelId: string) => ipcRenderer.send('update-model', { modelId }),
+  quitApp: () => ipcRenderer.send('quit-app'),
+  openSettings: () => ipcRenderer.send('open-settings'),
+
+  onApiError: (callback) => {
+    const handler = (_e: IpcRendererEvent, data: ApiErrorEvent) => callback(data);
+    ipcRenderer.on('api-error', handler);
+    return () => { ipcRenderer.removeListener('api-error', handler); };
+  },
 
   onSessionState: (callback) => {
     const handler = (_e: IpcRendererEvent, state: SessionStateWithActivities) => callback(state);
