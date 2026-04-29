@@ -518,28 +518,30 @@ async function endSession(): Promise<void> {
   const actualDurationMin = Math.max(1, Math.round(actualElapsedSec / 60));
 
   if (focusTracker) {
-    const activities = focusTracker.getActivities();
+    if (actualElapsedSec >= 15) {
+      const activities = focusTracker.getActivities();
 
-    let summary: string | undefined;
-    let focusScore: number | undefined;
+      let summary: string | undefined;
+      let focusScore: number | undefined;
 
-    if (activities.length > 0) {
-      const sessionSummary = await focusTracker.summarizeSession(actualDurationMin);
-      summary = sessionSummary?.summary;
-      focusScore = sessionSummary?.focusScore;
-    } else {
-      summary = 'No activity was tracked during this session.';
-      focusScore = 0;
+      if (activities.length > 0) {
+        const sessionSummary = await focusTracker.summarizeSession(actualDurationMin);
+        summary = sessionSummary?.summary;
+        focusScore = sessionSummary?.focusScore;
+      } else {
+        summary = 'No activity was tracked during this session.';
+        focusScore = 0;
+      }
+
+      saveSession({
+        intention: sessionState.intention,
+        durationMin: sessionState.durationMin,
+        startedAt,
+        activities,
+        summary,
+        focusScore,
+      });
     }
-
-    saveSession({
-      intention: sessionState.intention,
-      durationMin: sessionState.durationMin,
-      startedAt,
-      activities,
-      summary,
-      focusScore,
-    });
     focusTracker.stop();
     focusTracker = null;
   }
