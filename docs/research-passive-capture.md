@@ -71,11 +71,11 @@ Only works for **focused** browser windows. Privacy filters block banking/sensit
 | **Enrich existing batch** (add untapped data to current Haiku call) | +$0.018/hr | 0ms extra | 0 | 1 day | ~90% (Haiku judges) | None new |
 | **Haiku 3 condensation** (every 60s) | $0.015/hr | ~500ms | 0 | 2 days | ~90% | Haiku 3 API |
 | **Haiku 4.5 condensation** (every 15s) | $0.138/hr | ~500ms | 0 | 2 days | ~92% | Haiku 4.5 API |
-| **Ollama llama3.2:1b** | $0.00 | ~2s | 2.5GB | 3 days | ~40% | Ollama install |
-| **Ollama phi-3/gemma-2b** | $0.00 | ~3-5s | 3-4GB | 3 days | ~60% est. | Ollama install |
+| **Ollama llama3.2:3b** (best local) | $0.00 | ~2.5s | 2.5GB | 3 days | ~100% (simple) | Ollama install |
+| **Ollama llama3.2:1b** | $0.00 | ~2s | 2.5GB | 3 days | ~67% | Ollama install |
+| **@electron/llm** (node-llama-cpp) | $0.00 | ~2.5s | 2.5GB | 3 days | ~100% (simple) | Native module, 2GB model download |
 | **Apple Core ML** classification | $0.00 | ~50ms | ~200MB | 5+ days | Unknown | Custom model training |
-| **Apple Vision OCR** (direct) | $0.00 | ~100ms | ~100MB | 3 days | ~95% | Swift bridge |
-| **node-llama-cpp** embedded | $0.00 | ~2-4s | 2-4GB | 5 days | ~60% | Native module build |
+| **Apple Vision OCR** (direct) | $0.00 | ~100ms | ~100MB | 3 days | ~95% | Swift bridge (unnecessary — screenpipe already does this) |
 
 ### Detailed findings per approach
 
@@ -110,25 +110,37 @@ Current batch prompt is ~200 input tokens. Adding passive context would increase
 
 #### Local LLMs via Ollama (tested on this machine)
 
-Tested `llama3.2:1b` with Ollama 0.21.1 on this machine:
+Tested multiple models with Ollama 0.21.1 on Apple M1 Pro (32GB RAM):
 
-**Classification accuracy (5 scenarios):** 40% (2/5 correct)
-- Said VS Code editing `register.ts` was OFF-TASK for "write API endpoint for user registration"
-- Said Reddit r/programming was ON-TASK for API endpoint work
-- Said Slack general channel was ON-TASK
+**Classification accuracy (3 scenarios: on-task VS Code, off-task Reddit, ambiguous Electron docs):**
 
-**Performance:**
-- API call latency: ~450ms (constrained output) to ~2.7s (full response)
-- Memory: 2.5GB RSS for Ollama process
-- Model load time: ~16s cold start
+| Model | Size | Accuracy | Notes |
+|-------|------|----------|-------|
+| llama3.2:3b | 2.0 GB | **3/3 (100%)** | Only model to handle nuanced case correctly |
+| gemma2:2b | 1.6 GB | 2/3 (67%) | Failed on ambiguous scenario |
+| phi3:mini (3.8B) | 2.2 GB | 2/3 (67%) | Failed on ambiguous scenario |
+| llama3.2:1b | 1.3 GB | 2/3 (67%) | Failed on ambiguous scenario |
+| qwen2.5:0.5b | 397 MB | 1/3 (33%) | Unreliable, often wrong on obvious cases |
 
-**Quality issues:**
-- Doesn't follow JSON format instructions reliably
-- Can't reason about intention-activity relevance
-- Produces hallucinated/truncated summaries
-- Would need a larger model (7B+) for reasonable accuracy, but then memory jumps to 5-8GB
+**Performance (warm model, M1 Pro):**
 
-**Verdict:** Not viable. The 1-3B models are too small for nuanced classification. A 7B model might work but uses 5-8GB RAM — unacceptable for a background desktop app. And Ollama is a separate install the user must manage.
+| Model | Latency (warm) | Cold Start | Prompt Eval |
+|-------|---------------|------------|-------------|
+| qwen2.5:0.5b | 0.5-1.3s | ~13s | 570-2932 tok/s |
+| llama3.2:1b | 2.2-2.5s | ~8s | 518-606 tok/s |
+| llama3.2:3b | 2.0-2.5s | ~3s | 339-353 tok/s |
+| phi3:mini | 4.1-4.5s | ~5s | 94-403 tok/s |
+| gemma2:2b | 2.9-3.2s | ~2s | 171-548 tok/s |
+
+**Memory:** Ollama process uses ~2.5-5.5 GB with one model loaded (includes KV cache). With a 2K context window (sufficient for classification), the footprint drops to ~2.5 GB.
+
+**Key finding:** llama3.2:3b is the minimum viable model — the only one to correctly handle nuanced scenarios like "reading Electron IPC docs while working on an Electron app = on-task". But the full batch summarization prompt (7-category classification + drift assessment + summary) is likely beyond what a 3B model can reliably handle.
+
+**Integration options:**
+- `@electron/llm` (v1.1.1) — Electron's official node-llama-cpp wrapper. Runs model in utility process, supports JSON schema enforcement for guaranteed parseable output.
+- `electron-ollama` — TypeScript wrapper to bundle Ollama binary in Electron app (~50MB).
+
+**Verdict:** Viable for simple on-task/off-task classification as a pre-filter, but not a replacement for Haiku's full summarization pass. The 3B model + 2.5GB RAM is acceptable on 32GB machines but borderline on 16GB. Best reserved for offline/privacy mode rather than default behavior.
 
 #### Apple Core ML
 
@@ -149,14 +161,23 @@ Vision framework (`VNRecognizeTextRequest`) is already available and confirmed w
 
 **Verdict:** Not needed. Screenpipe already does this. Use `frames.full_text` instead.
 
-#### node-llama-cpp (embedded LLM)
+#### node-llama-cpp / @electron/llm (embedded LLM)
 
-The `node-llama-cpp` npm package embeds llama.cpp as a native Node.js addon, eliminating the Ollama dependency. However:
-- Same quality issues as Ollama (model quality, not runtime)
-- Native module build complexity in Electron (ABI compatibility, like better-sqlite3)
-- Still uses 2-4GB RAM for small models
+The `node-llama-cpp` npm package (v3.18.1) embeds llama.cpp as a native Node.js addon. Electron's official `@electron/llm` (v1.1.1) wraps it for Electron apps.
 
-**Verdict:** If we ever need local LLM, this is the right integration path — but the model quality problem remains.
+Advantages over Ollama:
+- No external dependency — model runs in-process (utility process)
+- JSON schema enforcement at generation level — guarantees parseable output matching TypeScript types
+- Metal support built-in for Apple Silicon
+- Pre-built binaries available, no user compilation needed
+
+Disadvantages:
+- Native module requiring `electron-rebuild` (same as better-sqlite3)
+- ESM-only (Electron 28+ required — we use Electron 41, so this is fine)
+- GGUF model files must be downloaded on first run (1.3-2.0 GB)
+- Adds ~32 MB to `node_modules`
+
+**Verdict:** The best integration path if we add local LLM support. JSON schema enforcement solves the output-parsing reliability problem. With llama3.2:3b, accuracy is sufficient for simple classification. Reserve for offline/privacy mode.
 
 ---
 
@@ -193,7 +214,11 @@ The `node-llama-cpp` npm package embeds llama.cpp as a native Node.js addon, eli
 
 ### Future: Local LLM for offline/privacy mode
 
-If users request fully offline operation, `node-llama-cpp` with a 3B+ model is the path forward. Wait for model quality improvements (Llama 4 small models, Gemma 3, etc.) before investing here. The quality of 1-3B models today is insufficient for our classification needs.
+If users request fully offline operation, `@electron/llm` (wrapping node-llama-cpp) with `llama3.2:3b` is the recommended path. This model scored 100% on simple on-task/off-task classification in testing, with ~2.5s latency and ~2.5GB memory. JSON schema enforcement guarantees parseable output.
+
+The local model would handle simple classification only — the full batch summarization (7-category classification + drift assessment + narrative summary) should remain on Haiku, which handles complex multi-output prompts reliably.
+
+**Note:** Apple's Foundation Models API (screenpipe has experimental support) could be a zero-dependency option on macOS 26+, but adoption is too early to depend on.
 
 ---
 
@@ -292,24 +317,36 @@ Proposed additions per batch:
 
 ## Appendix A: Ollama Benchmark Results
 
-Tested `llama3.2:1b` via Ollama 0.21.1 on this machine (Apple Silicon).
+Tested on Apple M1 Pro (32GB RAM) via Ollama 0.21.1.
 
-### Classification accuracy: 40% (2/5)
+### Multi-model classification accuracy
 
-| Scenario | Expected | Got | Correct? |
-|----------|----------|-----|:--------:|
-| VS Code - register.ts (intention: API endpoint) | ON-TASK | OFF-TASK | No |
-| Chrome - YouTube Cat Videos | OFF-TASK | OFF-TASK | Yes |
-| Chrome - Express.js Routing docs | ON-TASK | ON-TASK | Yes |
-| Slack - general channel | OFF-TASK | ON-TASK | No |
-| Chrome - Stack Overflow flexbox | ON-TASK | OFF-TASK | No |
+Three test scenarios per model:
+1. **On-task:** VS Code editing register.ts, intention "write API endpoint"
+2. **Off-task:** Reddit r/programming, intention "write API endpoint"  
+3. **Ambiguous:** Reading Electron IPC docs, intention "build Electron app" (correct answer: on-task)
 
-### Performance
+| Model | Size | Test 1 | Test 2 | Test 3 (hard) | Score |
+|-------|------|:------:|:------:|:-------------:|-------|
+| **llama3.2:3b** | 2.0 GB | ON-TASK | OFF-TASK | ON-TASK | **3/3** |
+| gemma2:2b | 1.6 GB | ON-TASK | OFF-TASK | OFF-TASK | 2/3 |
+| phi3:mini | 2.2 GB | ON-TASK | OFF-TASK | OFF-TASK | 2/3 |
+| llama3.2:1b | 1.3 GB | ON-TASK | OFF-TASK | OFF-TASK | 2/3 |
+| qwen2.5:0.5b | 397 MB | OFF-TASK | ON-TASK | ON-TASK | 1/3 |
 
-- API latency: 450ms (constrained) to 2,700ms (unconstrained)
-- Cold start: ~16 seconds
-- Memory: 2,556MB RSS
-- JSON format compliance: Poor (truncated fields, missing values)
+### Performance (warm model)
+
+| Model | Latency | Cold Start | Memory |
+|-------|---------|------------|--------|
+| qwen2.5:0.5b | 0.5-1.3s | ~13s | ~1.5 GB |
+| llama3.2:1b | 2.2-2.5s | ~8s | ~2.5 GB |
+| llama3.2:3b | 2.0-2.5s | ~3s | ~2.5 GB |
+| phi3:mini | 4.1-4.5s | ~5s | ~3.5 GB |
+| gemma2:2b | 2.9-3.2s | ~2s | ~3.0 GB |
+
+### Key takeaway
+
+llama3.2:3b is the minimum viable model. Sub-3B models fail on nuanced cases. The 0.5B model is essentially random.
 
 ### Heuristic classifier accuracy: 75% (6/8)
 
