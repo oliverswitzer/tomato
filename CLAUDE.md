@@ -98,3 +98,14 @@ The `splash/` directory is deployed to Vercel as a static site. Vercel auto-depl
 ## Design references
 
 `*.pen` files are [Pencil](https://pencil.dev/) design documents — a design tool for creating UI mockups and prototypes. When asked to reference designs in a `*.pen` file, always use the `/frontend-design` skill to guide implementation. These files contain design specs that require pixel-perfect, production-grade frontend work.
+
+## Pencil MCP in agent sessions
+
+Pencil MCP works in ao-spawned tmux sessions — it does **not** require a GUI, display variables, or an IDE connection. The MCP server binary (`mcp-server-darwin-arm64` inside Pencil.app) communicates with the Pencil desktop app via a Unix domain socket at `~/.pencil/socket/pencil-desktop.sock`.
+
+**Requirement:** The Pencil desktop app must be running before the agent session starts. If it's not running, the socket won't exist and the MCP server will fail to connect at Claude Code startup, showing as "failed" for the entire session.
+
+**Troubleshooting "failed" Pencil MCP:**
+1. Check if Pencil.app is running: `pgrep -f "Pencil.app/Contents/MacOS/Pencil"`
+2. Check if the socket exists: `ls ~/.pencil/socket/pencil-desktop.sock`
+3. If not running, launch Pencil.app, then restart the Claude Code session (MCP servers connect at startup only)
