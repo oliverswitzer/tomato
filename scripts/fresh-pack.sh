@@ -1,7 +1,17 @@
 #!/bin/bash
-# Wipe onboarding state, rebuild, and repackage — simulates a first-time install.
-# Usage: bash scripts/fresh-pack.sh [--clean]
-#   --clean  Also delete sessions.json and tomato.log
+# Kill, reset, rebuild, and repackage Tomato for testing.
+#
+# Usage: bash scripts/fresh-pack.sh [flags]
+#
+# Flags:
+#   --keep-credentials  Skip resetting permissions and API key (just rebuild)
+#   --clean             Also delete sessions.json and tomato.log
+#   --help              Show this help message
+#
+# Examples:
+#   bash scripts/fresh-pack.sh                   # Full onboarding reset + pack
+#   bash scripts/fresh-pack.sh --keep-credentials # Rebuild without losing permissions/key
+#   bash scripts/fresh-pack.sh --clean            # Nuclear reset — wipe everything + pack
 
 set -e
 
@@ -11,22 +21,37 @@ APP_PATH="/Applications/Tomato.app"
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 CLEAN=false
-if [ "$1" = "--clean" ]; then
-  CLEAN=true
-fi
+KEEP_CREDENTIALS=false
 
-echo "Resetting Tomato onboarding state..."
+for arg in "$@"; do
+  case "$arg" in
+    --clean) CLEAN=true ;;
+    --keep-credentials) KEEP_CREDENTIALS=true ;;
+    --help)
+      sed -n '2,/^[^#]/{ /^#/{ s/^# \{0,1\}//; p; }; }' "$0"
+      exit 0
+      ;;
+    *)
+      echo "Unknown flag: $arg (try --help)"
+      exit 1
+      ;;
+  esac
+done
 
 # Kill running Tomato processes
 pkill -f "Tomato.app" 2>/dev/null && echo "  ✓ Killed running Tomato" || true
 
-# Reset macOS permissions
-tccutil reset ScreenCapture "$APP_ID" 2>/dev/null && echo "  ✓ Screen Recording permission reset" || echo "  ✗ Screen Recording reset failed (may need sudo)"
-tccutil reset Accessibility "$APP_ID" 2>/dev/null && echo "  ✓ Accessibility permission reset" || echo "  ✗ Accessibility reset failed (may need sudo)"
+if [ "$KEEP_CREDENTIALS" = false ]; then
+  echo "Resetting credentials and permissions..."
 
-# Remove API key and onboarding config
-rm -f "$DATA_DIR/api-key.enc" && echo "  ✓ API key removed"
-rm -f "$DATA_DIR/onboarding.json" && echo "  ✓ Onboarding config removed"
+  tccutil reset ScreenCapture "$APP_ID" 2>/dev/null && echo "  ✓ Screen Recording permission reset" || echo "  ✗ Screen Recording reset failed (may need sudo)"
+  tccutil reset Accessibility "$APP_ID" 2>/dev/null && echo "  ✓ Accessibility permission reset" || echo "  ✗ Accessibility reset failed (may need sudo)"
+
+  rm -f "$DATA_DIR/api-key.enc" && echo "  ✓ API key removed"
+  rm -f "$DATA_DIR/onboarding.json" && echo "  ✓ Onboarding config removed"
+else
+  echo "Keeping credentials and permissions."
+fi
 
 if [ "$CLEAN" = true ]; then
   rm -f "$DATA_DIR/sessions.json" && echo "  ✓ Session history removed"
@@ -56,4 +81,4 @@ cd "$SCRIPT_DIR"
 npm run pack
 
 echo ""
-echo "Done. Open Tomato from release/mac-arm64/Tomato.app to test the full onboarding flow."
+echo "Done. Open Tomato from release/mac-arm64/Tomato.app to test."
