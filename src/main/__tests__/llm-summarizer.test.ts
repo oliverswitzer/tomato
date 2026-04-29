@@ -108,6 +108,197 @@ describe('AnthropicLlmClient', () => {
       expect(result).toBeNull();
     });
 
+    it('prompt includes drift guidance about app-switching and relevance', async () => {
+      const anthropic = makeMockAnthropic(validResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      await client.batchSummarize(sampleTimeline(), 'Fix the auth bug');
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).toContain('App-switching speed is NOT a drift signal');
+      expect(prompt).toContain('Judge by app and content relevance');
+      expect(prompt).toContain('Flag drift only when apps are clearly unrelated');
+      expect(prompt).toContain('False positives');
+    });
+
+    it('does not flag browsing a related GitHub PR as drift', async () => {
+      const driftResponse = JSON.stringify({
+        summary: 'Reviewed a GitHub PR about auth middleware and edited auth code in Cursor.',
+        level2Classification: 'Building',
+        driftAssessment: {
+          isDrifting: false,
+          confidence: 0.85,
+          reason: 'GitHub PR review is directly related to fixing the auth bug.',
+        },
+      });
+      const client = new AnthropicLlmClient(makeMockAnthropic(driftResponse));
+
+      const timeline = sampleTimeline({
+        entries: [
+          {
+            timestamp: '2026-04-25T10:00:05Z',
+            app: 'Cursor',
+            window: 'auth-middleware.ts',
+            typedText: 'if (!token) throw',
+            eventType: 'typing',
+            accessibilityHints: [],
+            browserUrl: null,
+          },
+          {
+            timestamp: '2026-04-25T10:00:12Z',
+            app: 'Chrome',
+            window: 'Fix auth token validation · Pull Request #42',
+            typedText: null,
+            eventType: 'app_switch',
+            accessibilityHints: [],
+            browserUrl: null,
+          },
+          {
+            timestamp: '2026-04-25T10:00:18Z',
+            app: 'Cursor',
+            window: 'auth-middleware.ts',
+            typedText: null,
+            eventType: 'app_switch',
+            accessibilityHints: [],
+            browserUrl: null,
+          },
+          {
+            timestamp: '2026-04-25T10:00:22Z',
+            app: 'Chrome',
+            window: 'Fix auth token validation · Pull Request #42',
+            typedText: null,
+            eventType: 'app_switch',
+            accessibilityHints: [],
+            browserUrl: null,
+          },
+        ],
+        uniqueApps: ['Cursor', 'Chrome'],
+        dominantApp: 'Cursor',
+      });
+
+      const result = await client.batchSummarize(timeline, 'Fix the auth bug');
+      expect(result).not.toBeNull();
+      expect(result!.driftAssessment.isDrifting).toBe(false);
+    });
+
+    it('does not flag reading docs as drift when implementing a feature', async () => {
+      const docsResponse = JSON.stringify({
+        summary: 'Read React documentation on useEffect and edited UserSettings component.',
+        level2Classification: 'Research',
+        driftAssessment: {
+          isDrifting: false,
+          confidence: 0.9,
+          reason: 'Reading React docs is directly relevant to implementing user settings.',
+        },
+      });
+      const client = new AnthropicLlmClient(makeMockAnthropic(docsResponse));
+
+      const timeline = sampleTimeline({
+        entries: [
+          {
+            timestamp: '2026-04-25T10:00:05Z',
+            app: 'Chrome',
+            window: 'useEffect – React',
+            typedText: null,
+            eventType: 'app_switch',
+            accessibilityHints: [],
+            browserUrl: null,
+          },
+          {
+            timestamp: '2026-04-25T10:00:30Z',
+            app: 'VS Code',
+            window: 'UserSettings.tsx',
+            typedText: 'useEffect(() => {',
+            eventType: 'typing',
+            accessibilityHints: [],
+            browserUrl: null,
+          },
+        ],
+        uniqueApps: ['Chrome', 'VS Code'],
+        dominantApp: 'VS Code',
+      });
+
+      const result = await client.batchSummarize(timeline, 'Implement user settings page');
+      expect(result).not.toBeNull();
+      expect(result!.driftAssessment.isDrifting).toBe(false);
+    });
+
+    it('does not flag Stack Overflow research as drift when debugging', async () => {
+      const soResponse = JSON.stringify({
+        summary: 'Searched Stack Overflow for API timeout solutions and tested fixes in Cursor.',
+        level2Classification: 'Research',
+        driftAssessment: {
+          isDrifting: false,
+          confidence: 0.85,
+          reason: 'Stack Overflow research on timeout issues is directly related to debugging the API timeout.',
+        },
+      });
+      const client = new AnthropicLlmClient(makeMockAnthropic(soResponse));
+
+      const timeline = sampleTimeline({
+        entries: [
+          {
+            timestamp: '2026-04-25T10:00:05Z',
+            app: 'Chrome',
+            window: 'node.js - How to handle API request timeout - Stack Overflow',
+            typedText: null,
+            eventType: 'app_switch',
+            accessibilityHints: [],
+            browserUrl: null,
+          },
+          {
+            timestamp: '2026-04-25T10:00:20Z',
+            app: 'Cursor',
+            window: 'api-client.ts',
+            typedText: 'timeout: 30000',
+            eventType: 'typing',
+            accessibilityHints: [],
+            browserUrl: null,
+          },
+        ],
+        uniqueApps: ['Chrome', 'Cursor'],
+        dominantApp: 'Cursor',
+      });
+
+      const result = await client.batchSummarize(timeline, 'Debug API timeout issue');
+      expect(result).not.toBeNull();
+      expect(result!.driftAssessment.isDrifting).toBe(false);
+    });
+
+    it('correctly flags watching YouTube entertainment as drift', async () => {
+      const ytResponse = JSON.stringify({
+        summary: 'Watched a music video on YouTube instead of working on the auth bug.',
+        level2Classification: 'Off-task',
+        driftAssessment: {
+          isDrifting: true,
+          confidence: 0.9,
+          reason: 'Watching entertainment videos is unrelated to fixing the auth bug.',
+        },
+      });
+      const client = new AnthropicLlmClient(makeMockAnthropic(ytResponse));
+
+      const timeline = sampleTimeline({
+        entries: [
+          {
+            timestamp: '2026-04-25T10:00:05Z',
+            app: 'Chrome',
+            window: 'Daft Punk - Get Lucky (Official Video) - YouTube',
+            typedText: null,
+            eventType: 'app_switch',
+            accessibilityHints: [],
+            browserUrl: null,
+          },
+        ],
+        uniqueApps: ['Chrome'],
+        dominantApp: 'Chrome',
+      });
+
+      const result = await client.batchSummarize(timeline, 'Fix the auth bug');
+      expect(result).not.toBeNull();
+      expect(result!.driftAssessment.isDrifting).toBe(true);
+      expect(result!.driftAssessment.confidence).toBeGreaterThanOrEqual(0.6);
+    });
+
     it('handles empty timeline', async () => {
       const anthropic = makeMockAnthropic(validResponse);
       const client = new AnthropicLlmClient(anthropic);

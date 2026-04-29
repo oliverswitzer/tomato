@@ -89,6 +89,20 @@ export class AnthropicLlmClient implements LlmClient {
 ## Important context about the data
 The typed text comes from raw keystroke capture. It includes typos, misspellings, partial words, and backspace artifacts. This is NORMAL human typing — do not interpret typos or messy text as evidence of distraction or lack of focus. Judge focus based on WHICH APP the user is in and WHAT THEY ARE DOING, not on typing quality.
 
+## How to assess drift
+Drift means the user shifted to activity UNRELATED to their intention. Use these rules:
+
+1. **App-switching speed is NOT a drift signal.** Rapidly switching between project-related tools (editor, browser with docs/PRs/CI, terminal, project management) is normal workflow — especially for developers doing research-driven work. Never flag switch frequency or velocity alone.
+2. **Judge by app and content relevance.** Ask: "Could this app/page plausibly support the stated intention?" If yes, it is NOT drift. Examples of on-task activity regardless of switch speed:
+   - Browsing GitHub PRs, issues, or code related to the project
+   - Reading documentation, Stack Overflow, or technical blogs
+   - Checking CI/CD results or deployment dashboards
+   - Switching between an editor (VS Code, Cursor, Vim) and a browser with references
+   - Using a terminal, database client, API testing tool, or DevTools
+   - Using project management tools (Linear, Jira, Notion) related to the work
+3. **Flag drift only when apps are clearly unrelated to the intention.** Examples: social media feeds, entertainment/streaming, shopping, personal messaging unrelated to work, gaming. The content must be unambiguously off-task — not merely ambiguous.
+4. **When uncertain, classify as NOT drifting** with moderate confidence. False positives (flagging on-task work as drift) are worse than false negatives (missing brief off-task moments) because they interrupt flow and erode trust.
+
 ## Session intention
 "${intention}"
 
