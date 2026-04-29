@@ -70,6 +70,7 @@ export class AnthropicLlmClient implements LlmClient {
             .map((e) => {
               const time = e.timestamp.slice(11, 19);
               const parts = [`[${time}] ${e.app} — ${e.window}`];
+              if (e.browserUrl) parts.push(`  url: ${e.browserUrl}`);
               if (e.typedText) parts.push(`  typed: "${e.typedText}"`);
               if (e.eventType === 'app_switch') parts.push('  (switched to this app)');
               if (e.eventType === 'clipboard') parts.push('  (clipboard)');

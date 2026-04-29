@@ -233,4 +233,58 @@ describe('TimelineBuilder', () => {
     const typingEntries = timeline.entries.filter(e => e.eventType === 'typing');
     expect(typingEntries).toHaveLength(2);
   });
+
+  it('populates browserUrl on typing entries from text event browser_url', () => {
+    const db = mockDb({
+      textEvents: [
+        { id: 1, timestamp: '2026-04-25T10:00:05Z', text_content: 'searching', app_name: 'Google Chrome', window_title: 'Stack Overflow', browser_url: 'https://stackoverflow.com/questions/123' },
+      ],
+    });
+
+    const timeline = builder.buildFromDb(db, since, until);
+
+    expect(timeline.entries[0].browserUrl).toBe('https://stackoverflow.com/questions/123');
+  });
+
+  it('leaves browserUrl null for non-browser typing entries', () => {
+    const db = mockDb({
+      textEvents: [
+        { id: 1, timestamp: '2026-04-25T10:00:05Z', text_content: 'coding', app_name: 'Cursor', window_title: 'main.ts', browser_url: null },
+      ],
+    });
+
+    const timeline = builder.buildFromDb(db, since, until);
+
+    expect(timeline.entries[0].browserUrl).toBeNull();
+  });
+
+  it('populates browserUrl on app_switch entries from matching frames', () => {
+    const db = mockDb({
+      appSwitches: [
+        { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_title: 'GitHub' },
+      ],
+      frames: [
+        { id: 1, timestamp: '2026-04-25T10:00:03Z', app_name: 'Google Chrome', window_name: 'GitHub', focused: true, browser_url: 'https://github.com/org/repo' },
+      ],
+    });
+
+    const timeline = builder.buildFromDb(db, since, until);
+
+    expect(timeline.entries[0].browserUrl).toBe('https://github.com/org/repo');
+  });
+
+  it('leaves browserUrl null on app_switch entries for non-browser apps', () => {
+    const db = mockDb({
+      appSwitches: [
+        { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Cursor', window_title: 'main.ts' },
+      ],
+      frames: [
+        { id: 1, timestamp: '2026-04-25T10:00:03Z', app_name: 'Cursor', window_name: 'main.ts', focused: true, browser_url: null },
+      ],
+    });
+
+    const timeline = builder.buildFromDb(db, since, until);
+
+    expect(timeline.entries[0].browserUrl).toBeNull();
+  });
 });

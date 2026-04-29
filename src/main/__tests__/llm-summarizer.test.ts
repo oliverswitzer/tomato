@@ -121,6 +121,40 @@ describe('AnthropicLlmClient', () => {
       expect(prompt).toContain('No activity detected');
     });
 
+    it('includes browserUrl in prompt when present', async () => {
+      const anthropic = makeMockAnthropic(validResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      const timeline = sampleTimeline({
+        entries: [
+          {
+            timestamp: '2026-04-25T10:00:05Z',
+            app: 'Google Chrome',
+            window: 'Stack Overflow',
+            typedText: 'how to fix bug',
+            eventType: 'typing',
+            accessibilityHints: [],
+            browserUrl: 'https://stackoverflow.com/questions/123',
+          },
+        ],
+      });
+
+      await client.batchSummarize(timeline, 'Fix the login bug');
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).toContain('url: https://stackoverflow.com/questions/123');
+    });
+
+    it('omits browserUrl from prompt when null', async () => {
+      const anthropic = makeMockAnthropic(validResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      await client.batchSummarize(sampleTimeline(), 'Build the focus tracker');
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).not.toContain('url:');
+    });
+
     it('getLastPrompt returns the most recent prompt', async () => {
       const client = new AnthropicLlmClient(makeMockAnthropic(validResponse));
 

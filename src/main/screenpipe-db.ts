@@ -11,6 +11,7 @@ export interface TextEventRow {
   text_content: string;
   app_name: string | null;
   window_title: string | null;
+  browser_url: string | null;
 }
 
 export interface AppSwitchRow {
@@ -70,7 +71,8 @@ export class SqliteScreenpipeDb implements ScreenpipeDb {
       .prepare(
         `SELECT t.id, t.timestamp, t.text_content,
            COALESCE(t.app_name, f.app_name) as app_name,
-           COALESCE(t.window_title, f.window_name) as window_title
+           COALESCE(t.window_title, f.window_name) as window_title,
+           f.browser_url
          FROM ui_events t
          LEFT JOIN frames f ON abs(strftime('%s', t.timestamp) - strftime('%s', f.timestamp)) < 5
            AND f.app_name IS NOT NULL

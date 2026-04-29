@@ -116,6 +116,9 @@ export function DebugDashboard() {
                   <span className="text-[#6B6259] shrink-0">{e.app}</span>
                   <span className="text-[#BAA898]">→</span>
                   <span className="text-[#8B8477] truncate">{e.window}</span>
+                  {e.browserUrl && (
+                    <span className="text-[#5C6BC0] truncate">🔗 {e.browserUrl}</span>
+                  )}
                   {e.typedText && (
                     <span className="text-[#2A2A2A] truncate ml-auto">&ldquo;{e.typedText}&rdquo;</span>
                   )}

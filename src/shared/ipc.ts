@@ -47,6 +47,7 @@ export interface TimelineEntryIpc {
   typedText: string | null;
   eventType: 'typing' | 'app_switch' | 'clipboard' | 'idle';
   accessibilityHints: string[];
+  browserUrl: string | null;
 }
 
 export interface PollState {

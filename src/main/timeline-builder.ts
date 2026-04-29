@@ -47,8 +47,15 @@ export class TimelineBuilder {
         typedText: ev.text_content,
         eventType: 'typing',
         accessibilityHints: a11yByApp.get(app) ?? [],
-        browserUrl: null,
+        browserUrl: ev.browser_url ?? null,
       });
+    }
+
+    const frameBrowserUrls = new Map<string, string>();
+    for (const f of frames) {
+      if (f.browser_url) {
+        frameBrowserUrls.set(`${f.app_name}\0${f.window_name}`, f.browser_url);
+      }
     }
 
     for (const sw of appSwitches) {
@@ -59,7 +66,7 @@ export class TimelineBuilder {
         typedText: null,
         eventType: 'app_switch',
         accessibilityHints: [],
-        browserUrl: null,
+        browserUrl: frameBrowserUrls.get(`${sw.app_name}\0${sw.window_title ?? ''}`) ?? null,
       });
     }
 
