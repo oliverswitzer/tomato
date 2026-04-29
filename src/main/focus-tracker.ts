@@ -7,7 +7,7 @@ import type { LlmClient, BatchSummaryResult } from './llm-summarizer';
 import { TimelineBuilder, type TimelineEntry, type ActivityTimeline } from './timeline-builder';
 
 const DEFAULT_TICK_MS = 15_000;
-const DEFAULT_BATCH_MS = 180_000;
+const DEFAULT_BATCH_MS = 60_000;
 
 function log(msg: string): void {
   try {
