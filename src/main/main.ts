@@ -58,6 +58,7 @@ let sessionState: SessionState = {
   remainingSec: 0,
   paused: false,
 };
+let sessionStartedAt: string | null = null;
 
 function getPreloadPath(): string {
   return path.join(__dirname, '..', 'preload', 'preload.js');
@@ -418,6 +419,7 @@ function showNudgeWindow(): void {
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 function startSession(intention: string, durationMin: number): void {
+  sessionStartedAt = new Date().toISOString();
   sessionState = {
     active: true,
     intention,
@@ -511,6 +513,10 @@ async function endSession(): Promise<void> {
     timerInterval = null;
   }
 
+  const startedAt = sessionStartedAt ?? new Date().toISOString();
+  const actualElapsedSec = Math.round((Date.now() - new Date(startedAt).getTime()) / 1000);
+  const actualDurationMin = Math.max(1, Math.round(actualElapsedSec / 60));
+
   if (focusTracker) {
     const activities = focusTracker.getActivities();
 
@@ -518,7 +524,7 @@ async function endSession(): Promise<void> {
     let focusScore: number | undefined;
 
     if (activities.length > 0) {
-      const sessionSummary = await focusTracker.summarizeSession(sessionState.durationMin);
+      const sessionSummary = await focusTracker.summarizeSession(actualDurationMin);
       summary = sessionSummary?.summary;
       focusScore = sessionSummary?.focusScore;
     } else {
@@ -529,6 +535,7 @@ async function endSession(): Promise<void> {
     saveSession({
       intention: sessionState.intention,
       durationMin: sessionState.durationMin,
+      startedAt,
       activities,
       summary,
       focusScore,

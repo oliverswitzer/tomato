@@ -19,6 +19,7 @@ export interface SessionStateWithActivities extends SessionState {
 export interface SavedSession {
   intention: string;
   durationMin: number;
+  actualDurationSec?: number;
   startedAt: string;
   endedAt: string;
   activityCount: number;

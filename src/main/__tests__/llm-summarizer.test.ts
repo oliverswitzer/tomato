@@ -190,5 +190,15 @@ describe('AnthropicLlmClient', () => {
       expect(prompt).toContain('Editing focus-tracker.ts');
       expect(prompt).toContain('25 minutes');
     });
+
+    it('prompt reflects actual elapsed duration when session ended early', async () => {
+      const anthropic = makeMockAnthropic(sessionResponse);
+      const client = new AnthropicLlmClient(anthropic);
+      await client.summarizeSession('Build focus tracker', activities, 1);
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).toContain('1 minutes');
+      expect(prompt).not.toContain('25 minutes');
+    });
   });
 });

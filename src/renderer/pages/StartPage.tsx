@@ -184,7 +184,9 @@ export function StartPage() {
                     {s.intention}
                   </span>
                   <span className="recent-card-meta">
-                    {s.durationMin} min session &middot; {relativeDate(s.endedAt)}
+                    {s.actualDurationSec !== undefined
+                      ? `${Math.round(s.actualDurationSec / 60)} min session`
+                      : `${s.durationMin} min session`} &middot; {relativeDate(s.endedAt)}
                   </span>
                 </div>
                 {s.focusScore !== undefined && (
@@ -195,11 +197,13 @@ export function StartPage() {
                       color: s.focusScore >= 70 ? '#7CB342' : s.focusScore >= 40 ? '#F0A020' : '#E2574C',
                     }}>
                       {(() => {
-                        const focusedSec = Math.round(s.durationMin * 60 * s.focusScore! / 100);
+                        const totalSec = s.actualDurationSec ?? s.durationMin * 60;
+                        const focusedSec = Math.round(totalSec * s.focusScore! / 100);
                         const fm = Math.floor(focusedSec / 60);
                         const fs = focusedSec % 60;
-                        const tm = s.durationMin;
-                        return `${fm}:${String(fs).padStart(2, '0')} of ${tm}:00 focused`;
+                        const totalMin = Math.floor(totalSec / 60);
+                        const totalRemSec = totalSec % 60;
+                        return `${fm}:${String(fs).padStart(2, '0')} of ${totalMin}:${String(totalRemSec).padStart(2, '0')} focused`;
                       })()}
                     </span>
                   </div>
