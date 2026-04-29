@@ -33,6 +33,7 @@ export class FocusTracker {
   private durationMin = 25;
   private lastBatchResult: BatchSummaryResult | null = null;
   private pendingLlmCall = false;
+  private _paused = false;
 
   private tickMs: number;
   private batchMs: number;
@@ -69,6 +70,21 @@ export class FocusTracker {
       clearInterval(this.batchTimer);
       this.batchTimer = null;
     }
+    this._paused = false;
+  }
+
+  pause(): void {
+    this._paused = true;
+    log('paused — batch summarization suspended');
+  }
+
+  resume(): void {
+    this._paused = false;
+    log('resumed — batch summarization active');
+  }
+
+  get paused(): boolean {
+    return this._paused;
   }
 
   getActivities(): Activity[] {
@@ -126,6 +142,11 @@ export class FocusTracker {
   }
 
   async runBatch(): Promise<void> {
+    if (this._paused) {
+      log('batch: skipped (session paused)');
+      return;
+    }
+
     const now = this.clock();
     const since = new Date(now.getTime() - this.batchMs).toISOString();
     const until = now.toISOString();

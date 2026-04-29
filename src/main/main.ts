@@ -499,6 +499,9 @@ function startSession(intention: string, durationMin: number): void {
 
 function togglePause(): void {
   sessionState.paused = !sessionState.paused;
+  if (focusTracker) {
+    sessionState.paused ? focusTracker.pause() : focusTracker.resume();
+  }
   sendTimerState();
   updateTrayMenu();
 }
