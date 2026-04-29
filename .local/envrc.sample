@@ -1,0 +1,12 @@
+# Copy this file to .local/envrc and fill in your values.
+# This file is gitignored — secrets stay local.
+
+# Anthropic API key for dev/testing (app reads from Keychain in production)
+export ANTHROPIC_API_KEY=""
+
+# Agent Orchestrator
+export LINEAR_API_KEY=""
+
+# Optional notifications
+# export DISCORD_WEBHOOK_URL=""
+# export SLACK_WEBHOOK_URL=""

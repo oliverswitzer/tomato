@@ -20,6 +20,9 @@ import Database from 'better-sqlite3';
 import { SqliteScreenpipeDb } from './screenpipe-db';
 import { AnthropicLlmClient } from './llm-summarizer';
 import { saveSession, getRecentSessions } from './session-store';
+import { ElectronKeychainStore } from './keychain';
+import { validateApiKey } from './api-key-validator';
+import { DEFAULT_MODEL } from '../config/model-pricing';
 import type { SessionState } from '../shared/ipc';
 
 const APP_ROOT = path.join(__dirname, '..', '..');
@@ -37,6 +40,8 @@ function log(msg: string): void {
   const line = `[${new Date().toISOString()}] [main] ${msg}\n`;
   fs.appendFileSync(getLogPath(), line);
 }
+
+let keychain: ElectronKeychainStore | null = null;
 
 let tray: Tray | null = null;
 let startWin: BrowserWindow | null = null;
@@ -235,8 +240,19 @@ function updateTrayMenu(): void {
 // --- Windows ---
 
 function showPermissionsWindow(): void {
+  showOnboardingWindow('/permissions');
+}
+
+function showApiKeyWindow(): void {
+  showOnboardingWindow('/api-key');
+}
+
+function showOnboardingWindow(hash: string): void {
   if (startWin) {
-    loadRendererPage(startWin, '/permissions');
+    loadRendererPage(startWin, hash);
+    startWin.setSize(760, 780);
+    const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
+    startWin.setPosition(Math.round((screenWidth - 760) / 2), 60);
     startWin.show();
     startWin.focus();
     return;
@@ -263,7 +279,7 @@ function showPermissionsWindow(): void {
     },
   });
 
-  loadRendererPage(startWin, '/permissions');
+  loadRendererPage(startWin, hash);
   startWin.on('closed', () => {
     startWin = null;
   });
@@ -429,8 +445,14 @@ function startSession(intention: string, durationMin: number): void {
     log(`Failed to open screenpipe DB: ${(err as Error).message}`);
   }
 
+  const apiKey = keychain?.getApiKey() ?? process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    log('No API key available — AI features disabled for this session');
+  }
+  const selectedModel = keychain?.getSelectedModel() ?? DEFAULT_MODEL;
   const llm = new AnthropicLlmClient(
-    new Anthropic({ dangerouslyAllowBrowser: true }),
+    new Anthropic({ apiKey: apiKey || undefined, dangerouslyAllowBrowser: true }),
+    selectedModel,
   );
   const batchMs = process.env.TOMATO_BATCH_MS ? parseInt(process.env.TOMATO_BATCH_MS) : undefined;
   focusTracker = new FocusTracker({ db: db!, llm, batchIntervalMs: batchMs });
@@ -614,6 +636,42 @@ ipcMain.on('open-accessibility-permission-settings', () => {
 });
 
 ipcMain.on('permissions-complete', () => {
+  showApiKeyWindow();
+});
+
+ipcMain.handle('validate-api-key', async (_event, key: string) => {
+  const redacted = key.length > 4 ? `…${key.slice(-4)}` : '***';
+  log(`Validating API key ${redacted}`);
+  try {
+    const result = await validateApiKey(key);
+    log(`Validation result: valid=${result.valid}${!result.valid ? `, error=${(result as any).error}` : ''}`);
+    return result;
+  } catch (err) {
+    log(`Validation threw: ${(err as Error).message}`);
+    return { valid: false, error: (err as Error).message, retryable: true };
+  }
+});
+
+ipcMain.handle('save-api-key', async (_event, key: string, selectedModel: string) => {
+  if (!keychain) return { success: false, error: "Keychain not initialized" };
+  try {
+    keychain.saveApiKey(key.trim());
+    keychain.setSelectedModel(selectedModel);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: (err as Error).message };
+  }
+});
+
+ipcMain.handle('get-onboarding-state', () => {
+  if (!keychain) return { hasApiKey: false, selectedModel: null };
+  return {
+    hasApiKey: keychain.getApiKey() !== null,
+    selectedModel: keychain.getSelectedModel(),
+  };
+});
+
+ipcMain.on('api-key-complete', () => {
   if (startWin) {
     startWin.close();
     startWin = null;
@@ -654,6 +712,8 @@ app.setPath('userData', path.join(app.getPath('appData'), 'tomato'));
 app.whenReady().then(async () => {
   app.dock?.setIcon(path.join(APP_ROOT, 'assets', 'app-icon.png'));
 
+  keychain = new ElectronKeychainStore(app.getPath('userData'));
+
   const screenOk = systemPreferences.getMediaAccessStatus('screen') === 'granted';
   const a11yOk = systemPreferences.isTrustedAccessibilityClient(false);
   log(`Permissions check: screen=${screenOk}, accessibility=${a11yOk}`);
@@ -680,10 +740,17 @@ app.whenReady().then(async () => {
 
   createTray();
 
-  if (screenOk && a11yOk) {
-    showStartWindow();
-  } else {
+  const hasApiKey = keychain.getApiKey() !== null;
+
+  if (!screenOk || !a11yOk) {
+    log('Routing to permissions window');
     showPermissionsWindow();
+  } else if (!hasApiKey) {
+    log('Routing to API key onboarding');
+    showApiKeyWindow();
+  } else {
+    log('Routing to start window');
+    showStartWindow();
   }
 });
 

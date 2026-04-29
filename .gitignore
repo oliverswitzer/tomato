@@ -4,5 +4,5 @@ release/
 bin/
 tmp-prompt.txt
 *.log
-.envrc
+.envrc.sample
 .claude/scheduled_tasks.lock

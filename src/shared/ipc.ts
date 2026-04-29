@@ -67,6 +67,18 @@ export interface DebugPipelineState {
   } | null;
 }
 
+export interface ApiKeyValidationResult {
+  valid: boolean;
+  error?: string;
+  retryable?: boolean;
+  selectedModel?: string;
+}
+
+export interface OnboardingState {
+  hasApiKey: boolean;
+  selectedModel: string | null;
+}
+
 export interface TomatoApi {
   startSession(intention: string, durationMin: number): void;
   togglePause(): void;
@@ -86,6 +98,11 @@ export interface TomatoApi {
   permissionsComplete(): void;
   capture(): Promise<CaptureResult>;
   getDebugPipelineState(): Promise<DebugPipelineState | null>;
+
+  validateApiKey(key: string): Promise<ApiKeyValidationResult>;
+  saveApiKey(key: string, selectedModel: string): Promise<{ success: boolean; error?: string }>;
+  getOnboardingState(): Promise<OnboardingState>;
+  apiKeyComplete(): void;
 
   onSessionState(callback: (state: SessionStateWithActivities) => void): () => void;
   onActivityUpdate(callback: (activity: Activity) => void): () => void;

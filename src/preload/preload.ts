@@ -22,6 +22,11 @@ const api: TomatoApi = {
   capture: () => ipcRenderer.invoke('capture'),
   getDebugPipelineState: () => ipcRenderer.invoke('get-debug-pipeline-state'),
 
+  validateApiKey: (key: string) => ipcRenderer.invoke('validate-api-key', key),
+  saveApiKey: (key: string, selectedModel: string) => ipcRenderer.invoke('save-api-key', key, selectedModel),
+  getOnboardingState: () => ipcRenderer.invoke('get-onboarding-state'),
+  apiKeyComplete: () => ipcRenderer.send('api-key-complete'),
+
   onSessionState: (callback) => {
     const handler = (_e: IpcRendererEvent, state: SessionStateWithActivities) => callback(state);
     ipcRenderer.on('session-state', handler);
