@@ -223,6 +223,72 @@ describe('FocusTracker', () => {
     expect(state.pendingLlmCall).toBe(false);
   });
 
+  it('batch skips LLM call and drift when paused', async () => {
+    const db = mockDb();
+    const llm = mockLlm({
+      summary: 'Browsing social media.',
+      level2Classification: 'Off-task',
+      driftAssessment: { isDrifting: true, confidence: 0.8, reason: 'User is off task.' },
+    });
+    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+
+    const driftEvents: { reason: string }[] = [];
+    tracker.onDrift = (data) => driftEvents.push(data);
+
+    tracker.start('Build focus tracker');
+    tracker.pause();
+
+    await vi.advanceTimersByTimeAsync(10000);
+
+    expect(llm.batchSummarize).not.toHaveBeenCalled();
+    expect(driftEvents).toHaveLength(0);
+
+    tracker.stop();
+  });
+
+  it('batch resumes after pause/resume cycle', async () => {
+    const db = mockDb();
+    const llm = mockLlm();
+    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+
+    tracker.start('Build focus tracker');
+    tracker.pause();
+
+    await vi.advanceTimersByTimeAsync(10000);
+    expect(llm.batchSummarize).not.toHaveBeenCalled();
+
+    tracker.resume();
+
+    await vi.advanceTimersByTimeAsync(10000);
+    expect(llm.batchSummarize).toHaveBeenCalledOnce();
+
+    tracker.stop();
+  });
+
+  it('paused getter reflects current state', () => {
+    const db = mockDb();
+    const llm = mockLlm();
+    const tracker = new FocusTracker({ db, llm });
+
+    expect(tracker.paused).toBe(false);
+    tracker.pause();
+    expect(tracker.paused).toBe(true);
+    tracker.resume();
+    expect(tracker.paused).toBe(false);
+  });
+
+  it('stop resets paused state', () => {
+    const db = mockDb();
+    const llm = mockLlm();
+    const tracker = new FocusTracker({ db, llm });
+
+    tracker.start('test');
+    tracker.pause();
+    expect(tracker.paused).toBe(true);
+    tracker.stop();
+    expect(tracker.paused).toBe(false);
+  });
+
   it('batch skips LLM call when timeline is empty', async () => {
     const db = mockDb();
     (db.getTextEvents as ReturnType<typeof vi.fn>).mockReturnValue([]);
