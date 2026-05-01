@@ -136,6 +136,57 @@ describe('SqliteScreenpipeDb', () => {
     });
   });
 
+  describe('getPassiveFrames', () => {
+    it('returns frames with screen text and browser URL', () => {
+      const mockDb = createMockDb({
+        frames: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: 'YouTube', browser_url: 'https://youtube.com/watch?v=abc', screen_text: 'Express.js Tutorial Part 1', capture_trigger: 'idle' },
+          { id: 2, timestamp: '2026-04-25T10:00:20Z', app_name: 'Google Chrome', window_name: 'YouTube', browser_url: 'https://youtube.com/watch?v=abc', screen_text: 'Express.js Tutorial Part 2', capture_trigger: 'visual_change' },
+        ],
+      });
+      const db = new SqliteScreenpipeDb(mockDb);
+
+      const frames = db.getPassiveFrames('2026-04-25T10:00:00Z', '2026-04-25T10:01:00Z');
+      expect(frames).toHaveLength(2);
+      expect(frames[0].browser_url).toBe('https://youtube.com/watch?v=abc');
+      expect(frames[0].screen_text).toBe('Express.js Tutorial Part 1');
+      expect(frames[0].capture_trigger).toBe('idle');
+    });
+
+    it('returns empty array when no frames in range', () => {
+      const mockDb = createMockDb({});
+      const db = new SqliteScreenpipeDb(mockDb);
+
+      const frames = db.getPassiveFrames('2026-04-25T10:00:00Z', '2026-04-25T10:01:00Z');
+      expect(frames).toEqual([]);
+    });
+  });
+
+  describe('getClickEvents', () => {
+    it('returns click events with element names', () => {
+      const mockDb = createMockDb({
+        ui_events: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_title: 'GitHub', element_name: 'Merge pull request' },
+          { id: 2, timestamp: '2026-04-25T10:00:10Z', app_name: 'Google Chrome', window_title: 'GitHub', element_name: 'Confirm merge' },
+        ],
+      });
+      const db = new SqliteScreenpipeDb(mockDb);
+
+      const clicks = db.getClickEvents('2026-04-25T10:00:00Z', '2026-04-25T10:01:00Z');
+      expect(clicks).toHaveLength(2);
+      expect(clicks[0].element_name).toBe('Merge pull request');
+      expect(clicks[1].element_name).toBe('Confirm merge');
+    });
+
+    it('returns empty array when no click events in range', () => {
+      const mockDb = createMockDb({});
+      const db = new SqliteScreenpipeDb(mockDb);
+
+      const clicks = db.getClickEvents('2026-04-25T10:00:00Z', '2026-04-25T10:01:00Z');
+      expect(clicks).toEqual([]);
+    });
+  });
+
   describe('close', () => {
     it('delegates to underlying db', () => {
       const mockDb = createMockDb({});

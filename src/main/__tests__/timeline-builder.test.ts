@@ -1,12 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import { TimelineBuilder } from '../timeline-builder';
-import type { ScreenpipeDb, TextEventRow, AppSwitchRow, ClipboardRow, FrameRow, AccessibilityElementRow } from '../screenpipe-db';
+import type { ScreenpipeDb, TextEventRow, AppSwitchRow, ClipboardRow, FrameRow, PassiveFrameRow, ClickEventRow, AccessibilityElementRow } from '../screenpipe-db';
 
 function mockDb(overrides: Partial<{
   textEvents: TextEventRow[];
   appSwitches: AppSwitchRow[];
   clipboardEvents: ClipboardRow[];
   frames: FrameRow[];
+  passiveFrames: PassiveFrameRow[];
+  clickEvents: ClickEventRow[];
   a11yElements: AccessibilityElementRow[];
 }> = {}): ScreenpipeDb {
   return {
@@ -15,6 +17,8 @@ function mockDb(overrides: Partial<{
     getClipboardEvents: vi.fn().mockReturnValue(overrides.clipboardEvents ?? []),
     getLatestFrame: vi.fn().mockReturnValue(null),
     getFrames: vi.fn().mockReturnValue(overrides.frames ?? []),
+    getPassiveFrames: vi.fn().mockReturnValue(overrides.passiveFrames ?? []),
+    getClickEvents: vi.fn().mockReturnValue(overrides.clickEvents ?? []),
     getAccessibilityElements: vi.fn().mockReturnValue(overrides.a11yElements ?? []),
     isHealthy: vi.fn().mockReturnValue(true),
     close: vi.fn(),
@@ -286,5 +290,115 @@ describe('TimelineBuilder', () => {
     const timeline = builder.buildFromDb(db, since, until);
 
     expect(timeline.entries[0].browserUrl).toBeNull();
+  });
+
+  describe('passive activity capture', () => {
+    it('creates passive entries from frames when no typing or app_switch events exist', () => {
+      const db = mockDb({
+        passiveFrames: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: 'YouTube', browser_url: 'https://youtube.com/watch?v=abc', screen_text: 'How to Build an API with Express.js', capture_trigger: 'visual_change' },
+          { id: 2, timestamp: '2026-04-25T10:00:20Z', app_name: 'Google Chrome', window_name: 'YouTube', browser_url: 'https://youtube.com/watch?v=abc', screen_text: 'How to Build an API with Express.js - Part 2', capture_trigger: 'idle' },
+        ],
+      });
+
+      const timeline = builder.buildFromDb(db, since, until);
+
+      expect(timeline.entries).toHaveLength(1);
+      expect(timeline.entries[0].eventType).toBe('passive');
+      expect(timeline.entries[0].app).toBe('Google Chrome');
+      expect(timeline.entries[0].window).toBe('YouTube');
+      expect(timeline.entries[0].browserUrl).toBe('https://youtube.com/watch?v=abc');
+      expect(timeline.entries[0].timestampEnd).toBe('2026-04-25T10:00:20Z');
+      expect(timeline.entries[0].passiveContext).toBeDefined();
+      expect(timeline.entries[0].passiveContext!.urls).toEqual(['https://youtube.com/watch?v=abc']);
+      expect(timeline.entries[0].passiveContext!.screenText).toContain('How to Build an API');
+    });
+
+    it('does not create passive entries when typing events exist', () => {
+      const db = mockDb({
+        textEvents: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', text_content: 'hello', app_name: 'Cursor', window_title: 'main.ts' },
+        ],
+        passiveFrames: [
+          { id: 1, timestamp: '2026-04-25T10:00:10Z', app_name: 'Google Chrome', window_name: 'YouTube', browser_url: 'https://youtube.com', screen_text: 'some video', capture_trigger: 'idle' },
+        ],
+      });
+
+      const timeline = builder.buildFromDb(db, since, until);
+
+      const passiveEntries = timeline.entries.filter(e => e.eventType === 'passive');
+      expect(passiveEntries).toHaveLength(0);
+    });
+
+    it('groups passive frames by app+window', () => {
+      const db = mockDb({
+        passiveFrames: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: 'YouTube', browser_url: 'https://youtube.com/watch?v=1', screen_text: 'Video 1', capture_trigger: 'idle' },
+          { id: 2, timestamp: '2026-04-25T10:00:30Z', app_name: 'Google Chrome', window_name: 'Reddit', browser_url: 'https://reddit.com/r/programming', screen_text: 'Reddit post', capture_trigger: 'click' },
+          { id: 3, timestamp: '2026-04-25T10:01:00Z', app_name: 'Google Chrome', window_name: 'YouTube', browser_url: 'https://youtube.com/watch?v=1', screen_text: 'Video 1 continued', capture_trigger: 'idle' },
+        ],
+      });
+
+      const timeline = builder.buildFromDb(db, since, until);
+
+      const passiveEntries = timeline.entries.filter(e => e.eventType === 'passive');
+      expect(passiveEntries).toHaveLength(2);
+      const youtubeEntry = passiveEntries.find(e => e.window === 'YouTube');
+      const redditEntry = passiveEntries.find(e => e.window === 'Reddit');
+      expect(youtubeEntry).toBeDefined();
+      expect(redditEntry).toBeDefined();
+    });
+
+    it('enriches existing entries with passive context when both active and passive data exist', () => {
+      const db = mockDb({
+        textEvents: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', text_content: 'searching...', app_name: 'Google Chrome', window_title: 'Stack Overflow' },
+          { id: 2, timestamp: '2026-04-25T10:00:07Z', text_content: 'more search', app_name: 'Google Chrome', window_title: 'Stack Overflow' },
+        ],
+        passiveFrames: [
+          { id: 1, timestamp: '2026-04-25T10:00:06Z', app_name: 'Google Chrome', window_name: 'Stack Overflow', browser_url: 'https://stackoverflow.com/q/123', screen_text: 'How to center a div in CSS using flexbox', capture_trigger: 'visual_change' },
+        ],
+      });
+
+      const timeline = builder.buildFromDb(db, since, until);
+
+      expect(timeline.entries).toHaveLength(1);
+      expect(timeline.entries[0].passiveContext).toBeDefined();
+      expect(timeline.entries[0].passiveContext!.urls).toEqual(['https://stackoverflow.com/q/123']);
+      expect(timeline.entries[0].passiveContext!.screenText).toContain('How to center a div');
+    });
+
+    it('includes click targets in passive context', () => {
+      const db = mockDb({
+        passiveFrames: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: 'Twitter', browser_url: 'https://twitter.com', screen_text: 'Feed content here', capture_trigger: 'click' },
+        ],
+        clickEvents: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_title: 'Twitter', element_name: 'Like' },
+          { id: 2, timestamp: '2026-04-25T10:00:08Z', app_name: 'Google Chrome', window_title: 'Twitter', element_name: 'Retweet' },
+        ],
+      });
+
+      const timeline = builder.buildFromDb(db, since, until);
+
+      expect(timeline.entries[0].passiveContext).toBeDefined();
+      expect(timeline.entries[0].passiveContext!.clickTargets).toContain('Like');
+      expect(timeline.entries[0].passiveContext!.clickTargets).toContain('Retweet');
+    });
+
+    it('includes passive apps in uniqueApps and dominantApp', () => {
+      const db = mockDb({
+        passiveFrames: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: 'YouTube', browser_url: 'https://youtube.com', screen_text: 'video content', capture_trigger: 'idle' },
+          { id: 2, timestamp: '2026-04-25T10:00:20Z', app_name: 'Google Chrome', window_name: 'YouTube', browser_url: 'https://youtube.com', screen_text: 'video content', capture_trigger: 'idle' },
+          { id: 3, timestamp: '2026-04-25T10:00:40Z', app_name: 'Google Chrome', window_name: 'YouTube', browser_url: 'https://youtube.com', screen_text: 'video content', capture_trigger: 'idle' },
+        ],
+      });
+
+      const timeline = builder.buildFromDb(db, since, until);
+
+      expect(timeline.uniqueApps).toContain('Google Chrome');
+      expect(timeline.dominantApp).toBe('Google Chrome');
+    });
   });
 });

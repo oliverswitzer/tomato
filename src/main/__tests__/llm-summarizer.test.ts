@@ -346,6 +346,82 @@ describe('AnthropicLlmClient', () => {
       expect(prompt).not.toContain('url:');
     });
 
+    it('includes passive context section in prompt when entries have passive context', async () => {
+      const anthropic = makeMockAnthropic(validResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      const timeline = sampleTimeline({
+        entries: [
+          {
+            timestamp: '2026-04-25T10:00:05Z',
+            app: 'Google Chrome',
+            window: 'YouTube',
+            typedText: null,
+            eventType: 'passive',
+            accessibilityHints: [],
+            browserUrl: 'https://youtube.com/watch?v=abc',
+            passiveContext: {
+              urls: ['https://youtube.com/watch?v=abc'],
+              screenText: 'How to Build REST APIs with Node.js and Express',
+              clickTargets: ['Play', 'Subscribe'],
+            },
+          },
+        ],
+      });
+
+      await client.batchSummarize(timeline, 'Build an API');
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).toContain('Passive Context');
+      expect(prompt).toContain('URLs visited: https://youtube.com/watch?v=abc');
+      expect(prompt).toContain('Screen text: How to Build REST APIs');
+      expect(prompt).toContain('Click targets: Play, Subscribe');
+    });
+
+    it('includes anti-hallucination instruction in prompt', async () => {
+      const anthropic = makeMockAnthropic(validResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      await client.batchSummarize(sampleTimeline(), 'Build the focus tracker');
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).toContain('Do not infer or fabricate video titles, article names, or page content that is not explicitly shown');
+    });
+
+    it('marks passive entries with passive consumption label in prompt', async () => {
+      const anthropic = makeMockAnthropic(validResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      const timeline = sampleTimeline({
+        entries: [
+          {
+            timestamp: '2026-04-25T10:00:05Z',
+            app: 'Google Chrome',
+            window: 'YouTube',
+            typedText: null,
+            eventType: 'passive',
+            accessibilityHints: [],
+            browserUrl: null,
+          },
+        ],
+      });
+
+      await client.batchSummarize(timeline, 'Build it');
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).toContain('passive consumption');
+    });
+
+    it('omits passive context section when no passive data exists', async () => {
+      const anthropic = makeMockAnthropic(validResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      await client.batchSummarize(sampleTimeline(), 'Build the focus tracker');
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).not.toContain('Passive Context');
+    });
+
     it('getLastPrompt returns the most recent prompt', async () => {
       const client = new AnthropicLlmClient(makeMockAnthropic(validResponse));
 

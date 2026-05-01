@@ -19,6 +19,8 @@ function mockDb(): ScreenpipeDb {
     getFrames: vi.fn().mockReturnValue([
       { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Cursor', window_name: 'main.ts', focused: true, browser_url: null },
     ]),
+    getPassiveFrames: vi.fn().mockReturnValue([]),
+    getClickEvents: vi.fn().mockReturnValue([]),
     getAccessibilityElements: vi.fn().mockReturnValue([]),
     isHealthy: vi.fn().mockReturnValue(true),
     close: vi.fn(),
