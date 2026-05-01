@@ -394,9 +394,8 @@ function showDebugWindow(): void {
   });
 
   loadRendererPage(debugWin, '/debug');
-  debugWin.on('close', (e) => {
-    e.preventDefault();
-    debugWin?.hide();
+  debugWin.on('closed', () => {
+    debugWin = null;
   });
 }
 
@@ -875,7 +874,6 @@ function cleanup(): void {
   stopScreenpipe();
   if (focusTracker) focusTracker.stop();
   if (debugWin) {
-    debugWin.removeAllListeners('close');
     debugWin.close();
     debugWin = null;
   }
