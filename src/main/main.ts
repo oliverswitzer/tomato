@@ -894,10 +894,9 @@ app.on('window-all-closed', () => {
   // tray app — don't quit on window close
 });
 
-app.on('activate', () => {
-  app.show();
+app.on('did-become-active', () => {
   if (debugWin && !debugWin.isDestroyed()) {
-    debugWin.show();
+    debugWin.showInactive();
     debugWin.moveTop();
   }
 });
