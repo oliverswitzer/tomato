@@ -355,15 +355,15 @@ describe('AnthropicLlmClient', () => {
           {
             timestamp: '2026-04-25T10:00:05Z',
             app: 'Google Chrome',
-            window: 'YouTube',
+            window: 'How i book 3-5 meetings a day Cold Calling - YouTube - Audio playing - Google Chrome - Oliver',
             typedText: null,
             eventType: 'passive',
             accessibilityHints: [],
-            browserUrl: 'https://youtube.com/watch?v=abc',
+            browserUrl: 'https://www.youtube.com/watch?v=tU52nLIUz8Y',
             passiveContext: {
-              urls: ['https://youtube.com/watch?v=abc'],
-              screenText: 'How to Build REST APIs with Node.js and Express',
-              clickTargets: ['Play', 'Subscribe'],
+              urls: ['https://www.youtube.com/watch?v=tU52nLIUz8Y'],
+              screenText: 'How i book 3-5 meetings a day\nCold Calling ($319,000/month web design agency - full script)\nChrome File Edit View',
+              clickTargets: ['Start 25-minute session', 'Refocus'],
             },
           },
         ],
@@ -373,9 +373,9 @@ describe('AnthropicLlmClient', () => {
 
       const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
       expect(prompt).toContain('Passive Context');
-      expect(prompt).toContain('URLs visited: https://youtube.com/watch?v=abc');
-      expect(prompt).toContain('Screen text: How to Build REST APIs');
-      expect(prompt).toContain('Click targets: Play, Subscribe');
+      expect(prompt).toContain('URLs visited: https://www.youtube.com/watch?v=tU52nLIUz8Y');
+      expect(prompt).toContain('Screen text: How i book 3-5 meetings a day');
+      expect(prompt).toContain('Click targets: Start 25-minute session, Refocus');
     });
 
     it('includes anti-hallucination instruction in prompt', async () => {
@@ -397,7 +397,7 @@ describe('AnthropicLlmClient', () => {
           {
             timestamp: '2026-04-25T10:00:05Z',
             app: 'Google Chrome',
-            window: 'YouTube',
+            window: 'Opening soon… - YouTube - Audio playing - Google Chrome - Oliver',
             typedText: null,
             eventType: 'passive',
             accessibilityHints: [],
