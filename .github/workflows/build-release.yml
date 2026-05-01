@@ -91,11 +91,26 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          xcrun notarytool submit release/Tomato.dmg \
+          RESULT=$(xcrun notarytool submit release/Tomato.dmg \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_APP_SPECIFIC_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
-            --wait
+            --wait \
+            --output-format json)
+
+          echo "$RESULT" | python3 -m json.tool
+
+          STATUS=$(echo "$RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
+          ID=$(echo "$RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+
+          if [ "$STATUS" != "Accepted" ]; then
+            echo "::error::Notarization failed with status: $STATUS"
+            xcrun notarytool log "$ID" \
+              --apple-id "$APPLE_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+              --team-id "$APPLE_TEAM_ID"
+            exit 1
+          fi
 
       - name: Staple notarization ticket
         run: xcrun stapler staple release/Tomato.dmg
