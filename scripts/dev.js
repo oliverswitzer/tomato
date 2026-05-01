@@ -19,13 +19,16 @@ let electronStarted = false;
 
 vite.stdout.on('data', (data) => {
   process.stdout.write(data);
-  if (!electronStarted && data.toString().includes('Local:')) {
+  const output = data.toString();
+  if (!electronStarted && output.includes('Local:')) {
     electronStarted = true;
-    console.log('\nStarting Electron...');
+    const match = output.match(/Local:\s+(http:\/\/localhost:\d+)/);
+    const viteUrl = match ? match[1] : 'http://localhost:5173';
+    console.log(`\nStarting Electron (Vite at ${viteUrl})...`);
     const electron = spawn(electronBin, ['dist/main/main.js'], {
       cwd: ROOT,
       stdio: 'inherit',
-      env: { ...process.env, VITE_DEV_SERVER_URL: 'http://localhost:5173' },
+      env: { ...process.env, VITE_DEV_SERVER_URL: viteUrl },
     });
 
     const logPath = path.join(
