@@ -1,0 +1,256 @@
+.debug-window {
+  background: #FBF7F1;
+  padding: 24px;
+  height: 100vh;
+  overflow-y: auto;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.debug-window::-webkit-scrollbar { width: 6px; }
+.debug-window::-webkit-scrollbar-thumb { background: #D5CFC6; border-radius: 3px; }
+
+.debug-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.debug-header h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2A2A2A;
+  letter-spacing: -0.3px;
+}
+
+.debug-header .subtitle {
+  font-size: 11px;
+  font-family: 'SF Mono', monospace;
+  color: #8B8477;
+}
+
+.debug-panel {
+  background: #FFFFFF;
+  border: 1px solid #EFE8DD;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.debug-panel-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #BAA898;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.debug-empty {
+  font-size: 13px;
+  color: #8B8477;
+}
+
+/* Poll state */
+.poll-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.poll-app {
+  font-family: 'SF Mono', monospace;
+  font-weight: 600;
+  color: #2A2A2A;
+}
+
+.poll-window {
+  color: #8B8477;
+}
+
+.poll-time {
+  font-size: 11px;
+  color: #BAA898;
+  margin-top: 4px;
+}
+
+/* Badge */
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.badge-ok { background: #E8F5E9; color: #2E7D32; }
+.badge-error { background: #FFEBEE; color: #E2574C; }
+.badge-drift { background: #FFEBEE; color: #E2574C; }
+.badge-on-track { background: #E8F5E9; color: #2E7D32; }
+.badge-category { background: #E8EAF6; color: #5C6BC0; }
+.badge-pending { background: #FFF8E1; color: #F0A020; }
+.badge-muted { background: #F5F0E8; color: #8B8477; }
+.badge-passive { background: #F3E5F5; color: #9C27B0; }
+
+/* Expandable */
+.expand-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'SF Mono', monospace;
+  font-size: 11px;
+  color: #6B6259;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  text-align: left;
+}
+
+.expand-btn:hover { color: #2A2A2A; }
+
+.expand-arrow {
+  font-size: 9px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  width: 10px;
+}
+
+.expand-body {
+  margin-top: 4px;
+  margin-left: 14px;
+  padding-left: 10px;
+  border-left: 2px solid #EFE8DD;
+}
+
+/* Timeline entries */
+.timeline-scroll {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.timeline-row {
+  padding: 5px 0;
+  border-bottom: 1px solid #F5F0E8;
+}
+
+.timeline-row:last-child { border-bottom: none; }
+
+.timeline-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.timeline-time {
+  font-family: 'SF Mono', monospace;
+  font-size: 11px;
+  color: #BAA898;
+  flex-shrink: 0;
+  width: 70px;
+}
+
+.timeline-icon {
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.timeline-app {
+  font-size: 11px;
+  color: #6B6259;
+  flex-shrink: 0;
+}
+
+.timeline-window {
+  font-size: 11px;
+  color: #8B8477;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Detail fields in expand body */
+.detail-field {
+  font-family: 'SF Mono', monospace;
+  font-size: 11px;
+  margin-bottom: 3px;
+}
+
+.detail-label {
+  color: #BAA898;
+}
+
+.detail-value {
+  color: #2A2A2A;
+}
+
+.detail-url {
+  color: #5C6BC0;
+  word-break: break-all;
+}
+
+/* JSON block */
+.json-block {
+  font-family: 'SF Mono', monospace;
+  font-size: 11px;
+  color: #6B6259;
+  background: #FBF7F1;
+  border: 1px solid #EFE8DD;
+  border-radius: 8px;
+  padding: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+/* Batch history */
+.batch-scroll {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.batch-row {
+  padding: 6px 0;
+  border-bottom: 1px solid #F5F0E8;
+}
+
+.batch-row:last-child { border-bottom: none; }
+
+.batch-summary-text {
+  font-size: 11px;
+  color: #6B6259;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.prompt-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  color: #E2574C;
+  font-family: 'SF Mono', monospace;
+}
+
+.prompt-toggle:hover { text-decoration: underline; }
+
+/* LLM state */
+.llm-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #2A2A2A;
+}
