@@ -1,35 +1,12 @@
 import { useState, useEffect } from 'react';
 import type { DebugPipelineState, TimelineEntryIpc, BatchHistoryEntry } from '@shared/ipc';
 
-const colors = {
-  bg: '#FBF7F1',
-  white: '#FFFFFF',
-  border: '#EFE8DD',
-  textPrimary: '#2A2A2A',
-  textSecondary: '#6B6259',
-  textMuted: '#8B8477',
-  textFaint: '#BAA898',
-  panelBg: '#F5F0E8',
-  red: '#E2574C',
-  green: '#2E7D32',
-  greenBg: '#E8F5E9',
-  redBg: '#FFEBEE',
-  blue: '#5C6BC0',
-  blueBg: '#E8EAF6',
-  purple: '#9C27B0',
-  purpleBg: '#F3E5F5',
-  amber: '#D97706',
-  amberBg: '#FFF8E1',
-};
-
-const mono = "'SF Mono', 'Menlo', monospace";
-
 function Badge({ label, bg, color }: { label: string; bg: string; color: string }) {
   return (
-    <span style={{
-      display: 'inline-block', fontSize: 10, fontWeight: 600,
-      padding: '2px 8px', borderRadius: 99, background: bg, color, flexShrink: 0,
-    }}>
+    <span
+      className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+      style={{ background: bg, color }}
+    >
       {label}
     </span>
   );
@@ -45,17 +22,14 @@ function Expandable({ label, children }: { label: React.ReactNode; children: Rea
     <div>
       <button
         onClick={() => setOpen(!open)}
-        style={{
-          background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-          fontFamily: mono, fontSize: 11, color: colors.textSecondary,
-          display: 'flex', alignItems: 'flex-start', gap: 4, width: '100%', textAlign: 'left',
-        }}
+        className="flex items-start gap-1 w-full text-left font-mono text-[11px] bg-transparent border-none p-0 cursor-pointer"
+        style={{ color: '#6B6259' }}
       >
-        <span style={{ fontSize: 9, flexShrink: 0, marginTop: 2, width: 10 }}>{open ? '▼' : '▶'}</span>
+        <span className="text-[9px] shrink-0 mt-0.5 w-2.5">{open ? '▼' : '▶'}</span>
         {label}
       </button>
       {open && (
-        <div style={{ marginTop: 4, marginLeft: 14, paddingLeft: 10, borderLeft: `2px solid ${colors.border}` }}>
+        <div className="mt-1 ml-3.5 pl-2.5 border-l-2" style={{ borderColor: '#EFE8DD' }}>
           {children}
         </div>
       )}
@@ -65,15 +39,12 @@ function Expandable({ label, children }: { label: React.ReactNode; children: Rea
 
 function Panel({ title, right, children }: { title: string; right?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div style={{
-      background: colors.white, border: `1px solid ${colors.border}`,
-      borderRadius: 16, padding: '14px 16px', marginBottom: 12,
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-        <h2 style={{
-          fontSize: 10, fontWeight: 700, color: colors.textFaint,
-          letterSpacing: 1.2, textTransform: 'uppercase', margin: 0,
-        }}>
+    <div className="rounded-2xl p-4 mb-3" style={{ background: '#FFFFFF', border: '1px solid #EFE8DD' }}>
+      <div className="flex items-center justify-between mb-2.5">
+        <h2
+          className="text-[10px] font-bold tracking-wider uppercase m-0"
+          style={{ color: '#BAA898', letterSpacing: 1.2 }}
+        >
           {title}
         </h2>
         {right}
@@ -92,35 +63,28 @@ function TimelineEntryRow({ entry }: { entry: TimelineEntryIpc }) {
   const isPassive = entry.eventType === 'passive';
 
   const label = (
-    <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-      <span style={{ fontFamily: mono, fontSize: 11, color: colors.textFaint, flexShrink: 0, width: 70 }}>
+    <span className="flex items-center gap-1.5 min-w-0">
+      <span className="font-mono text-[11px] shrink-0 w-[70px]" style={{ color: '#BAA898' }}>
         {formatTime(entry.timestamp)}
       </span>
-      <span style={{ flexShrink: 0, fontSize: 12 }}>{icon}</span>
+      <span className="shrink-0 text-xs">{icon}</span>
       <Badge
         label={entry.eventType}
-        bg={isPassive ? colors.purpleBg : colors.panelBg}
-        color={isPassive ? colors.purple : colors.textMuted}
+        bg={isPassive ? '#F3E5F5' : '#F5F0E8'}
+        color={isPassive ? '#9C27B0' : '#8B8477'}
       />
-      <span style={{ fontSize: 11, color: colors.textSecondary, flexShrink: 0 }}>{entry.app}</span>
-      <span style={{
-        fontSize: 11, color: colors.textMuted,
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0,
-      }}>
-        {entry.window}
-      </span>
+      <span className="text-[11px] shrink-0" style={{ color: '#6B6259' }}>{entry.app}</span>
+      <span className="text-[11px] truncate min-w-0" style={{ color: '#8B8477' }}>{entry.window}</span>
     </span>
   );
 
   return (
-    <div style={{ padding: '5px 0', borderBottom: `1px solid ${colors.panelBg}` }}>
+    <div className="py-1" style={{ borderBottom: '1px solid #F5F0E8' }}>
       <Expandable label={label}>
-        <pre style={{
-          fontFamily: mono, fontSize: 11, color: colors.textSecondary,
-          background: colors.bg, border: `1px solid ${colors.border}`,
-          borderRadius: 8, padding: 10, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-          maxHeight: 300, overflowY: 'auto', marginTop: 4,
-        }}>
+        <pre
+          className="font-mono text-[11px] rounded-lg p-2.5 whitespace-pre-wrap break-words max-h-[300px] overflow-y-auto mt-1"
+          style={{ color: '#6B6259', background: '#FBF7F1', border: '1px solid #EFE8DD' }}
+        >
           {JSON.stringify(entry, null, 2)}
         </pre>
       </Expandable>
@@ -132,62 +96,55 @@ function BatchHistoryRow({ entry }: { entry: BatchHistoryEntry }) {
   const [showPrompt, setShowPrompt] = useState(false);
 
   const label = (
-    <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-      <span style={{ fontFamily: mono, fontSize: 11, color: colors.textFaint, flexShrink: 0, width: 70 }}>
+    <span className="flex items-center gap-1.5 min-w-0">
+      <span className="font-mono text-[11px] shrink-0 w-[70px]" style={{ color: '#BAA898' }}>
         {formatTime(entry.timestamp)}
       </span>
-      <Badge label={entry.level2Classification} bg={colors.blueBg} color={colors.blue} />
+      <Badge label={entry.level2Classification} bg="#E8EAF6" color="#5C6BC0" />
       <Badge
         label={entry.isDrifting ? `Drift ${Math.round(entry.confidence * 100)}%` : 'On track'}
-        bg={entry.isDrifting ? colors.redBg : colors.greenBg}
-        color={entry.isDrifting ? colors.red : colors.green}
+        bg={entry.isDrifting ? '#FFEBEE' : '#E8F5E9'}
+        color={entry.isDrifting ? '#E2574C' : '#2E7D32'}
       />
-      <span style={{ fontFamily: mono, fontSize: 11, color: colors.amber, flexShrink: 0 }}>
+      <span className="font-mono text-[11px] shrink-0" style={{ color: '#D97706' }}>
         ${entry.costUsd.toFixed(4)}
       </span>
-      <span style={{
-        fontSize: 11, color: colors.textSecondary,
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0,
-      }}>
-        {entry.summary}
-      </span>
+      <span className="text-[11px] truncate min-w-0" style={{ color: '#6B6259' }}>{entry.summary}</span>
     </span>
   );
 
-  const preStyle = {
-    fontFamily: mono, fontSize: 11, color: colors.textSecondary,
-    background: colors.bg, border: `1px solid ${colors.border}`,
-    borderRadius: 8, padding: 10, whiteSpace: 'pre-wrap' as const, wordBreak: 'break-word' as const,
-    maxHeight: 300, overflowY: 'auto' as const, marginTop: 4,
-  };
-
   return (
-    <div style={{ padding: '6px 0', borderBottom: `1px solid ${colors.panelBg}` }}>
+    <div className="py-1.5" style={{ borderBottom: '1px solid #F5F0E8' }}>
       <Expandable label={label}>
-        <div style={{ fontFamily: mono, fontSize: 11, marginBottom: 3 }}>
-          <span style={{ color: colors.textFaint }}>summary: </span>
-          <span style={{ color: colors.textPrimary }}>{entry.summary}</span>
+        <div className="font-mono text-[11px] mb-0.5">
+          <span style={{ color: '#BAA898' }}>summary: </span>
+          <span style={{ color: '#2A2A2A' }}>{entry.summary}</span>
         </div>
-        <div style={{ fontFamily: mono, fontSize: 11, marginBottom: 3 }}>
-          <span style={{ color: colors.textFaint }}>drift reason: </span>
-          <span style={{ color: colors.textPrimary }}>{entry.reason}</span>
+        <div className="font-mono text-[11px] mb-0.5">
+          <span style={{ color: '#BAA898' }}>drift reason: </span>
+          <span style={{ color: '#2A2A2A' }}>{entry.reason}</span>
         </div>
-        <div style={{ fontFamily: mono, fontSize: 11, marginBottom: 3 }}>
-          <span style={{ color: colors.textFaint }}>tokens: </span>
-          <span style={{ color: colors.textPrimary }}>{entry.inputTokens} in / {entry.outputTokens} out</span>
-          <span style={{ color: colors.amber, marginLeft: 8 }}>${entry.costUsd.toFixed(4)}</span>
+        <div className="font-mono text-[11px] mb-0.5">
+          <span style={{ color: '#BAA898' }}>tokens: </span>
+          <span style={{ color: '#2A2A2A' }}>{entry.inputTokens} in / {entry.outputTokens} out</span>
+          <span className="ml-2" style={{ color: '#D97706' }}>${entry.costUsd.toFixed(4)}</span>
         </div>
-        <div style={{ marginTop: 6 }}>
+        <div className="mt-1.5">
           <button
             onClick={() => setShowPrompt(!showPrompt)}
-            style={{
-              background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-              fontFamily: mono, fontSize: 11, fontWeight: 600, color: colors.red,
-            }}
+            className="bg-transparent border-none p-0 cursor-pointer font-mono text-[11px] font-semibold hover:underline"
+            style={{ color: '#E2574C' }}
           >
             {showPrompt ? 'Hide' : 'Show'} full prompt
           </button>
-          {showPrompt && <pre style={preStyle}>{entry.prompt}</pre>}
+          {showPrompt && (
+            <pre
+              className="font-mono text-[11px] rounded-lg p-2.5 whitespace-pre-wrap break-words max-h-[300px] overflow-y-auto mt-1"
+              style={{ color: '#6B6259', background: '#FBF7F1', border: '1px solid #EFE8DD' }}
+            >
+              {entry.prompt}
+            </pre>
+          )}
         </div>
       </Expandable>
     </div>
@@ -220,59 +177,58 @@ export function DebugDashboard() {
   const sessionCost = pipelineState?.sessionCostUsd ?? 0;
 
   return (
-    <div style={{
-      minHeight: '100vh', background: colors.bg, padding: 24,
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-      overflowY: 'auto', userSelect: 'text', WebkitUserSelect: 'text',
-    }}>
-      <div style={{ maxWidth: 700, margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h1 style={{ fontSize: 20, fontWeight: 600, color: colors.textPrimary, letterSpacing: -0.3, margin: 0 }}>
+    <div
+      className="min-h-screen p-6 overflow-auto"
+      style={{ background: '#FBF7F1', userSelect: 'text', WebkitUserSelect: 'text' }}
+    >
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-semibold tracking-tight m-0" style={{ color: '#2A2A2A' }}>
             Debug Dashboard
           </h1>
-          <span style={{ fontSize: 11, fontFamily: mono, color: colors.textMuted }}>screenpipe pipeline</span>
+          <span className="text-[11px] font-mono" style={{ color: '#8B8477' }}>screenpipe pipeline</span>
         </div>
 
         <Panel title={`Live Timeline (${timelineEntries.length} events)`}>
           {timelineEntries.length > 0 ? (
-            <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+            <div className="max-h-[400px] overflow-y-auto">
               {[...timelineEntries].reverse().map((e, i) => (
                 <TimelineEntryRow key={i} entry={e} />
               ))}
             </div>
           ) : (
-            <div style={{ fontSize: 13, color: colors.textMuted }}>No activity yet. Start a session.</div>
+            <div className="text-sm" style={{ color: '#8B8477' }}>No activity yet. Start a session.</div>
           )}
         </Panel>
 
         <Panel
           title={`Batch History (${batchHistory.length} summaries)`}
           right={
-            <span style={{ fontSize: 11, fontFamily: mono, fontWeight: 600, color: colors.amber }}>
+            <span className="text-[11px] font-mono font-semibold" style={{ color: '#D97706' }}>
               Session: ${sessionCost.toFixed(4)}
             </span>
           }
         >
           {batchHistory.length > 0 ? (
-            <div style={{ maxHeight: 500, overflowY: 'auto' }}>
+            <div className="max-h-[500px] overflow-y-auto">
               {[...batchHistory].reverse().map((entry, i) => (
                 <BatchHistoryRow key={i} entry={entry} />
               ))}
             </div>
           ) : (
-            <div style={{ fontSize: 13, color: colors.textMuted }}>
+            <div className="text-sm" style={{ color: '#8B8477' }}>
               No batch summaries yet. First one runs after ~60 seconds.
             </div>
           )}
         </Panel>
 
         <Panel title="LLM State">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: colors.textPrimary }}>
+          <div className="flex items-center gap-2 text-sm" style={{ color: '#2A2A2A' }}>
             Pending call:
             <Badge
               label={pipelineState?.pendingLlmCall ? 'Yes' : 'No'}
-              bg={pipelineState?.pendingLlmCall ? colors.amberBg : colors.panelBg}
-              color={pipelineState?.pendingLlmCall ? colors.amber : colors.textMuted}
+              bg={pipelineState?.pendingLlmCall ? '#FFF8E1' : '#F5F0E8'}
+              color={pipelineState?.pendingLlmCall ? '#D97706' : '#8B8477'}
             />
           </div>
         </Panel>
