@@ -22,7 +22,8 @@ vite.stdout.on('data', (data) => {
   const output = data.toString();
   if (!electronStarted && output.includes('Local:')) {
     electronStarted = true;
-    const match = output.match(/Local:\s+(http:\/\/localhost:\d+)/);
+    const stripped = output.replace(/\x1b\[[0-9;]*m/g, '');
+    const match = stripped.match(/Local:\s+(http:\/\/localhost:\d+)/);
     const viteUrl = match ? match[1] : 'http://localhost:5173';
     console.log(`\nStarting Electron (Vite at ${viteUrl})...`);
     const electron = spawn(electronBin, ['dist/main/main.js'], {
