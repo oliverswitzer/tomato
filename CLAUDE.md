@@ -64,15 +64,13 @@ tccutil reset ScreenCapture com.tomato.pomodoro
 tccutil reset Accessibility com.tomato.pomodoro
 ```
 
-## Keychain prompt (safeStorage)
+## API key encryption
 
-Electron's `safeStorage` API stores the user's API key encrypted via macOS Keychain (`~/Library/Application Support/tomato/api-key.enc`). On first access, macOS shows: _"Tomato wants to use your confidential information stored in 'Tomato Safe Storage' in your keychain."_
+The API key is encrypted at rest using AES-256-GCM and stored at `~/Library/Application Support/tomato/api-key.enc`. The encryption key is derived from the machine's hardware UUID (`IOPlatformUUID` via `ioreg`), so the encrypted file is only readable on the same machine.
 
-- **Distribution builds** (Developer ID cert): the user clicks **Always Allow** once. The Keychain ACL is tied to the signing certificate, which is stable across builds, so the prompt never appears again.
-- **Local dev builds** (self-signed "Tomato Dev"): **Always Allow** should also persist across rebuilds as long as the same cert is used, since the designated requirement is based on the certificate identity, not the CDHash. If the prompt reappears, the cert may have been recreated — check with `codesign -d --requirements - Tomato.app`.
-- The CI workflow logs the designated requirement (`codesign -d --requirements -`) after signing to verify stability across builds.
+This deliberately avoids Electron's `safeStorage` API, which uses macOS Keychain internally and triggers a system prompt ("Tomato wants to use your confidential information stored in 'Tomato Safe Storage'") that cannot be suppressed. The crypto-based approach produces zero system dialogs on any launch.
 
-To inspect the Keychain item: `security find-generic-password -s "Tomato Safe Storage" -g 2>&1 | head -20`
+The `ElectronKeychainStore` constructor accepts an optional `machineId` parameter for testing (avoids calling `ioreg` in CI). Users upgrading from an older safeStorage-based build will need to re-enter their API key once.
 
 ## ANTHROPIC_API_KEY
 
