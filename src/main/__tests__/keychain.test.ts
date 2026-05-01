@@ -1,17 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-
-const mockSafeStorage = vi.hoisted(() => ({
-  isEncryptionAvailable: vi.fn().mockReturnValue(true),
-  encryptString: vi.fn((s: string) => Buffer.from(`encrypted:${s}`)),
-  decryptString: vi.fn((buf: Buffer) => buf.toString().replace('encrypted:', '')),
-}));
-
-vi.mock('electron', () => ({
-  safeStorage: mockSafeStorage,
-}));
 
 import { ElectronKeychainStore } from '../keychain';
 
@@ -21,7 +11,7 @@ describe('ElectronKeychainStore', () => {
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'keychain-test-'));
-    store = new ElectronKeychainStore(tmpDir);
+    store = new ElectronKeychainStore(tmpDir, 'test-machine-id');
   });
 
   afterEach(() => {
@@ -47,6 +37,17 @@ describe('ElectronKeychainStore', () => {
     it('delete is idempotent when no key exists', () => {
       expect(() => store.deleteApiKey()).not.toThrow();
     });
+
+    it('returns null for corrupted data', () => {
+      fs.writeFileSync(path.join(tmpDir, 'api-key.enc'), 'garbage');
+      expect(store.getApiKey()).toBeNull();
+    });
+
+    it('cannot decrypt with a different machine id', () => {
+      store.saveApiKey('sk-ant-test1234567890abcdef');
+      const otherStore = new ElectronKeychainStore(tmpDir, 'different-machine');
+      expect(otherStore.getApiKey()).toBeNull();
+    });
   });
 
   describe('selected model', () => {
@@ -57,22 +58,6 @@ describe('ElectronKeychainStore', () => {
     it('persists selected model', () => {
       store.setSelectedModel('claude-haiku-4-5-20251001');
       expect(store.getSelectedModel()).toBe('claude-haiku-4-5-20251001');
-    });
-  });
-
-  describe('encryption unavailable', () => {
-    it('throws when trying to save without encryption', () => {
-      mockSafeStorage.isEncryptionAvailable.mockReturnValueOnce(false);
-
-      expect(() => store.saveApiKey('sk-ant-test1234567890abcdef')).toThrow('Encryption not available');
-    });
-
-    it('returns null when trying to read without encryption', () => {
-      store.saveApiKey('sk-ant-test1234567890abcdef');
-
-      mockSafeStorage.isEncryptionAvailable.mockReturnValueOnce(false);
-
-      expect(store.getApiKey()).toBeNull();
     });
   });
 });

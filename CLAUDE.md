@@ -35,22 +35,42 @@ The binary resolves in this order: `SCREENPIPE_BIN` env → `Contents/Resources/
 
 ## Code signing
 
-macOS permissions (Screen Recording, Accessibility) are tied to the app's code signature hash. **Ad-hoc signing (`codesign --sign -`) generates a new hash every build, revoking all permissions.**
+### CI / distribution
 
-We use a self-signed certificate called **"Tomato Dev"** in the login keychain. This produces a stable signature so permissions persist across rebuilds.
+Release builds use a **Developer ID Application** certificate from the Apple Developer Program. The `build-release.yml` workflow handles certificate import, signing, notarization, and stapling automatically. Required GitHub Actions secrets:
+
+- `APPLE_CERTIFICATE` — base64-encoded .p12 certificate
+- `APPLE_CERTIFICATE_PASSWORD` — .p12 password
+- `APPLE_ID` — Apple ID email for notarization
+- `APPLE_APP_SPECIFIC_PASSWORD` — app-specific password for notarization
+- `APPLE_TEAM_ID` — Apple Developer Team ID
+
+The `scripts/sign.sh` script signs all bundled binaries with `--options runtime --timestamp` (required for notarization) when `CODESIGN_IDENTITY` starts with `"Developer ID"`.
+
+### Local dev
+
+For local builds, a self-signed **"Tomato Dev"** certificate in the login keychain produces a stable signature so macOS permissions (Screen Recording, Accessibility) persist across rebuilds. Ad-hoc signing (`codesign --sign -`) generates a new hash every build, revoking all permissions.
 
 To create the cert (one-time):
 1. Keychain Access → Certificate Assistant → Create a Certificate
 2. Name: `Tomato Dev`, Self Signed Root, Code Signing
 3. Right-click → Get Info → Trust → Code Signing → Always Trust
 
-The `scripts/sign.sh` script signs all bundled binaries with the same `com.tomato.pomodoro` identifier. The pack script calls it automatically.
+`scripts/sign.sh` defaults to the `"Tomato Dev"` identity. Override with `CODESIGN_IDENTITY` env var.
 
 To reset permissions for testing:
 ```bash
 tccutil reset ScreenCapture com.tomato.pomodoro
 tccutil reset Accessibility com.tomato.pomodoro
 ```
+
+## API key encryption
+
+The API key is encrypted at rest using AES-256-GCM and stored at `~/Library/Application Support/tomato/api-key.enc`. The encryption key is derived from the machine's hardware UUID (`IOPlatformUUID` via `ioreg`), so the encrypted file is only readable on the same machine.
+
+This deliberately avoids Electron's `safeStorage` API, which uses macOS Keychain internally and triggers a system prompt ("Tomato wants to use your confidential information stored in 'Tomato Safe Storage'") that cannot be suppressed. The crypto-based approach produces zero system dialogs on any launch.
+
+The `ElectronKeychainStore` constructor accepts an optional `machineId` parameter for testing (avoids calling `ioreg` in CI). Users upgrading from an older safeStorage-based build will need to re-enter their API key once.
 
 ## ANTHROPIC_API_KEY
 

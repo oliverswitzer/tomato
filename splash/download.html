@@ -398,143 +398,6 @@
       color: var(--brown-body);
     }
 
-    .mock-context-menu {
-      background: var(--cream-light);
-      border-radius: 10px;
-      border: 1px solid var(--brown-border);
-      box-shadow: 0 4px 16px rgba(43, 38, 32, 0.1);
-      overflow: hidden;
-    }
-
-    .mock-menu-item {
-      padding: 8px 16px;
-      font-size: 13px;
-      color: var(--brown-body);
-      border-bottom: 1px solid rgba(43, 38, 32, 0.06);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .mock-menu-item:last-child {
-      border-bottom: none;
-    }
-
-    .mock-menu-item.highlight {
-      background: var(--red);
-      color: #fff;
-      font-weight: 600;
-    }
-
-    .mock-menu-item .menu-shortcut {
-      margin-left: auto;
-      font-size: 11px;
-      opacity: 0.6;
-    }
-
-    .mock-dialog {
-      background: var(--cream-light);
-      border-radius: 12px;
-      border: 1px solid var(--brown-border);
-      box-shadow: 0 4px 16px rgba(43, 38, 32, 0.1);
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .mock-dialog .dialog-text {
-      font-size: 12px;
-      color: var(--brown-body);
-      line-height: 1.45;
-    }
-
-    .mock-dialog .dialog-text strong {
-      color: var(--brown-dark);
-    }
-
-    .mock-dialog .dialog-buttons {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-
-    .mock-dialog .dialog-btn {
-      padding: 5px 14px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 500;
-      border: 1px solid var(--brown-border);
-      background: var(--cream);
-      color: var(--brown-body);
-    }
-
-    .mock-dialog .dialog-btn.primary {
-      background: var(--red);
-      color: #fff;
-      border-color: transparent;
-      font-weight: 600;
-    }
-
-    .mock-settings {
-      background: var(--cream-light);
-      border-radius: 12px;
-      border: 1px solid var(--brown-border);
-      box-shadow: 0 4px 16px rgba(43, 38, 32, 0.1);
-      overflow: hidden;
-    }
-
-    .mock-settings-header {
-      padding: 10px 14px;
-      background: var(--cream);
-      border-bottom: 1px solid var(--brown-border);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .mock-settings-header svg {
-      width: 14px;
-      height: 14px;
-      color: var(--brown-muted);
-    }
-
-    .mock-settings-header span {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--brown-dark);
-    }
-
-    .mock-settings-body {
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .mock-settings-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .mock-settings-row .setting-text {
-      font-size: 11px;
-      color: var(--brown-body);
-      line-height: 1.4;
-    }
-
-    .mock-open-anyway {
-      padding: 5px 12px;
-      background: var(--red);
-      color: #fff;
-      font-size: 11px;
-      font-weight: 600;
-      border-radius: 6px;
-      white-space: nowrap;
-    }
-
     /* ─── TRUST SECTION ─── */
     .section-trust {
       background: var(--cream);
@@ -616,72 +479,6 @@
       font-size: 12px;
       font-weight: 500;
       color: var(--brown-dark);
-    }
-
-    /* ─── EXPLAINER SECTION ─── */
-    .section-explainer {
-      background: var(--cream-light);
-      padding: 80px 96px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 40px;
-    }
-
-    .explainer-card {
-      max-width: 720px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-
-    .explainer-card .explainer-title {
-      font-family: 'Fraunces', serif;
-      font-size: 32px;
-      font-weight: 600;
-      text-align: center;
-    }
-
-    .explainer-body {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .explainer-body p {
-      font-size: 16px;
-      color: var(--brown-body);
-      line-height: 1.65;
-    }
-
-    .explainer-body p strong {
-      color: var(--brown-dark);
-      font-weight: 600;
-    }
-
-    .explainer-callout {
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      padding: 18px 20px;
-      background: var(--red-blush);
-      border-radius: 14px;
-      border: 1px solid var(--red-pink);
-    }
-
-    .explainer-callout svg {
-      width: 20px;
-      height: 20px;
-      color: var(--red);
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-
-    .explainer-callout p {
-      font-size: 14px;
-      color: var(--brown-dark);
-      line-height: 1.55;
     }
 
     /* ─── FOOTER ─── */
@@ -775,7 +572,6 @@
       .section-hero { padding: 20px 24px 48px; }
       .section-steps { padding: 56px 24px; }
       .section-trust { padding: 48px 24px; }
-      .section-explainer { padding: 56px 24px; }
       .section-footer { padding: 0 24px 32px; }
 
       .nav-right a:not(.btn-primary) { display: none; }
@@ -801,8 +597,6 @@
         flex-wrap: wrap;
         justify-content: center;
       }
-
-      .explainer-card .explainer-title { font-size: 26px; }
 
       .footer-row {
         flex-direction: column;
@@ -863,8 +657,8 @@
     <section class="section-steps" id="steps">
       <div class="section-heading reveal">
         <span class="eyebrow">INSTALL GUIDE</span>
-        <h2 class="serif headline">Three steps to get started.</h2>
-        <p class="subhead">Tomato isn't on the Mac App Store yet, so macOS will show a couple of warnings. This is normal for all apps distributed outside the App Store — here's how to handle them.</p>
+        <h2 class="serif headline">Two steps to get started.</h2>
+        <p class="subhead">Tomato is signed and notarized by Apple, so it opens right away — no warnings or workarounds needed.</p>
       </div>
 
       <div class="steps-grid">
@@ -893,43 +687,13 @@
         <!-- Step 2 -->
         <div class="step-card reveal">
           <div class="step-num">2</div>
-          <h3 class="card-title">Right-click and choose "Open"</h3>
-          <p class="card-body">Don't double-click. Instead, <strong>right-click</strong> (or Control-click) Tomato in Applications and select <strong>Open</strong>. A dialog will appear — click <strong>"Open"</strong> to confirm.</p>
+          <h3 class="card-title">Launch Tomato</h3>
+          <p class="card-body">Double-click <strong>Tomato</strong> in your Applications folder. The app will open immediately — no warnings or extra steps required.</p>
           <div class="step-illustration">
-            <div class="mock-context-menu">
-              <div class="mock-menu-item">New Folder</div>
-              <div class="mock-menu-item">Get Info <span class="menu-shortcut">⌘I</span></div>
-              <div class="mock-menu-item highlight">Open</div>
-              <div class="mock-menu-item">Move to Trash</div>
-            </div>
-            <div style="height: 10px;"></div>
-            <div class="mock-dialog">
-              <p class="dialog-text"><strong>"Tomato" is from an unidentified developer.</strong> Are you sure you want to open it?</p>
-              <div class="dialog-buttons">
-                <span class="dialog-btn">Cancel</span>
-                <span class="dialog-btn primary">Open</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="step-card reveal">
-          <div class="step-num">3</div>
-          <h3 class="card-title">If needed: allow in System Settings</h3>
-          <p class="card-body">On some Macs, you may need to go to <strong>System Settings → Privacy & Security</strong>, scroll down, and click <strong>"Open Anyway"</strong> next to the Tomato message.</p>
-          <div class="step-illustration">
-            <div class="mock-settings">
-              <div class="mock-settings-header">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                <span>Privacy & Security</span>
-              </div>
-              <div class="mock-settings-body">
-                <p style="font-size: 11px; color: var(--brown-body); line-height: 1.4;">"Tomato" was blocked from opening because it is not from an identified developer.</p>
-                <div class="mock-settings-row">
-                  <span class="setting-text"></span>
-                  <span class="mock-open-anyway">Open Anyway</span>
-                </div>
+            <div class="mock-dmg" style="justify-content: center;">
+              <div class="mock-dmg-icon">
+                <div class="icon-box">🍅</div>
+                <span>Tomato.app</span>
               </div>
             </div>
           </div>
@@ -959,21 +723,6 @@
           <div class="trust-badge">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
             <span>No telemetry</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══ EXPLAINER ═══ -->
-    <section class="section-explainer">
-      <div class="explainer-card reveal">
-        <h2 class="explainer-title">Why does macOS show a warning?</h2>
-        <div class="explainer-body">
-          <p>macOS includes a security feature called <strong>Gatekeeper</strong> that warns you when you open an app that hasn't been notarized by Apple. This isn't a sign that the app is unsafe — it means the developer distributes it independently, outside the Mac App Store.</p>
-          <p>Tomato is an open-source project. Apple's notarization process requires a paid developer account ($99/year), which we haven't set up yet during the beta. The right-click → Open method tells macOS you trust this app, and you'll only need to do it once.</p>
-          <div class="explainer-callout">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-            <p>You can verify everything Tomato does by reading the source code on <a href="https://github.com/oliverswitzer/tomato" style="color: var(--red); font-weight: 600;">GitHub</a>. Screen capture is entirely local. Summarization calls go to Anthropic using your own API key — no other telemetry is collected.</p>
           </div>
         </div>
       </div>
