@@ -364,7 +364,6 @@ function showTimerWindow(): void {
     transparent: true,
     alwaysOnTop: true,
     resizable: false,
-    skipTaskbar: true,
     hasShadow: false,
     webPreferences: {
       nodeIntegration: false,
