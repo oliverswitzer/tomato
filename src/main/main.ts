@@ -896,8 +896,10 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
+  app.show();
   if (debugWin && !debugWin.isDestroyed()) {
     debugWin.show();
+    debugWin.moveTop();
   }
 });
 
