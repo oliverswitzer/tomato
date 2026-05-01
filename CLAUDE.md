@@ -115,6 +115,10 @@ The `splash/` directory is deployed to Vercel as a static site. Vercel auto-depl
 
 **After any splash page change:** verify the Vercel deploy succeeded and that the live site matches the design. Check the Vercel preview URL on the PR (posted as a comment by the Vercel bot) or the production URL after merge. Use Chrome DevTools or screenshots to confirm visual correctness.
 
+## Linear project
+
+All issues for this repo belong to the **Tomato** project (ID: `4554e4ee-0cc8-48d6-a8f7-9d1e95b88fa0`) in the **IDE** team (`0a4ce72a-2ad7-4404-b7ed-a2f5dec76ad0`). When creating issues, always set `projectId` to the Tomato project. Never create issues without a project assignment.
+
 ## Design references
 
 `*.pen` files are [Pencil](https://pencil.dev/) design documents — a design tool for creating UI mockups and prototypes. When asked to reference designs in a `*.pen` file, always use the `/frontend-design` skill to guide implementation. These files contain design specs that require pixel-perfect, production-grade frontend work.
