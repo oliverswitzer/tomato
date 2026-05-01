@@ -459,12 +459,6 @@ function startSession(intention: string, durationMin: number): void {
   startScreenpipe();
 
   const dbPath = path.join(os.homedir(), '.screenpipe', 'db.sqlite');
-  try {
-    db = new SqliteScreenpipeDb(new Database(dbPath, { readonly: true }));
-    log(`Opened screenpipe DB: ${dbPath}`);
-  } catch (err) {
-    log(`Failed to open screenpipe DB: ${(err as Error).message}`);
-  }
 
   const apiKey = keychain?.getApiKey() ?? process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -476,39 +470,53 @@ function startSession(intention: string, durationMin: number): void {
     selectedModel,
   );
   const batchMs = process.env.TOMATO_BATCH_MS ? parseInt(process.env.TOMATO_BATCH_MS) : undefined;
-  focusTracker = new FocusTracker({ db: db!, llm, batchIntervalMs: batchMs });
 
-  focusTracker.onActivity = (activity) => {
-    if (timerWin) {
-      timerWin.webContents.send('activity-update', activity);
+  function tryOpenDbAndStart(): void {
+    try {
+      db = new SqliteScreenpipeDb(new Database(dbPath, { readonly: true }));
+      log(`Opened screenpipe DB: ${dbPath}`);
+    } catch (err) {
+      log(`Waiting for screenpipe DB: ${(err as Error).message}`);
+      setTimeout(tryOpenDbAndStart, 3000);
+      return;
     }
-  };
 
-  focusTracker.onDrift = (data) => {
-    log(`Drift detected: ${data.reason} (confidence: ${data.confidence}, classification: ${data.level2Classification})`);
-    showNudgeWindow();
-    if (timerWin) {
-      timerWin.webContents.send('drift-detected', data);
-    }
-  };
+    focusTracker = new FocusTracker({ db, llm, batchIntervalMs: batchMs });
 
-  focusTracker.onApiError = (data) => {
-    log(`API error: type=${data.type}, message=${data.message}`);
-    if (timerWin) {
-      timerWin.webContents.send('api-error', data);
-    }
-    if (data.type === 'model_deprecated' && keychain) {
-      keychain.setSelectedModel(DEFAULT_MODEL);
-    }
-  };
+    focusTracker.onActivity = (activity) => {
+      if (timerWin) {
+        timerWin.webContents.send('activity-update', activity);
+      }
+    };
 
-  focusTracker.onTimelineUpdate = (entries) => {
-    if (timerWin) {
-      timerWin.webContents.send('timeline-update', entries);
-    }
-  };
+    focusTracker.onDrift = (data) => {
+      log(`Drift detected: ${data.reason} (confidence: ${data.confidence}, classification: ${data.level2Classification})`);
+      showNudgeWindow();
+      if (timerWin) {
+        timerWin.webContents.send('drift-detected', data);
+      }
+    };
 
-  focusTracker.start(intention, durationMin);
+    focusTracker.onApiError = (data) => {
+      log(`API error: type=${data.type}, message=${data.message}`);
+      if (timerWin) {
+        timerWin.webContents.send('api-error', data);
+      }
+      if (data.type === 'model_deprecated' && keychain) {
+        keychain.setSelectedModel(DEFAULT_MODEL);
+      }
+    };
+
+    focusTracker.onTimelineUpdate = (entries) => {
+      if (timerWin) {
+        timerWin.webContents.send('timeline-update', entries);
+      }
+    };
+
+    focusTracker.start(intention, durationMin);
+  }
+
+  tryOpenDbAndStart();
 
   timerInterval = setInterval(() => {
     if (sessionState.paused) return;
