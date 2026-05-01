@@ -294,7 +294,7 @@ describe('TimelineBuilder', () => {
 
   describe('passive activity capture', () => {
     it('creates passive entries from frames when no typing or app_switch events exist', () => {
-      const windowName = 'How i book 3-5 meetings a day Cold Calling - YouTube - Audio playing - Google Chrome - Oliver';
+      const windowName = 'How i book 3-5 meetings a day Cold Calling - YouTube - Audio playing - Google Chrome - User';
       const db = mockDb({
         passiveFrames: [
           { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: windowName, browser_url: 'https://www.youtube.com/watch?v=tU52nLIUz8Y', screen_text: 'How i book 3-5 meetings a day\nCold Calling ($319,000/month web design agency - full script)\nChrome File Edit View History Bookmarks Profiles Tab Window Help', capture_trigger: 'visual_change' },
@@ -321,7 +321,7 @@ describe('TimelineBuilder', () => {
           { id: 1, timestamp: '2026-04-25T10:00:05Z', text_content: 'hello', app_name: 'Cursor', window_title: 'main.ts — tomato' },
         ],
         passiveFrames: [
-          { id: 1, timestamp: '2026-04-25T10:00:10Z', app_name: 'Google Chrome', window_name: 'Opening soon… - YouTube - Audio playing - Google Chrome - Oliver', browser_url: 'https://www.youtube.com/shorts/r5QMIVEud1U', screen_text: 'Opening soon…\nYouTube Shorts', capture_trigger: 'idle' },
+          { id: 1, timestamp: '2026-04-25T10:00:10Z', app_name: 'Google Chrome', window_name: 'Opening soon… - YouTube - Audio playing - Google Chrome - User', browser_url: 'https://www.youtube.com/shorts/r5QMIVEud1U', screen_text: 'Opening soon…\nYouTube Shorts', capture_trigger: 'idle' },
         ],
       });
 
@@ -332,12 +332,12 @@ describe('TimelineBuilder', () => {
     });
 
     it('groups passive frames by app+window', () => {
-      const ytWindow = 'a letter to cinephiles - YouTube - Google Chrome - Oliver';
-      const ghWindow = 'Pull requests · oliverswitzer/tomato - Google Chrome - Oliver';
+      const ytWindow = 'a letter to cinephiles - YouTube - Google Chrome - User';
+      const ghWindow = 'Pull requests · testuser/tomato - Google Chrome - User';
       const db = mockDb({
         passiveFrames: [
           { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: ytWindow, browser_url: 'https://www.youtube.com/shorts/dvN1MQabawY', screen_text: 'a letter to cinephiles', capture_trigger: 'idle' },
-          { id: 2, timestamp: '2026-04-25T10:00:30Z', app_name: 'Google Chrome', window_name: ghWindow, browser_url: 'https://github.com/oliverswitzer/tomato/pulls', screen_text: 'Pull requests\noliverswitzer/tomato\n3 Open 12 Closed', capture_trigger: 'click' },
+          { id: 2, timestamp: '2026-04-25T10:00:30Z', app_name: 'Google Chrome', window_name: ghWindow, browser_url: 'https://github.com/testuser/tomato/pulls', screen_text: 'Pull requests\ntestuser/tomato\n3 Open 12 Closed', capture_trigger: 'click' },
           { id: 3, timestamp: '2026-04-25T10:01:00Z', app_name: 'Google Chrome', window_name: ytWindow, browser_url: 'https://www.youtube.com/shorts/dvN1MQabawY', screen_text: 'a letter to cinephiles continued', capture_trigger: 'idle' },
         ],
       });
@@ -353,7 +353,7 @@ describe('TimelineBuilder', () => {
     });
 
     it('enriches existing entries with passive context when both active and passive data exist', () => {
-      const chromeWindow = 'node.js - How to handle API request timeout - Stack Overflow - Google Chrome - Oliver';
+      const chromeWindow = 'node.js - How to handle API request timeout - Stack Overflow - Google Chrome - User';
       const db = mockDb({
         textEvents: [
           { id: 1, timestamp: '2026-04-25T10:00:05Z', text_content: 'searching...', app_name: 'Google Chrome', window_title: chromeWindow },
@@ -373,7 +373,7 @@ describe('TimelineBuilder', () => {
     });
 
     it('includes click targets in passive context', () => {
-      const chromeWindow = 'Tomato — The Smartest Pomodoro on Your Mac - Google Chrome - Oliver';
+      const chromeWindow = 'Tomato — The Smartest Pomodoro on Your Mac - Google Chrome - User';
       const db = mockDb({
         passiveFrames: [
           { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: chromeWindow, browser_url: 'https://tomato-ashy-six.vercel.app/', screen_text: 'Tomato\nThe Smartest Pomodoro on Your Mac\nStart 25-minute session\nChrome File Edit View', capture_trigger: 'click' },
@@ -392,7 +392,7 @@ describe('TimelineBuilder', () => {
     });
 
     it('includes passive apps in uniqueApps and dominantApp', () => {
-      const windowName = 'How i book 3-5 meetings a day Cold Calling - YouTube - Google Chrome - Oliver';
+      const windowName = 'How i book 3-5 meetings a day Cold Calling - YouTube - Google Chrome - User';
       const db = mockDb({
         passiveFrames: [
           { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: windowName, browser_url: 'https://www.youtube.com/watch?v=tU52nLIUz8Y', screen_text: 'How i book 3-5 meetings\nChrome File Edit View', capture_trigger: 'idle' },

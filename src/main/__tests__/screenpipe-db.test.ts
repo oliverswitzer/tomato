@@ -140,8 +140,8 @@ describe('SqliteScreenpipeDb', () => {
     it('returns frames with screen text and browser URL', () => {
       const mockDb = createMockDb({
         frames: [
-          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: 'How i book 3-5 meetings a day Cold Calling - YouTube - Audio playing - Google Chrome - Oliver', browser_url: 'https://www.youtube.com/watch?v=tU52nLIUz8Y', screen_text: 'How i book 3-5 meetings a day\nCold Calling ($319,000/month web design agency)\nChrome File Edit View', capture_trigger: 'idle' },
-          { id: 2, timestamp: '2026-04-25T10:00:20Z', app_name: 'Google Chrome', window_name: 'How i book 3-5 meetings a day Cold Calling - YouTube - Audio playing - Google Chrome - Oliver', browser_url: 'https://www.youtube.com/watch?v=tU52nLIUz8Y', screen_text: 'How i book 3-5 meetings a day\nCold Calling ($319,000/month web design agency)\n2:35 / 14:22', capture_trigger: 'visual_change' },
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: 'How i book 3-5 meetings a day Cold Calling - YouTube - Audio playing - Google Chrome - User', browser_url: 'https://www.youtube.com/watch?v=tU52nLIUz8Y', screen_text: 'How i book 3-5 meetings a day\nCold Calling ($319,000/month web design agency)\nChrome File Edit View', capture_trigger: 'idle' },
+          { id: 2, timestamp: '2026-04-25T10:00:20Z', app_name: 'Google Chrome', window_name: 'How i book 3-5 meetings a day Cold Calling - YouTube - Audio playing - Google Chrome - User', browser_url: 'https://www.youtube.com/watch?v=tU52nLIUz8Y', screen_text: 'How i book 3-5 meetings a day\nCold Calling ($319,000/month web design agency)\n2:35 / 14:22', capture_trigger: 'visual_change' },
         ],
       });
       const db = new SqliteScreenpipeDb(mockDb);
@@ -166,8 +166,8 @@ describe('SqliteScreenpipeDb', () => {
     it('returns click events with element names', () => {
       const mockDb = createMockDb({
         ui_events: [
-          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_title: 'chore: Developer ID signing by oliverswitzer · Pull Request #15 · oliverswitzer/tomato - Google Chrome - Oliver', element_name: 'Merge pull request' },
-          { id: 2, timestamp: '2026-04-25T10:00:10Z', app_name: 'Google Chrome', window_title: 'chore: Developer ID signing by oliverswitzer · Pull Request #15 · oliverswitzer/tomato - Google Chrome - Oliver', element_name: 'Confirm merge' },
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_title: 'chore: Developer ID signing by testuser · Pull Request #15 · testuser/tomato - Google Chrome - User', element_name: 'Merge pull request' },
+          { id: 2, timestamp: '2026-04-25T10:00:10Z', app_name: 'Google Chrome', window_title: 'chore: Developer ID signing by testuser · Pull Request #15 · testuser/tomato - Google Chrome - User', element_name: 'Confirm merge' },
         ],
       });
       const db = new SqliteScreenpipeDb(mockDb);

@@ -355,7 +355,7 @@ describe('AnthropicLlmClient', () => {
           {
             timestamp: '2026-04-25T10:00:05Z',
             app: 'Google Chrome',
-            window: 'How i book 3-5 meetings a day Cold Calling - YouTube - Audio playing - Google Chrome - Oliver',
+            window: 'How i book 3-5 meetings a day Cold Calling - YouTube - Audio playing - Google Chrome - User',
             typedText: null,
             eventType: 'passive',
             accessibilityHints: [],
@@ -397,7 +397,7 @@ describe('AnthropicLlmClient', () => {
           {
             timestamp: '2026-04-25T10:00:05Z',
             app: 'Google Chrome',
-            window: 'Opening soon… - YouTube - Audio playing - Google Chrome - Oliver',
+            window: 'Opening soon… - YouTube - Audio playing - Google Chrome - User',
             typedText: null,
             eventType: 'passive',
             accessibilityHints: [],
