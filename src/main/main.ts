@@ -394,8 +394,9 @@ function showDebugWindow(): void {
   });
 
   loadRendererPage(debugWin, '/debug');
-  debugWin.on('closed', () => {
-    debugWin = null;
+  debugWin.on('close', (e) => {
+    e.preventDefault();
+    debugWin?.hide();
   });
 }
 
@@ -510,6 +511,9 @@ function startSession(intention: string, durationMin: number): void {
     focusTracker.onTimelineUpdate = (entries) => {
       if (timerWin) {
         timerWin.webContents.send('timeline-update', entries);
+      }
+      if (debugWin) {
+        debugWin.webContents.send('timeline-update', entries);
       }
     };
 
@@ -870,6 +874,11 @@ app.whenReady().then(async () => {
 function cleanup(): void {
   stopScreenpipe();
   if (focusTracker) focusTracker.stop();
+  if (debugWin) {
+    debugWin.removeAllListeners('close');
+    debugWin.close();
+    debugWin = null;
+  }
   if (db) {
     db.close();
     db = null;
