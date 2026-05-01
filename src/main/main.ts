@@ -374,6 +374,7 @@ function showTimerWindow(): void {
   });
 
   loadRendererPage(timerWin, '/hud');
+  timerWin.setAlwaysOnTop(true, 'floating');
   timerWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
   timerWin.on('closed', () => {
     timerWin = null;
@@ -393,6 +394,7 @@ function showDebugWindow(): void {
     width: 700,
     height: 800,
     title: 'Debug Dashboard',
+    alwaysOnTop: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -401,6 +403,7 @@ function showDebugWindow(): void {
   });
 
   loadRendererPage(debugWin, '/debug');
+  debugWin.setAlwaysOnTop(true, 'floating');
   debugWin.on('closed', () => {
     debugWin = null;
   });
