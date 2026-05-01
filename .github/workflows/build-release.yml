@@ -82,6 +82,14 @@ jobs:
           CODESIGN_IDENTITY: "Developer ID Application"
         run: bash scripts/sign.sh
 
+      - name: Verify code signature
+        run: |
+          echo "=== Signing identity and designated requirement ==="
+          codesign -dvvv release/mac-arm64/Tomato.app 2>&1 | grep -E "(Authority|Identifier|CDHash|Signature|TeamIdentifier)"
+          echo ""
+          echo "=== Designated requirement (Keychain ACL basis) ==="
+          codesign -d --requirements - release/mac-arm64/Tomato.app 2>&1
+
       - name: Create DMG
         run: hdiutil create -volname "Tomato" -srcfolder release/mac-arm64/Tomato.app -ov -format UDZO release/Tomato.dmg
 

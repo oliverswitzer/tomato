@@ -64,6 +64,16 @@ tccutil reset ScreenCapture com.tomato.pomodoro
 tccutil reset Accessibility com.tomato.pomodoro
 ```
 
+## Keychain prompt (safeStorage)
+
+Electron's `safeStorage` API stores the user's API key encrypted via macOS Keychain (`~/Library/Application Support/tomato/api-key.enc`). On first access, macOS shows: _"Tomato wants to use your confidential information stored in 'Tomato Safe Storage' in your keychain."_
+
+- **Distribution builds** (Developer ID cert): the user clicks **Always Allow** once. The Keychain ACL is tied to the signing certificate, which is stable across builds, so the prompt never appears again.
+- **Local dev builds** (self-signed "Tomato Dev"): **Always Allow** should also persist across rebuilds as long as the same cert is used, since the designated requirement is based on the certificate identity, not the CDHash. If the prompt reappears, the cert may have been recreated — check with `codesign -d --requirements - Tomato.app`.
+- The CI workflow logs the designated requirement (`codesign -d --requirements -`) after signing to verify stability across builds.
+
+To inspect the Keychain item: `security find-generic-password -s "Tomato Safe Storage" -g 2>&1 | head -20`
+
 ## ANTHROPIC_API_KEY
 
 The packaged app does NOT bundle an API key. macOS apps launched from Finder don't inherit shell environment variables.
