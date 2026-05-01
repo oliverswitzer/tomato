@@ -1274,6 +1274,99 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    /* ─── RESPONSIVE: TABLET ─── */
+    @media (max-width: 900px) {
+      .section-hero { padding: 20px 24px 20px; }
+      .section-problem { padding: 56px 24px; min-height: auto; }
+      .section-features { padding: 56px 24px; min-height: auto; }
+      .section-how { padding: 56px 24px; min-height: auto; }
+      .section-screenshots { padding: 56px 24px; }
+      .section-action { padding: 56px 24px; min-height: auto; gap: 40px; }
+      .cta-wrap { padding: 56px 24px 32px; }
+      .footer-wrap { padding: 0 24px 32px; }
+
+      .nav-right a:not(.btn-primary) { display: none; }
+
+      .hero-headline { font-size: 36px; letter-spacing: -0.5px; }
+      .hero-headline br { display: none; }
+      .hero-sub { font-size: 16px; }
+
+      .section-problem .headline { font-size: 34px; }
+      .section-problem .headline br { display: none; }
+      .section-problem .subhead { font-size: 16px; }
+
+      .section-heading .headline { font-size: 32px; }
+
+      .feature-row { flex-direction: column; }
+
+      .cards-row { flex-direction: column; }
+
+      .screenshot-row { flex-direction: column; align-items: center; }
+      .screenshot-card:nth-child(1),
+      .screenshot-card:nth-child(2),
+      .screenshot-card:nth-child(3) { width: 100%; max-width: 520px; }
+      .screenshot-card:nth-child(1) .screenshot-img,
+      .screenshot-card:nth-child(2) .screenshot-img,
+      .screenshot-card:nth-child(3) .screenshot-img { height: auto; aspect-ratio: 3 / 2; }
+
+      .section-action { flex-direction: column; }
+      .action-left { width: 100%; }
+      .action-left .headline { font-size: 36px; }
+      .action-right { width: 100%; height: 360px; }
+      .scene-browser { left: 24px; top: 40px; width: calc(100% - 48px); height: 260px; }
+      .scene-hud { left: auto; right: 16px; top: 140px; width: 240px; height: 64px; }
+      .scene-hud .hud-time { font-size: 20px; }
+      .scene-nudge { left: auto; right: 8px; top: 220px; width: 280px; padding: 12px 14px; }
+
+      .cta-card { padding: 40px 24px; }
+      .cta-card .heading { font-size: 36px; }
+      .cta-card .sub { font-size: 16px; }
+
+      .pill-row { flex-wrap: wrap; justify-content: center; }
+
+      .cta-row { flex-direction: column; align-items: stretch; }
+      .btn-primary-lg { justify-content: center; }
+      .btn-secondary { justify-content: center; }
+
+      .testi { flex-direction: column; text-align: center; gap: 8px; }
+      .testi .sep { display: none; }
+
+      .footer-row { flex-direction: column; gap: 16px; text-align: center; }
+      .footer-links { gap: 16px; }
+    }
+
+    /* ─── RESPONSIVE: PHONE ─── */
+    @media (max-width: 480px) {
+      .hero-headline { font-size: 30px; }
+      .hero-sub { font-size: 15px; }
+
+      .section-problem .headline { font-size: 28px; }
+      .section-heading .headline { font-size: 26px; }
+
+      .feature-card { padding: 24px; }
+      .feature-card .card-title { font-size: 20px; }
+
+      .step-card { padding: 24px; }
+
+      .action-left .headline { font-size: 28px; }
+      .action-left .subhead { font-size: 16px; }
+      .action-right { height: 300px; }
+      .scene-hud { width: 200px; height: 56px; padding: 0 12px; }
+      .scene-hud .hud-time { font-size: 18px; }
+      .scene-hud .hud-label { font-size: 11px; }
+      .scene-nudge { width: 240px; }
+      .scene-nudge .nudge-body { font-size: 12px; }
+
+      .cta-card .heading { font-size: 28px; }
+
+      .mac-window { width: 100%; }
+
+      .micro-row span { font-size: 12px; text-align: center; }
+
+      .btn-primary { width: 100%; justify-content: center; min-height: 44px; }
+      .btn-secondary { width: 100%; min-height: 44px; }
+    }
   </style>
 </head>
 <body>
