@@ -374,7 +374,6 @@ function showTimerWindow(): void {
   });
 
   loadRendererPage(timerWin, '/hud');
-  timerWin.setAlwaysOnTop(true, 'floating');
   timerWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
   timerWin.on('closed', () => {
     timerWin = null;
