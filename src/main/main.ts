@@ -373,7 +373,7 @@ function showTimerWindow(): void {
   });
 
   loadRendererPage(timerWin, '/hud');
-  timerWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  timerWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
   timerWin.on('closed', () => {
     timerWin = null;
   });
@@ -433,7 +433,7 @@ function showNudgeWindow(): void {
   });
 
   loadRendererPage(nudgeWin, '/nudge');
-  nudgeWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  nudgeWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
   nudgeWin.on('closed', () => {
     nudgeWin = null;
   });
@@ -894,12 +894,6 @@ app.on('window-all-closed', () => {
   // tray app — don't quit on window close
 });
 
-app.on('did-become-active', () => {
-  if (debugWin && !debugWin.isDestroyed()) {
-    debugWin.showInactive();
-    debugWin.moveTop();
-  }
-});
 
 process.on('SIGTERM', () => {
   cleanup();
