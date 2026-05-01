@@ -109,7 +109,6 @@ export function DebugDashboard() {
     return unsub;
   }, []);
 
-  const poll = pipelineState?.currentPollState;
   const batchHistory = pipelineState?.batchHistory ?? [];
 
   return (
@@ -118,23 +117,6 @@ export function DebugDashboard() {
         <div className="debug-header">
           <h1>Debug Dashboard</h1>
           <span className="subtitle">screenpipe pipeline</span>
-        </div>
-
-        {/* Poll State */}
-        <div className="debug-panel">
-          <div className="debug-panel-title">Poll State</div>
-          {poll ? (
-            <>
-              <div className="poll-row">
-                <span className="poll-app">{poll.activeApp || '—'}</span>
-                <span className="poll-window">— {poll.windowTitle || '—'}</span>
-                <Badge label={poll.screenpipeStatus} variant={poll.screenpipeStatus === 'ok' ? 'ok' : 'error'} />
-              </div>
-              <div className="poll-time">Last tick: {formatTime(poll.timestamp)}</div>
-            </>
-          ) : (
-            <div className="debug-empty">No poll data yet. Start a session.</div>
-          )}
         </div>
 
         {/* Live Timeline */}
