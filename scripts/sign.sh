@@ -20,48 +20,28 @@ if [[ "$IDENTITY" == "Developer ID"* ]]; then
   SIGN_FLAGS+=(--options runtime --timestamp)
 fi
 
-# Sign all nested code depth-first (innermost before containers).
-# Electron apps have dylibs, native modules, helpers, and frameworks
-# that must each be signed individually for notarization.
-
-# 1. Shared libraries
-find "$APP" -name "*.dylib" | while read -r f; do
-  codesign "${SIGN_FLAGS[@]}" "$f"
-  echo "  Signed $(basename "$f")"
+# 1. Sign ALL Mach-O binaries inside the app (deepest paths first).
+#    This catches dylibs, .node modules, helper executables like ShipIt,
+#    chrome_crashpad_handler, etc. without relying on filename patterns.
+find "$APP" -type f -print0 | while IFS= read -r -d '' f; do
+  if file "$f" | grep -q "Mach-O"; then
+    codesign "${SIGN_FLAGS[@]}" "$f"
+    echo "  Signed ${f#$APP/}"
+  fi
 done
 
-# 2. Native Node modules (better-sqlite3, etc.)
-find "$APP" -name "*.node" | while read -r f; do
-  codesign "${SIGN_FLAGS[@]}" "$f"
-  echo "  Signed $(basename "$f")"
-done
-
-# 3. Crashpad handler
-find "$APP" -name "chrome_crashpad_handler" | while read -r f; do
-  codesign "${SIGN_FLAGS[@]}" "$f"
-  echo "  Signed chrome_crashpad_handler"
-done
-
-# 4. Helper apps (GPU, Renderer, Plugin helpers)
-find "$APP/Contents/Frameworks" -maxdepth 1 -name "*.app" | while read -r f; do
-  codesign "${SIGN_FLAGS[@]}" --entitlements "$ENTITLEMENTS" "$f"
-  echo "  Signed $(basename "$f")"
-done
-
-# 5. Electron Framework
+# 2. Sign framework bundles (creates bundle-level _CodeSignature)
 find "$APP/Contents/Frameworks" -maxdepth 1 -name "*.framework" | while read -r f; do
   codesign "${SIGN_FLAGS[@]}" "$f"
   echo "  Signed $(basename "$f")"
 done
 
-# 6. Bundled resource binaries
-for bin in screenpipe ffmpeg ffprobe request-screen-access; do
-  if [ -f "$APP/Contents/Resources/$bin" ]; then
-    codesign "${SIGN_FLAGS[@]}" "$APP/Contents/Resources/$bin"
-    echo "  Signed $bin"
-  fi
+# 3. Sign helper app bundles (with entitlements)
+find "$APP/Contents/Frameworks" -maxdepth 1 -name "*.app" | while read -r f; do
+  codesign "${SIGN_FLAGS[@]}" --entitlements "$ENTITLEMENTS" "$f"
+  echo "  Signed $(basename "$f")"
 done
 
-# 7. Top-level app bundle (signed last, with entitlements)
+# 4. Sign top-level app bundle last (with entitlements)
 codesign "${SIGN_FLAGS[@]}" --entitlements "$ENTITLEMENTS" "$APP"
 echo "  Signed $APP"
