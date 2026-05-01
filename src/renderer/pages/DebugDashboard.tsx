@@ -92,7 +92,6 @@ export function DebugDashboard() {
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntryIpc[]>([]);
 
   useEffect(() => {
-    if (!window.tomato?.getDebugPipelineState) return;
     const interval = setInterval(async () => {
       const state = await window.tomato.getDebugPipelineState();
       if (state) setPipelineState(state);
@@ -101,7 +100,6 @@ export function DebugDashboard() {
   }, []);
 
   useEffect(() => {
-    if (!window.tomato?.onTimelineUpdate) return;
     const unsub = window.tomato.onTimelineUpdate((entries) => {
       setTimelineEntries((prev) => {
         const combined = [...prev, ...entries];
