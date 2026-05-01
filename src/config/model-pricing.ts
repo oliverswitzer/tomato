@@ -12,6 +12,26 @@ export const HAIKU_MODELS: ModelPricing[] = [
   { id: 'claude-3-haiku-20240307',   inputPer1M: 0.25, outputPer1M: 1.25 },
 ];
 
+// All known Claude models — used to show per-token cost in the model picker.
+// Anthropic's /v1/models API does not return pricing, so we maintain this table.
+const ALL_MODEL_PRICING: ModelPricing[] = [
+  ...HAIKU_MODELS,
+  { id: 'claude-sonnet-4-6-20260301', inputPer1M: 3.00, outputPer1M: 15.00 },
+  { id: 'claude-sonnet-4-5-20250514', inputPer1M: 3.00, outputPer1M: 15.00 },
+  { id: 'claude-3-5-sonnet-20241022', inputPer1M: 3.00, outputPer1M: 15.00 },
+  { id: 'claude-3-5-sonnet-20240620', inputPer1M: 3.00, outputPer1M: 15.00 },
+  { id: 'claude-opus-4-7-20260414',   inputPer1M: 15.00, outputPer1M: 75.00 },
+  { id: 'claude-opus-4-5-20250220',   inputPer1M: 15.00, outputPer1M: 75.00 },
+];
+
+export function getModelPricing(modelId: string): ModelPricing | null {
+  return ALL_MODEL_PRICING.find((m) => m.id === modelId) ?? null;
+}
+
+export function formatTokenCost(pricing: ModelPricing): string {
+  return `$${pricing.inputPer1M}/$${pricing.outputPer1M} per 1M tokens`;
+}
+
 export function cheapestHaikuFromList(availableModelIds: string[]): string | null {
   const available = HAIKU_MODELS.filter((m) => availableModelIds.includes(m.id));
   if (available.length === 0) return null;

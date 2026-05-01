@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ModelInfo, SettingsState } from '@shared/ipc';
+import { ModelPicker, formatModelName } from '../components/ModelPicker';
 
 const noDrag = { WebkitAppRegion: 'no-drag' } as React.CSSProperties;
 
@@ -14,14 +15,6 @@ function Spinner({ size = 18 }: { size?: number }) {
   );
 }
 
-function ChevronIcon({ direction, color = '#8B8477' }: { direction: 'up' | 'down'; color?: string }) {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points={direction === 'up' ? '18,15 12,9 6,15' : '6,9 12,15 18,9'} />
-    </svg>
-  );
-}
-
 function AlertCircleIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B14A3C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -32,19 +25,61 @@ function AlertCircleIcon() {
   );
 }
 
-function formatModelName(modelId: string): string {
-  const match = modelId.match(/^claude-(\d+(?:\.\d+)?-)?(.*?)(-\d{8})?$/);
-  if (!match) {
-    const parts = modelId.split('-');
-    return parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
-  }
-  const family = match[2] ?? modelId;
-  const version = match[1]?.replace(/-$/, '') ?? '';
-  const name = family.charAt(0).toUpperCase() + family.slice(1);
-  return version ? `Claude ${name} ${version}` : `Claude ${name}`;
+function CloseIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
 }
 
-export function SettingsPage() {
+function CheckIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20,6 9,17 4,12" />
+    </svg>
+  );
+}
+
+function Toast({ message, onDone }: { message: string; onDone: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onDone, 3000);
+    return () => clearTimeout(timer);
+  }, [onDone]);
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 20,
+        right: 20,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        background: '#2A2A2A',
+        color: '#FFFFFF',
+        borderRadius: 10,
+        padding: '10px 16px',
+        fontFamily: 'Inter, sans-serif',
+        fontSize: 12,
+        fontWeight: 500,
+        boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+        zIndex: 1000,
+        animation: 'toast-in 0.2s ease-out',
+      }}
+    >
+      <span style={{ color: '#7CB342' }}><CheckIcon /></span>
+      {message}
+    </div>
+  );
+}
+
+interface SettingsPageProps {
+  onClose: () => void;
+}
+
+export function SettingsPage({ onClose }: SettingsPageProps) {
   const [mode, setMode] = useState<PageMode>('loading');
   const [settingsState, setSettingsState] = useState<SettingsState | null>(null);
   const [keyInput, setKeyInput] = useState('');
@@ -54,6 +89,7 @@ export function SettingsPage() {
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modelError, setModelError] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -84,81 +120,80 @@ export function SettingsPage() {
 
   async function handleSave() {
     const trimmed = keyInput.trim();
-    if (!trimmed && mode === 'no-key') {
+    if (!trimmed) {
       inputRef.current?.focus();
       return;
     }
 
-    if (trimmed) {
-      setIsValidating(true);
-      setErrorMessage('');
+    setIsValidating(true);
+    setErrorMessage('');
 
-      const result = await window.tomato.validateApiKey(trimmed);
+    const result = await window.tomato.validateApiKey(trimmed);
 
-      if (result.valid) {
-        const saveResult = await window.tomato.saveApiKey(trimmed, result.selectedModel!);
-        if (saveResult.success) {
-          const newState = await window.tomato.getSettingsState();
-          setSettingsState(newState);
-          setSelectedModel(newState.selectedModel);
-          setMode('saved');
-          setKeyInput('');
-          setIsValidating(false);
+    if (result.valid) {
+      const saveResult = await window.tomato.saveApiKey(trimmed, result.selectedModel!);
+      if (saveResult.success) {
+        const newState = await window.tomato.getSettingsState();
+        setSettingsState(newState);
+        setSelectedModel(newState.selectedModel);
+        setMode('saved');
+        setKeyInput('');
+        setIsValidating(false);
+        setToastMessage('API key updated');
 
-          const modelResult = await window.tomato.fetchModels();
-          if (modelResult.models.length > 0) {
-            setModels(modelResult.models);
-            setModelError('');
-          }
-          return;
-        } else {
-          setErrorMessage(saveResult.error ?? "Tomato can't write to your Keychain.");
+        const modelResult = await window.tomato.fetchModels();
+        if (modelResult.models.length > 0) {
+          setModels(modelResult.models);
+          setModelError('');
         }
+        return;
       } else {
-        setErrorMessage(result.error ?? 'Validation failed.');
-
-        if (result.retryable && result.error?.includes('rate-limiting')) {
-          setTimeout(async () => {
-            const retry = await window.tomato.validateApiKey(trimmed);
-            if (retry.valid) {
-              const saveResult = await window.tomato.saveApiKey(trimmed, retry.selectedModel!);
-              if (saveResult.success) {
-                const newState = await window.tomato.getSettingsState();
-                setSettingsState(newState);
-                setSelectedModel(newState.selectedModel);
-                setMode('saved');
-                setKeyInput('');
-                setIsValidating(false);
-
-                const modelResult = await window.tomato.fetchModels();
-                if (modelResult.models.length > 0) setModels(modelResult.models);
-                return;
-              }
-            }
-          }, 3000);
-        }
+        setErrorMessage(saveResult.error ?? "Tomato can't write to your Keychain.");
       }
+    } else {
+      setErrorMessage(result.error ?? 'Validation failed.');
 
-      setIsValidating(false);
-      setMode('error');
-    } else if (selectedModel && selectedModel !== settingsState?.selectedModel) {
-      window.tomato.updateModel(selectedModel);
-      const newState = await window.tomato.getSettingsState();
-      setSettingsState(newState);
+      if (result.retryable && result.error?.includes('rate-limiting')) {
+        setTimeout(async () => {
+          const retry = await window.tomato.validateApiKey(trimmed);
+          if (retry.valid) {
+            const saveResult = await window.tomato.saveApiKey(trimmed, retry.selectedModel!);
+            if (saveResult.success) {
+              const newState = await window.tomato.getSettingsState();
+              setSettingsState(newState);
+              setSelectedModel(newState.selectedModel);
+              setMode('saved');
+              setKeyInput('');
+              setIsValidating(false);
+              setToastMessage('API key updated');
+
+              const modelResult = await window.tomato.fetchModels();
+              if (modelResult.models.length > 0) setModels(modelResult.models);
+              return;
+            }
+          }
+        }, 3000);
+      }
     }
+
+    setIsValidating(false);
+    setMode('error');
   }
 
   function handleModelSelect(modelId: string) {
     setSelectedModel(modelId);
     setDropdownOpen(false);
     window.tomato.updateModel(modelId);
+    setToastMessage(`Switched to ${formatModelName(modelId)}`);
   }
+
+  const dismissToast = useCallback(() => setToastMessage(null), []);
 
   const maskedInput = keyInput.length > 4
     ? '•'.repeat(keyInput.length - 4) + keyInput.slice(-4)
     : keyInput;
 
-  const hasChanges = (keyInput.trim().length > 0) || (selectedModel !== settingsState?.selectedModel);
+  const hasKeyChanges = keyInput.trim().length > 0;
   const isNoKey = mode === 'no-key';
   const isSaved = mode === 'saved';
   const isEditing = mode === 'editing';
@@ -168,8 +203,17 @@ export function SettingsPage() {
 
   return (
     <div
-      className="h-screen overflow-hidden rounded-[28px] flex items-center justify-center"
-      style={{ background: '#FBF7F1', WebkitAppRegion: 'drag' } as React.CSSProperties}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 100,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(2px)',
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
         className="flex flex-col"
@@ -182,19 +226,38 @@ export function SettingsPage() {
           padding: '20px 22px',
           gap: isSaved ? 16 : 18,
           ...noDrag,
+          position: 'relative',
         }}
       >
-        <h1
-          style={{
-            fontFamily: "'Newsreader', Georgia, serif",
-            fontSize: 22,
-            fontWeight: 500,
-            color: '#2A2A2A',
-            margin: 0,
-          }}
-        >
-          Settings
-        </h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1
+            style={{
+              fontFamily: "'Newsreader', Georgia, serif",
+              fontSize: 22,
+              fontWeight: 500,
+              color: '#2A2A2A',
+              margin: 0,
+            }}
+          >
+            Settings
+          </h1>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#8B8477',
+              padding: 4,
+              borderRadius: 6,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <CloseIcon />
+          </button>
+        </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -357,113 +420,20 @@ export function SettingsPage() {
         )}
 
         {(isSaved || isEditing) && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, color: '#2A2A2A' }}>
-              Model
-            </span>
-
-            <div
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                background: dropdownOpen ? '#FFFFFF' : '#FBF7F1',
-                borderRadius: dropdownOpen ? '8px 8px 0 0' : 8,
-                border: `1px solid ${dropdownOpen ? '#E2574C' : '#E8E1D7'}`,
-                padding: '10px 12px',
-                cursor: 'pointer',
-              }}
-            >
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: dropdownOpen ? 500 : 400, color: '#2A2A2A' }}>
-                {selectedModel
-                  ? formatModelName(selectedModel)
-                  : 'Select a model'}
-              </span>
-              <ChevronIcon
-                direction={dropdownOpen ? 'up' : 'down'}
-                color={dropdownOpen ? '#E2574C' : '#8B8477'}
-              />
-            </div>
-
-            {dropdownOpen && (
-              <div
-                style={{
-                  background: '#FFFFFF',
-                  borderRadius: '0 0 8px 8px',
-                  border: '1px solid #E2574C',
-                  borderTop: 'none',
-                  boxShadow: '0 8px 18px rgba(0,0,0,0.09)',
-                  padding: '4px 0',
-                  marginTop: -8,
-                }}
-              >
-                {models.length > 0 ? (
-                  models.map((m) => (
-                    <div
-                      key={m.id}
-                      onClick={() => handleModelSelect(m.id)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '10px 12px',
-                        cursor: 'pointer',
-                        background: m.id === selectedModel ? '#FFF5F4' : 'transparent',
-                      }}
-                    >
-                      <span style={{
-                        fontFamily: 'Inter, sans-serif',
-                        fontSize: 12,
-                        fontWeight: m.id === selectedModel ? 600 : 500,
-                        color: '#2A2A2A',
-                      }}>
-                        {formatModelName(m.id)}
-                      </span>
-                      <span style={{
-                        fontFamily: "'Geist Mono', monospace",
-                        fontSize: 10,
-                        color: '#8B8477',
-                      }}>
-                        {m.priceTier}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <div style={{ padding: '10px 12px', textAlign: 'center' }}>
-                    <span style={{
-                      fontFamily: "'Newsreader', Georgia, serif",
-                      fontSize: 11,
-                      fontStyle: 'italic',
-                      color: '#A89F94',
-                    }}>
-                      {modelError || 'Loading models…'}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {!dropdownOpen && (
-              <p
-                style={{
-                  fontFamily: "'Newsreader', Georgia, serif",
-                  fontSize: 12,
-                  fontStyle: 'italic',
-                  color: '#8B8477',
-                  margin: 0,
-                }}
-              >
-                {modelError || 'Haiku is recommended for the cheapest summaries.'}
-              </p>
-            )}
-          </div>
+          <ModelPicker
+            models={models}
+            selectedModel={selectedModel}
+            onSelect={handleModelSelect}
+            open={dropdownOpen}
+            onToggle={() => setDropdownOpen(!dropdownOpen)}
+            error={modelError}
+          />
         )}
 
-        {!isError && (
+        {!isError && hasKeyChanges && (
           <button
             onClick={handleSave}
-            disabled={isValidating || (!hasChanges && isNoKey)}
+            disabled={isValidating}
             style={{
               width: '100%',
               display: 'flex',
@@ -478,8 +448,8 @@ export function SettingsPage() {
               fontFamily: 'Inter, sans-serif',
               fontSize: 14,
               fontWeight: 600,
-              cursor: (isValidating || (!hasChanges && isNoKey)) ? 'not-allowed' : 'pointer',
-              opacity: (isValidating || (!hasChanges && isNoKey)) ? 0.4 : 1,
+              cursor: isValidating ? 'not-allowed' : 'pointer',
+              opacity: isValidating ? 0.4 : 1,
               transition: 'opacity 0.15s',
             }}
           >
@@ -494,29 +464,14 @@ export function SettingsPage() {
           </button>
         )}
 
-        {isSaved && (
+        {isSaved && !hasKeyChanges && (
           <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#A89F94', textAlign: 'center', margin: 0 }}>
             Models are fetched live from your Anthropic account.
           </p>
         )}
-
-        <div style={{ width: '100%', height: 1, background: '#EEE6DA' }} />
-        <button
-          onClick={() => window.tomato.quitApp()}
-          style={{
-            background: 'none',
-            border: 'none',
-            fontFamily: 'Inter, sans-serif',
-            fontSize: 11,
-            color: '#A89F94',
-            cursor: 'pointer',
-            textAlign: 'center',
-            padding: 0,
-          }}
-        >
-          Quit Tomato
-        </button>
       </div>
+
+      {toastMessage && <Toast message={toastMessage} onDone={dismissToast} />}
     </div>
   );
 }

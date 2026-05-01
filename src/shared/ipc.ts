@@ -84,6 +84,8 @@ export interface OnboardingState {
 export interface ModelInfo {
   id: string;
   priceTier: '$' | '$$' | '$$$';
+  inputPer1M: number | null;
+  outputPer1M: number | null;
 }
 
 export interface SettingsState {
@@ -127,7 +129,9 @@ export interface TomatoApi {
   updateModel(modelId: string): void;
   quitApp(): void;
   openSettings(): void;
+  closeSettings(): void;
 
+  onShowSettings(callback: () => void): () => void;
   onApiError(callback: (data: ApiErrorEvent) => void): () => void;
 
   onSessionState(callback: (state: SessionStateWithActivities) => void): () => void;
