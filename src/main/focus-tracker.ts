@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
-import type { Activity, PollState, DebugPipelineState } from '../shared/ipc';
+import type { Activity, PollState, DebugPipelineState, BatchHistoryEntry } from '../shared/ipc';
 import type { ScreenpipeDb } from './screenpipe-db';
 import type { LlmClient, BatchSummaryResult } from './llm-summarizer';
 import { LlmAuthError, LlmModelNotFoundError } from './llm-summarizer';
@@ -34,6 +34,7 @@ export class FocusTracker {
   private intention = '';
   private durationMin = 25;
   private lastBatchResult: BatchSummaryResult | null = null;
+  private batchHistory: BatchHistoryEntry[] = [];
   private pendingLlmCall = false;
   private _paused = false;
 
@@ -111,6 +112,7 @@ export class FocusTracker {
             isDrifting: this.lastBatchResult.driftAssessment.isDrifting,
           }
         : null,
+      batchHistory: this.batchHistory,
     };
   }
 
@@ -207,6 +209,16 @@ export class FocusTracker {
     log(`batch: summary="${result.summary}", classification=${result.level2Classification}, drifting=${result.driftAssessment.isDrifting}`);
 
     this.lastBatchResult = result;
+    this.batchHistory.push({
+      timestamp: until,
+      prompt: this.deps.llm.getLastPrompt() ?? '',
+      summary: result.summary,
+      level2Classification: result.level2Classification,
+      isDrifting: result.driftAssessment.isDrifting,
+      confidence: result.driftAssessment.confidence,
+      reason: result.driftAssessment.reason,
+    });
+    if (this.batchHistory.length > 50) this.batchHistory.shift();
 
     const activity: Activity = {
       summary: result.summary,

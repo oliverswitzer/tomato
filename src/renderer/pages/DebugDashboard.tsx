@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { ScreenpipeFrame, DebugPipelineState, TimelineEntryIpc } from '@shared/ipc';
+import type { ScreenpipeFrame, DebugPipelineState, TimelineEntryIpc, BatchHistoryEntry } from '@shared/ipc';
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -25,13 +25,117 @@ function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' });
 }
 
+function Expandable({ label, children, defaultOpen = false }: { label: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1 text-xs text-[#6B6259] hover:text-[#2A2A2A] font-mono w-full text-left"
+      >
+        <span className="text-[10px]">{open ? '▼' : '▶'}</span>
+        {label}
+      </button>
+      {open && <div className="mt-1 ml-3">{children}</div>}
+    </div>
+  );
+}
+
+function TimelineEntryRow({ entry }: { entry: TimelineEntryIpc }) {
+  const icon = entry.eventType === 'app_switch' ? '⇄'
+    : entry.eventType === 'clipboard' ? '📋'
+    : entry.eventType === 'passive' ? '👁'
+    : '⌨';
+
+  const label = (
+    <span className="flex items-center gap-2 min-w-0">
+      <span className="text-[#BAA898] shrink-0 w-16">{formatTime(entry.timestamp)}</span>
+      <span className="shrink-0">{icon}</span>
+      <Badge label={entry.eventType} color={entry.eventType === 'passive' ? '#9C27B0' : '#8B8477'} />
+      <span className="text-[#6B6259] shrink-0">{entry.app}</span>
+      <span className="text-[#8B8477] truncate">{entry.window}</span>
+    </span>
+  );
+
+  const hasDetails = entry.typedText || entry.browserUrl || entry.accessibilityHints.length > 0 || entry.passiveContext;
+
+  if (!hasDetails) {
+    return <div className="py-1 border-b border-[#F0EAE2] last:border-0 font-mono text-xs">{label}</div>;
+  }
+
+  return (
+    <div className="py-1 border-b border-[#F0EAE2] last:border-0 font-mono text-xs">
+      <Expandable label={label}>
+        <div className="space-y-1 text-[11px] mt-1 pl-2 border-l-2 border-[#EFE8DD]">
+          {entry.browserUrl && (
+            <div><span className="text-[#BAA898]">url:</span> <span className="text-[#5C6BC0]">{entry.browserUrl}</span></div>
+          )}
+          {entry.typedText && (
+            <div><span className="text-[#BAA898]">typed:</span> <span className="text-[#2A2A2A]">"{entry.typedText}"</span></div>
+          )}
+          {entry.timestampEnd && (
+            <div><span className="text-[#BAA898]">duration:</span> {formatTime(entry.timestamp)} — {formatTime(entry.timestampEnd)}</div>
+          )}
+          {entry.accessibilityHints.length > 0 && (
+            <div><span className="text-[#BAA898]">headings:</span> {entry.accessibilityHints.join(', ')}</div>
+          )}
+          {entry.passiveContext && (
+            <div className="space-y-0.5">
+              {entry.passiveContext.urls.length > 0 && (
+                <div><span className="text-[#BAA898]">passive urls:</span> <span className="text-[#5C6BC0]">{entry.passiveContext.urls.join(', ')}</span></div>
+              )}
+              {entry.passiveContext.screenText && (
+                <div><span className="text-[#BAA898]">screen text:</span> <span className="text-[#6B6259]">{entry.passiveContext.screenText.slice(0, 200)}</span></div>
+              )}
+              {entry.passiveContext.clickTargets.length > 0 && (
+                <div><span className="text-[#BAA898]">clicks:</span> {entry.passiveContext.clickTargets.join(', ')}</div>
+              )}
+            </div>
+          )}
+        </div>
+      </Expandable>
+    </div>
+  );
+}
+
+function BatchHistoryRow({ entry }: { entry: BatchHistoryEntry }) {
+  const label = (
+    <span className="flex items-center gap-2 min-w-0">
+      <span className="text-[#BAA898] shrink-0 w-16">{formatTime(entry.timestamp)}</span>
+      <Badge label={entry.level2Classification} color="#5C6BC0" />
+      <Badge
+        label={entry.isDrifting ? `Drift ${Math.round(entry.confidence * 100)}%` : 'On track'}
+        color={entry.isDrifting ? '#E2574C' : '#2E7D32'}
+      />
+      <span className="text-[#6B6259] truncate">{entry.summary}</span>
+    </span>
+  );
+
+  return (
+    <div className="py-1.5 border-b border-[#F0EAE2] last:border-0 font-mono text-xs">
+      <Expandable label={label}>
+        <div className="space-y-2 mt-1 pl-2 border-l-2 border-[#EFE8DD]">
+          <div className="text-[11px]">
+            <div><span className="text-[#BAA898]">summary:</span> <span className="text-[#2A2A2A]">{entry.summary}</span></div>
+            <div><span className="text-[#BAA898]">drift reason:</span> <span className="text-[#6B6259]">{entry.reason}</span></div>
+          </div>
+          <Expandable label={<span className="text-[#E2574C] font-semibold">Show full prompt</span>}>
+            <pre className="text-[11px] text-[#6B6259] whitespace-pre-wrap break-words bg-[#FBF7F1] rounded-lg p-3 border border-[#EFE8DD] max-h-80 overflow-auto mt-1">
+              {entry.prompt}
+            </pre>
+          </Expandable>
+        </div>
+      </Expandable>
+    </div>
+  );
+}
+
 export function DebugDashboard() {
   const [frames, setFrames] = useState<ScreenpipeFrame[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [pipelineState, setPipelineState] = useState<DebugPipelineState | null>(null);
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntryIpc[]>([]);
-  const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -45,7 +149,7 @@ export function DebugDashboard() {
     const unsub = window.tomato.onTimelineUpdate((entries) => {
       setTimelineEntries((prev) => {
         const combined = [...prev, ...entries];
-        return combined.slice(-100);
+        return combined.slice(-200);
       });
     });
     return unsub;
@@ -70,7 +174,7 @@ export function DebugDashboard() {
   }
 
   const poll = pipelineState?.currentPollState;
-  const batch = pipelineState?.lastBatchResult;
+  const batchHistory = pipelineState?.batchHistory ?? [];
 
   return (
     <div className="min-h-screen bg-[#FBF7F1] p-6 font-sans overflow-auto" style={{ userSelect: 'text' }}>
@@ -106,23 +210,9 @@ export function DebugDashboard() {
         {/* Live Timeline */}
         <Panel title={`Live Timeline (${timelineEntries.length} events)`}>
           {timelineEntries.length > 0 ? (
-            <div className="space-y-1 max-h-80 overflow-auto font-mono text-xs">
+            <div className="space-y-0 max-h-96 overflow-auto">
               {[...timelineEntries].reverse().map((e, i) => (
-                <div key={i} className="flex gap-2 py-1 border-b border-[#F0EAE2] last:border-0">
-                  <span className="text-[#BAA898] shrink-0 w-16">{formatTime(e.timestamp)}</span>
-                  <span className="text-[#2A2A2A] shrink-0">
-                    {e.eventType === 'app_switch' ? '⇄' : e.eventType === 'clipboard' ? '📋' : '⌨'}
-                  </span>
-                  <span className="text-[#6B6259] shrink-0">{e.app}</span>
-                  <span className="text-[#BAA898]">→</span>
-                  <span className="text-[#8B8477] truncate">{e.window}</span>
-                  {e.browserUrl && (
-                    <span className="text-[#5C6BC0] truncate">🔗 {e.browserUrl}</span>
-                  )}
-                  {e.typedText && (
-                    <span className="text-[#2A2A2A] truncate ml-auto">&ldquo;{e.typedText}&rdquo;</span>
-                  )}
-                </div>
+                <TimelineEntryRow key={i} entry={e} />
               ))}
             </div>
           ) : (
@@ -130,49 +220,27 @@ export function DebugDashboard() {
           )}
         </Panel>
 
-        {/* Last Batch Result */}
-        <Panel title="Last Batch Summary">
-          {batch ? (
-            <div className="space-y-2 text-sm">
-              <div className="text-[#2A2A2A]">{batch.summary}</div>
-              <div className="flex gap-2">
-                <Badge label={batch.level2Classification} color="#5C6BC0" />
-                <Badge
-                  label={batch.isDrifting ? 'Drifting' : 'On track'}
-                  color={batch.isDrifting ? '#E2574C' : '#2E7D32'}
-                />
-              </div>
+        {/* Batch History */}
+        <Panel title={`Batch History (${batchHistory.length} summaries)`}>
+          {batchHistory.length > 0 ? (
+            <div className="space-y-0 max-h-[500px] overflow-auto">
+              {[...batchHistory].reverse().map((entry, i) => (
+                <BatchHistoryRow key={i} entry={entry} />
+              ))}
             </div>
           ) : (
-            <div className="text-sm text-[#8B8477]">No batch summary yet. First one runs after 3 minutes.</div>
+            <div className="text-sm text-[#8B8477]">No batch summaries yet. First one runs after ~60 seconds.</div>
           )}
         </Panel>
 
         {/* LLM State */}
         <Panel title="LLM State">
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="text-[#2A2A2A]">Pending call:</span>
-              <Badge
-                label={pipelineState?.pendingLlmCall ? 'Yes' : 'No'}
-                color={pipelineState?.pendingLlmCall ? '#F0A020' : '#8B8477'}
-              />
-            </div>
-            {pipelineState?.lastLlmPromptPreview && (
-              <div>
-                <button
-                  onClick={() => setShowPrompt(!showPrompt)}
-                  className="text-xs text-[#E2574C] font-semibold hover:underline"
-                >
-                  {showPrompt ? 'Hide' : 'Show'} last prompt
-                </button>
-                {showPrompt && (
-                  <pre className="mt-2 text-xs text-[#6B6259] font-mono whitespace-pre-wrap break-words bg-[#FBF7F1] rounded-lg p-3 border border-[#EFE8DD] max-h-60 overflow-auto">
-                    {pipelineState.lastLlmPromptPreview}
-                  </pre>
-                )}
-              </div>
-            )}
+          <div className="text-sm flex items-center gap-2">
+            <span className="text-[#2A2A2A]">Pending call:</span>
+            <Badge
+              label={pipelineState?.pendingLlmCall ? 'Yes' : 'No'}
+              color={pipelineState?.pendingLlmCall ? '#F0A020' : '#8B8477'}
+            />
           </div>
         </Panel>
 
