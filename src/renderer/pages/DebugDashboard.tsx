@@ -78,6 +78,7 @@ function BatchHistoryRow({ entry }: { entry: BatchHistoryEntry }) {
         label={entry.isDrifting ? `Drift ${Math.round(entry.confidence * 100)}%` : 'On track'}
         variant={entry.isDrifting ? 'drift' : 'on-track'}
       />
+      <span className="text-[11px] text-amber-600 shrink-0">${entry.costUsd.toFixed(4)}</span>
       <span className="text-[11px] text-stone-600 truncate min-w-0">{entry.summary}</span>
     </span>
   );
@@ -92,6 +93,11 @@ function BatchHistoryRow({ entry }: { entry: BatchHistoryEntry }) {
         <div className="font-mono text-[11px] mb-0.5">
           <span className="text-stone-400">drift reason: </span>
           <span className="text-stone-900">{entry.reason}</span>
+        </div>
+        <div className="font-mono text-[11px] mb-0.5">
+          <span className="text-stone-400">tokens: </span>
+          <span className="text-stone-900">{entry.inputTokens} in / {entry.outputTokens} out</span>
+          <span className="text-amber-600 ml-2">${entry.costUsd.toFixed(4)}</span>
         </div>
         <div className="mt-1.5">
           <button
@@ -134,6 +140,7 @@ export function DebugDashboard() {
   }, []);
 
   const batchHistory = pipelineState?.batchHistory ?? [];
+  const sessionCost = pipelineState?.sessionCostUsd ?? 0;
 
   return (
     <div className="min-h-screen bg-[#FBF7F1] p-6 font-sans overflow-auto" style={{ userSelect: 'text' }}>
@@ -161,9 +168,14 @@ export function DebugDashboard() {
 
         {/* Batch History */}
         <div className="bg-white border border-stone-200 rounded-2xl p-4 mb-3">
-          <h2 className="text-[10px] font-bold text-stone-400 tracking-wider uppercase mb-2.5">
-            Batch History ({batchHistory.length} summaries)
-          </h2>
+          <div className="flex items-center justify-between mb-2.5">
+            <h2 className="text-[10px] font-bold text-stone-400 tracking-wider uppercase">
+              Batch History ({batchHistory.length} summaries)
+            </h2>
+            <span className="text-[11px] font-mono font-semibold text-amber-600">
+              Session: ${sessionCost.toFixed(4)}
+            </span>
+          </div>
           {batchHistory.length > 0 ? (
             <div className="max-h-[500px] overflow-y-auto">
               {[...batchHistory].reverse().map((entry, i) => (

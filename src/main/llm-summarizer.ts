@@ -15,6 +15,11 @@ export class LlmModelNotFoundError extends Error {
   }
 }
 
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+}
+
 export interface BatchSummaryResult {
   summary: string;
   level2Classification: string;
@@ -23,6 +28,7 @@ export interface BatchSummaryResult {
     confidence: number;
     reason: string;
   };
+  usage: TokenUsage;
 }
 
 export interface SessionSummaryResult {
@@ -42,6 +48,7 @@ export interface LlmClient {
     durationMin: number,
   ): Promise<SessionSummaryResult | null>;
   getLastPrompt(): string | null;
+  getModel(): string;
   setModel?(model: string): void;
 }
 
@@ -72,7 +79,12 @@ export class AnthropicLlmClient implements LlmClient {
       const block = res.content.find((b) => b.type === 'text');
       if (!block || block.type !== 'text') return null;
 
-      return this.parseResponse(block.text);
+      const usage: TokenUsage = {
+        inputTokens: res.usage?.input_tokens ?? 0,
+        outputTokens: res.usage?.output_tokens ?? 0,
+      };
+
+      return this.parseResponse(block.text, usage);
     } catch (err: any) {
       const status = err?.status ?? err?.statusCode;
       if (status === 401 || status === 403) throw new LlmAuthError(err.message);
@@ -83,6 +95,10 @@ export class AnthropicLlmClient implements LlmClient {
 
   getLastPrompt(): string | null {
     return this.lastPrompt;
+  }
+
+  getModel(): string {
+    return this.model;
   }
 
   private buildPrompt(timeline: ActivityTimeline, intention: string, sessionContext?: { durationMin: number; batchWindowSec: number }): string {
@@ -189,7 +205,7 @@ Analyze the activity in this window and respond with EXACTLY this JSON (no other
     return parts.join('\n');
   }
 
-  private parseResponse(text: string): BatchSummaryResult | null {
+  private parseResponse(text: string, usage: TokenUsage): BatchSummaryResult | null {
     try {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) return null;
@@ -212,6 +228,7 @@ Analyze the activity in this window and respond with EXACTLY this JSON (no other
           confidence: Number(parsed.driftAssessment.confidence) || 0,
           reason: String(parsed.driftAssessment.reason || ''),
         },
+        usage,
       };
     } catch {
       return null;

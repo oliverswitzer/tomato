@@ -71,6 +71,9 @@ export interface BatchHistoryEntry {
   isDrifting: boolean;
   confidence: number;
   reason: string;
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
 }
 
 export interface DebugPipelineState {
@@ -84,6 +87,7 @@ export interface DebugPipelineState {
     isDrifting: boolean;
   } | null;
   batchHistory: BatchHistoryEntry[];
+  sessionCostUsd: number;
 }
 
 export interface ApiKeyValidationResult {

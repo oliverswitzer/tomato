@@ -33,12 +33,14 @@ function mockLlm(result?: BatchSummaryResult): LlmClient {
       summary: 'Editing code in Cursor.',
       level2Classification: 'Building',
       driftAssessment: { isDrifting: false, confidence: 0.9, reason: 'On task.' },
+      usage: { inputTokens: 400, outputTokens: 90 },
     }),
     summarizeSession: vi.fn().mockResolvedValue({
       summary: 'Worked on focus tracker.',
       focusScore: 85,
     }),
     getLastPrompt: vi.fn().mockReturnValue('mock prompt'),
+    getModel: vi.fn().mockReturnValue('claude-haiku-4-5-20251001'),
   };
 }
 
@@ -106,6 +108,7 @@ describe('FocusTracker', () => {
       summary: 'Browsing social media.',
       level2Classification: 'Off-task',
       driftAssessment: { isDrifting: true, confidence: 0.8, reason: 'User switched to LinkedIn feed.' },
+      usage: { inputTokens: 400, outputTokens: 90 },
     });
     const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
 
@@ -129,6 +132,7 @@ describe('FocusTracker', () => {
       summary: 'Checking something.',
       level2Classification: 'Research',
       driftAssessment: { isDrifting: true, confidence: 0.3, reason: 'Maybe off task.' },
+      usage: { inputTokens: 400, outputTokens: 90 },
     });
     const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
 
@@ -232,6 +236,7 @@ describe('FocusTracker', () => {
       summary: 'Browsing social media.',
       level2Classification: 'Off-task',
       driftAssessment: { isDrifting: true, confidence: 0.8, reason: 'User is off task.' },
+      usage: { inputTokens: 400, outputTokens: 90 },
     });
     const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
 
@@ -345,6 +350,7 @@ describe('FocusTracker', () => {
         summary: 'Back to normal.',
         level2Classification: 'Building',
         driftAssessment: { isDrifting: false, confidence: 0.9, reason: 'On task.' },
+        usage: { inputTokens: 400, outputTokens: 90 },
       });
     const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
 
