@@ -23,7 +23,8 @@ function getHashRoute(): string {
 
 export function App() {
   const hashRoute = getHashRoute();
-  const needsOnboardingCheck = hashRoute === '/start';
+  const inElectron = !!window.tomato?.getOnboardingState;
+  const needsOnboardingCheck = hashRoute === '/start' && inElectron;
   const [route, setRoute] = useState(needsOnboardingCheck ? '' : hashRoute);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -34,13 +35,14 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    if (!needsOnboardingCheck) return;
+    if (!needsOnboardingCheck || !window.tomato?.getOnboardingState) return;
     window.tomato.getOnboardingState().then((state) => {
       setRoute(state.hasApiKey ? '/start' : '/api-key');
     });
   }, []);
 
   useEffect(() => {
+    if (!window.tomato?.onShowSettings) return;
     return window.tomato.onShowSettings(() => setSettingsOpen(true));
   }, []);
 
