@@ -181,17 +181,24 @@ function createTray(): void {
   tray.setToolTip('Tomato');
   updateTrayMenu();
 
-  tray.on('click', () => {
-    if (sessionState.active) {
-      if (timerWin) {
-        timerWin.isVisible() ? timerWin.hide() : timerWin.show();
+  // On macOS, tray.setContextMenu() already shows the menu on click.
+  // A separate click handler would fire simultaneously, causing conflicts
+  // (e.g. toggling the timer hidden right before the menu appears).
+  // Only add the click handler on non-macOS where the context menu doesn't
+  // auto-show on left click.
+  if (process.platform !== 'darwin') {
+    tray.on('click', () => {
+      if (sessionState.active) {
+        if (timerWin) {
+          timerWin.isVisible() ? timerWin.hide() : timerWin.show();
+        } else {
+          showTimerWindow();
+        }
       } else {
-        showTimerWindow();
+        showStartWindow();
       }
-    } else {
-      showStartWindow();
-    }
-  });
+    });
+  }
 }
 
 function updateTrayMenu(): void {
@@ -886,6 +893,12 @@ function cleanup(): void {
 app.on('before-quit', cleanup);
 app.on('window-all-closed', () => {
   // tray app — don't quit on window close
+});
+
+app.on('activate', () => {
+  if (debugWin && !debugWin.isDestroyed()) {
+    debugWin.show();
+  }
 });
 
 process.on('SIGTERM', () => {
