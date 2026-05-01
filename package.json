@@ -4,6 +4,7 @@
   "description": "Pomodoro Mac app with screen-reading focus tracking",
   "main": "dist/main/main.js",
   "scripts": {
+    "predev": "electron-rebuild -f -w better-sqlite3 2>/dev/null || true",
     "dev": "node scripts/dev.js",
     "build:main": "tsc -p tsconfig.node.json",
     "build:renderer": "vite build",
