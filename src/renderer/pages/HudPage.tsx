@@ -9,6 +9,8 @@ export function HudPage() {
   const [driftInfo, setDriftInfo] = useState<{ reason: string; confidence: number; level2Classification: string } | null>(null);
   const [apiError, setApiError] = useState<{ type: 'auth' | 'model_deprecated'; message: string } | null>(null);
   const [sessionEnded, setSessionEnded] = useState(false);
+  const [glassMode, setGlassMode] = useState(false);
+  const [currentVibrancy, setCurrentVibrancy] = useState<string | null>(null);
   const [state, setState] = useState<SessionStateWithActivities>({
     active: false,
     intention: '',
@@ -59,6 +61,14 @@ export function HudPage() {
 
     window.tomato.timerReady();
 
+    const glassUnsub = window.tomato.onGlassMode((enabled) => {
+      setGlassMode(enabled);
+    });
+    const vibrancyUnsub = window.tomato.onVibrancyChanged((vibrancy) => {
+      setCurrentVibrancy(vibrancy);
+    });
+    unsubs.push(glassUnsub, vibrancyUnsub);
+
     return () => unsubs.forEach((fn) => fn());
   }, []);
 
@@ -72,7 +82,12 @@ export function HudPage() {
   const recentTimeline = activities.slice(-6).reverse();
 
   return (
-    <div id="session-timer">
+    <div id="session-timer" className={glassMode ? 'glass-mode' : ''}>
+      {currentVibrancy !== null && (
+        <div className="vibrancy-indicator no-drag">
+          vibrancy: {currentVibrancy ?? 'none'} | {glassMode ? 'GLASS' : 'SOLID'}
+        </div>
+      )}
       {/* Shared header: status badge + toggle */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div
