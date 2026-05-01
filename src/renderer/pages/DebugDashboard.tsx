@@ -14,7 +14,7 @@ function Expandable({ label, children }: { label: React.ReactNode; children: Rea
   const [open, setOpen] = useState(false);
   return (
     <div>
-      <button className="expand-btn" onClick={() => setOpen(!open)}>
+      <button className="debug-expand-btn" onClick={() => setOpen(!open)}>
         <span className="expand-arrow">{open ? '▼' : '▶'}</span>
         {label}
       </button>
@@ -116,7 +116,7 @@ export function DebugDashboard() {
       <div style={{ maxWidth: 700, margin: '0 auto' }}>
         <div className="debug-header">
           <h1>Debug Dashboard</h1>
-          <span className="subtitle">screenpipe pipeline</span>
+          <span className="debug-subtitle">screenpipe pipeline</span>
         </div>
 
         {/* Live Timeline */}
