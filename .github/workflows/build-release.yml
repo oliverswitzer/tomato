@@ -24,6 +24,33 @@ jobs:
 
       - run: npm ci
 
+      - name: Import code-signing certificate
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          CERTIFICATE_PATH=$RUNNER_TEMP/certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -hex 24)
+
+          echo -n "$APPLE_CERTIFICATE" | base64 --decode -o $CERTIFICATE_PATH
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          security import $CERTIFICATE_PATH \
+            -P "$APPLE_CERTIFICATE_PASSWORD" \
+            -A -t cert -f pkcs12 \
+            -k $KEYCHAIN_PATH
+
+          security set-key-partition-list \
+            -S apple-tool:,apple: \
+            -k "$KEYCHAIN_PASSWORD" \
+            $KEYCHAIN_PATH
+
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
       - name: Download patched screenpipe binary
         run: |
           mkdir -p bin
@@ -50,11 +77,28 @@ jobs:
           npx electron-rebuild
           CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --dir --publish never
 
-      - name: Ad-hoc sign app
-        run: codesign --sign - --force --deep release/mac-arm64/Tomato.app
+      - name: Sign app with Developer ID
+        env:
+          CODESIGN_IDENTITY: "Developer ID Application"
+        run: bash scripts/sign.sh
 
       - name: Create DMG
         run: hdiutil create -volname "Tomato" -srcfolder release/mac-arm64/Tomato.app -ov -format UDZO release/Tomato.dmg
+
+      - name: Notarize DMG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          xcrun notarytool submit release/Tomato.dmg \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+
+      - name: Staple notarization ticket
+        run: xcrun stapler staple release/Tomato.dmg
 
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
@@ -75,3 +119,7 @@ jobs:
             --title "Tomato (latest build)" \
             --notes "${{ github.event.inputs.release_notes }}" \
             release/Tomato.dmg
+
+      - name: Clean up keychain
+        if: always()
+        run: security delete-keychain $RUNNER_TEMP/app-signing.keychain-db

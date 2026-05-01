@@ -35,16 +35,28 @@ The binary resolves in this order: `SCREENPIPE_BIN` env → `Contents/Resources/
 
 ## Code signing
 
-macOS permissions (Screen Recording, Accessibility) are tied to the app's code signature hash. **Ad-hoc signing (`codesign --sign -`) generates a new hash every build, revoking all permissions.**
+### CI / distribution
 
-We use a self-signed certificate called **"Tomato Dev"** in the login keychain. This produces a stable signature so permissions persist across rebuilds.
+Release builds use a **Developer ID Application** certificate from the Apple Developer Program. The `build-release.yml` workflow handles certificate import, signing, notarization, and stapling automatically. Required GitHub Actions secrets:
+
+- `APPLE_CERTIFICATE` — base64-encoded .p12 certificate
+- `APPLE_CERTIFICATE_PASSWORD` — .p12 password
+- `APPLE_ID` — Apple ID email for notarization
+- `APPLE_APP_SPECIFIC_PASSWORD` — app-specific password for notarization
+- `APPLE_TEAM_ID` — Apple Developer Team ID
+
+The `scripts/sign.sh` script signs all bundled binaries with `--options runtime --timestamp` (required for notarization) when `CODESIGN_IDENTITY` starts with `"Developer ID"`.
+
+### Local dev
+
+For local builds, a self-signed **"Tomato Dev"** certificate in the login keychain produces a stable signature so macOS permissions (Screen Recording, Accessibility) persist across rebuilds. Ad-hoc signing (`codesign --sign -`) generates a new hash every build, revoking all permissions.
 
 To create the cert (one-time):
 1. Keychain Access → Certificate Assistant → Create a Certificate
 2. Name: `Tomato Dev`, Self Signed Root, Code Signing
 3. Right-click → Get Info → Trust → Code Signing → Always Trust
 
-The `scripts/sign.sh` script signs all bundled binaries with the same `com.tomato.pomodoro` identifier. The pack script calls it automatically.
+`scripts/sign.sh` defaults to the `"Tomato Dev"` identity. Override with `CODESIGN_IDENTITY` env var.
 
 To reset permissions for testing:
 ```bash
