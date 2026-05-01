@@ -9,6 +9,7 @@ import {
   shell,
   desktopCapturer,
   systemPreferences,
+  globalShortcut,
 } from 'electron';
 import { spawn, execFileSync, ChildProcess } from 'child_process';
 import path from 'path';
@@ -804,6 +805,55 @@ ipcMain.on('close-settings', () => {
   }
 });
 
+// --- Vibrancy PoC (IDE-134) ---
+
+const VIBRANCY_TYPES = [
+  null,
+  'under-window',
+  'hud',
+  'popover',
+  'sidebar',
+  'header',
+  'sheet',
+  'window',
+  'menu',
+  'tooltip',
+  'selection',
+  'content',
+  'fullscreen-ui',
+  'under-page',
+  'titlebar',
+] as const;
+
+let currentVibrancyIndex = 0;
+let glassMode = false;
+
+ipcMain.handle('cycle-vibrancy', () => {
+  if (!timerWin) return { vibrancy: null };
+  currentVibrancyIndex = (currentVibrancyIndex + 1) % VIBRANCY_TYPES.length;
+  const vibrancy = VIBRANCY_TYPES[currentVibrancyIndex];
+  try {
+    timerWin.setVibrancy(vibrancy as any);
+  } catch (err) {
+    log(`setVibrancy(${vibrancy}) failed: ${(err as Error).message}`);
+  }
+  log(`Vibrancy set to: ${vibrancy ?? 'none'}`);
+  timerWin.webContents.send('vibrancy-changed', vibrancy);
+  return { vibrancy };
+});
+
+ipcMain.on('toggle-glass-mode', () => {
+  if (!timerWin) return;
+  glassMode = !glassMode;
+  if (glassMode) {
+    timerWin.setVibrancy('under-window' as any);
+  } else {
+    timerWin.setVibrancy(null as any);
+  }
+  timerWin.webContents.send('glass-mode', glassMode);
+  log(`Glass mode: ${glassMode}`);
+});
+
 ipcMain.handle('get-debug-pipeline-state', () => {
   return focusTracker?.getDebugState() ?? null;
 });
@@ -864,6 +914,32 @@ app.whenReady().then(async () => {
   }
 
   createTray();
+
+  // PoC shortcuts for vibrancy testing (IDE-134)
+  globalShortcut.register('CommandOrControl+Shift+G', () => {
+    if (!timerWin) return;
+    glassMode = !glassMode;
+    if (glassMode) {
+      timerWin.setVibrancy('under-window' as any);
+    } else {
+      timerWin.setVibrancy(null as any);
+    }
+    timerWin.webContents.send('glass-mode', glassMode);
+    log(`Glass mode toggled: ${glassMode}`);
+  });
+
+  globalShortcut.register('CommandOrControl+Shift+V', () => {
+    if (!timerWin) return;
+    currentVibrancyIndex = (currentVibrancyIndex + 1) % VIBRANCY_TYPES.length;
+    const vibrancy = VIBRANCY_TYPES[currentVibrancyIndex];
+    try {
+      timerWin.setVibrancy(vibrancy as any);
+    } catch (err) {
+      log(`setVibrancy(${vibrancy}) failed: ${(err as Error).message}`);
+    }
+    timerWin.webContents.send('vibrancy-changed', vibrancy);
+    log(`Vibrancy cycled to: ${vibrancy ?? 'none'}`);
+  });
 
   const hasApiKey = keychain.getApiKey() !== null;
 
