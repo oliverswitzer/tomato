@@ -1,20 +1,35 @@
 import { useState, useEffect } from 'react';
 import type { DebugPipelineState, TimelineEntryIpc, BatchHistoryEntry } from '@shared/ipc';
 
-const badgeColors: Record<string, string> = {
-  ok: 'bg-green-100 text-green-800',
-  error: 'bg-red-100 text-red-600',
-  drift: 'bg-red-100 text-red-600',
-  'on-track': 'bg-green-100 text-green-800',
-  category: 'bg-indigo-100 text-indigo-600',
-  pending: 'bg-amber-100 text-amber-600',
-  muted: 'bg-stone-100 text-stone-500',
-  passive: 'bg-purple-100 text-purple-700',
+const colors = {
+  bg: '#FBF7F1',
+  white: '#FFFFFF',
+  border: '#EFE8DD',
+  textPrimary: '#2A2A2A',
+  textSecondary: '#6B6259',
+  textMuted: '#8B8477',
+  textFaint: '#BAA898',
+  panelBg: '#F5F0E8',
+  red: '#E2574C',
+  green: '#2E7D32',
+  greenBg: '#E8F5E9',
+  redBg: '#FFEBEE',
+  blue: '#5C6BC0',
+  blueBg: '#E8EAF6',
+  purple: '#9C27B0',
+  purpleBg: '#F3E5F5',
+  amber: '#D97706',
+  amberBg: '#FFF8E1',
 };
 
-function Badge({ label, variant }: { label: string; variant: string }) {
+const mono = "'SF Mono', 'Menlo', monospace";
+
+function Badge({ label, bg, color }: { label: string; bg: string; color: string }) {
   return (
-    <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${badgeColors[variant] ?? badgeColors.muted}`}>
+    <span style={{
+      display: 'inline-block', fontSize: 10, fontWeight: 600,
+      padding: '2px 8px', borderRadius: 99, background: bg, color, flexShrink: 0,
+    }}>
       {label}
     </span>
   );
@@ -30,12 +45,40 @@ function Expandable({ label, children }: { label: React.ReactNode; children: Rea
     <div>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-start gap-1 w-full text-left font-mono text-[11px] text-stone-600 hover:text-stone-900 bg-transparent border-none p-0 cursor-pointer"
+        style={{
+          background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+          fontFamily: mono, fontSize: 11, color: colors.textSecondary,
+          display: 'flex', alignItems: 'flex-start', gap: 4, width: '100%', textAlign: 'left',
+        }}
       >
-        <span className="text-[9px] shrink-0 mt-0.5 w-2.5">{open ? '▼' : '▶'}</span>
+        <span style={{ fontSize: 9, flexShrink: 0, marginTop: 2, width: 10 }}>{open ? '▼' : '▶'}</span>
         {label}
       </button>
-      {open && <div className="mt-1 ml-3.5 pl-2.5 border-l-2 border-stone-200">{children}</div>}
+      {open && (
+        <div style={{ marginTop: 4, marginLeft: 14, paddingLeft: 10, borderLeft: `2px solid ${colors.border}` }}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Panel({ title, right, children }: { title: string; right?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div style={{
+      background: colors.white, border: `1px solid ${colors.border}`,
+      borderRadius: 16, padding: '14px 16px', marginBottom: 12,
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <h2 style={{
+          fontSize: 10, fontWeight: 700, color: colors.textFaint,
+          letterSpacing: 1.2, textTransform: 'uppercase', margin: 0,
+        }}>
+          {title}
+        </h2>
+        {right}
+      </div>
+      {children}
     </div>
   );
 }
@@ -46,20 +89,38 @@ function TimelineEntryRow({ entry }: { entry: TimelineEntryIpc }) {
     : entry.eventType === 'passive' ? '👁'
     : '⌨';
 
+  const isPassive = entry.eventType === 'passive';
+
   const label = (
-    <span className="flex items-center gap-1.5 min-w-0">
-      <span className="font-mono text-[11px] text-stone-400 shrink-0 w-[70px]">{formatTime(entry.timestamp)}</span>
-      <span className="shrink-0 text-xs">{icon}</span>
-      <Badge label={entry.eventType} variant={entry.eventType === 'passive' ? 'passive' : 'muted'} />
-      <span className="text-[11px] text-stone-600 shrink-0">{entry.app}</span>
-      <span className="text-[11px] text-stone-400 truncate min-w-0">{entry.window}</span>
+    <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+      <span style={{ fontFamily: mono, fontSize: 11, color: colors.textFaint, flexShrink: 0, width: 70 }}>
+        {formatTime(entry.timestamp)}
+      </span>
+      <span style={{ flexShrink: 0, fontSize: 12 }}>{icon}</span>
+      <Badge
+        label={entry.eventType}
+        bg={isPassive ? colors.purpleBg : colors.panelBg}
+        color={isPassive ? colors.purple : colors.textMuted}
+      />
+      <span style={{ fontSize: 11, color: colors.textSecondary, flexShrink: 0 }}>{entry.app}</span>
+      <span style={{
+        fontSize: 11, color: colors.textMuted,
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0,
+      }}>
+        {entry.window}
+      </span>
     </span>
   );
 
   return (
-    <div className="py-1 border-b border-stone-100 last:border-b-0 font-mono text-xs">
+    <div style={{ padding: '5px 0', borderBottom: `1px solid ${colors.panelBg}` }}>
       <Expandable label={label}>
-        <pre className="font-mono text-[11px] text-stone-600 bg-stone-50 border border-stone-200 rounded-lg p-2.5 whitespace-pre-wrap break-words max-h-[300px] overflow-y-auto mt-1">
+        <pre style={{
+          fontFamily: mono, fontSize: 11, color: colors.textSecondary,
+          background: colors.bg, border: `1px solid ${colors.border}`,
+          borderRadius: 8, padding: 10, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+          maxHeight: 300, overflowY: 'auto', marginTop: 4,
+        }}>
           {JSON.stringify(entry, null, 2)}
         </pre>
       </Expandable>
@@ -71,46 +132,62 @@ function BatchHistoryRow({ entry }: { entry: BatchHistoryEntry }) {
   const [showPrompt, setShowPrompt] = useState(false);
 
   const label = (
-    <span className="flex items-center gap-1.5 min-w-0">
-      <span className="font-mono text-[11px] text-stone-400 shrink-0 w-[70px]">{formatTime(entry.timestamp)}</span>
-      <Badge label={entry.level2Classification} variant="category" />
+    <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+      <span style={{ fontFamily: mono, fontSize: 11, color: colors.textFaint, flexShrink: 0, width: 70 }}>
+        {formatTime(entry.timestamp)}
+      </span>
+      <Badge label={entry.level2Classification} bg={colors.blueBg} color={colors.blue} />
       <Badge
         label={entry.isDrifting ? `Drift ${Math.round(entry.confidence * 100)}%` : 'On track'}
-        variant={entry.isDrifting ? 'drift' : 'on-track'}
+        bg={entry.isDrifting ? colors.redBg : colors.greenBg}
+        color={entry.isDrifting ? colors.red : colors.green}
       />
-      <span className="text-[11px] text-amber-600 shrink-0">${entry.costUsd.toFixed(4)}</span>
-      <span className="text-[11px] text-stone-600 truncate min-w-0">{entry.summary}</span>
+      <span style={{ fontFamily: mono, fontSize: 11, color: colors.amber, flexShrink: 0 }}>
+        ${entry.costUsd.toFixed(4)}
+      </span>
+      <span style={{
+        fontSize: 11, color: colors.textSecondary,
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0,
+      }}>
+        {entry.summary}
+      </span>
     </span>
   );
 
+  const preStyle = {
+    fontFamily: mono, fontSize: 11, color: colors.textSecondary,
+    background: colors.bg, border: `1px solid ${colors.border}`,
+    borderRadius: 8, padding: 10, whiteSpace: 'pre-wrap' as const, wordBreak: 'break-word' as const,
+    maxHeight: 300, overflowY: 'auto' as const, marginTop: 4,
+  };
+
   return (
-    <div className="py-1.5 border-b border-stone-100 last:border-b-0 font-mono text-xs">
+    <div style={{ padding: '6px 0', borderBottom: `1px solid ${colors.panelBg}` }}>
       <Expandable label={label}>
-        <div className="font-mono text-[11px] mb-0.5">
-          <span className="text-stone-400">summary: </span>
-          <span className="text-stone-900">{entry.summary}</span>
+        <div style={{ fontFamily: mono, fontSize: 11, marginBottom: 3 }}>
+          <span style={{ color: colors.textFaint }}>summary: </span>
+          <span style={{ color: colors.textPrimary }}>{entry.summary}</span>
         </div>
-        <div className="font-mono text-[11px] mb-0.5">
-          <span className="text-stone-400">drift reason: </span>
-          <span className="text-stone-900">{entry.reason}</span>
+        <div style={{ fontFamily: mono, fontSize: 11, marginBottom: 3 }}>
+          <span style={{ color: colors.textFaint }}>drift reason: </span>
+          <span style={{ color: colors.textPrimary }}>{entry.reason}</span>
         </div>
-        <div className="font-mono text-[11px] mb-0.5">
-          <span className="text-stone-400">tokens: </span>
-          <span className="text-stone-900">{entry.inputTokens} in / {entry.outputTokens} out</span>
-          <span className="text-amber-600 ml-2">${entry.costUsd.toFixed(4)}</span>
+        <div style={{ fontFamily: mono, fontSize: 11, marginBottom: 3 }}>
+          <span style={{ color: colors.textFaint }}>tokens: </span>
+          <span style={{ color: colors.textPrimary }}>{entry.inputTokens} in / {entry.outputTokens} out</span>
+          <span style={{ color: colors.amber, marginLeft: 8 }}>${entry.costUsd.toFixed(4)}</span>
         </div>
-        <div className="mt-1.5">
+        <div style={{ marginTop: 6 }}>
           <button
             onClick={() => setShowPrompt(!showPrompt)}
-            className="bg-transparent border-none p-0 cursor-pointer font-mono text-[11px] font-semibold text-red-500 hover:underline"
+            style={{
+              background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+              fontFamily: mono, fontSize: 11, fontWeight: 600, color: colors.red,
+            }}
           >
             {showPrompt ? 'Hide' : 'Show'} full prompt
           </button>
-          {showPrompt && (
-            <pre className="font-mono text-[11px] text-stone-600 bg-stone-50 border border-stone-200 rounded-lg p-2.5 whitespace-pre-wrap break-words max-h-[300px] overflow-y-auto mt-1">
-              {entry.prompt}
-            </pre>
-          )}
+          {showPrompt && <pre style={preStyle}>{entry.prompt}</pre>}
         </div>
       </Expandable>
     </div>
@@ -143,61 +220,62 @@ export function DebugDashboard() {
   const sessionCost = pipelineState?.sessionCostUsd ?? 0;
 
   return (
-    <div className="min-h-screen bg-[#FBF7F1] p-6 font-sans overflow-auto" style={{ userSelect: 'text' }}>
-      <div className="max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-semibold text-stone-800 tracking-tight">Debug Dashboard</h1>
-          <span className="text-[11px] font-mono text-stone-400">screenpipe pipeline</span>
+    <div style={{
+      minHeight: '100vh', background: colors.bg, padding: 24,
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+      overflowY: 'auto', userSelect: 'text', WebkitUserSelect: 'text',
+    }}>
+      <div style={{ maxWidth: 700, margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <h1 style={{ fontSize: 20, fontWeight: 600, color: colors.textPrimary, letterSpacing: -0.3, margin: 0 }}>
+            Debug Dashboard
+          </h1>
+          <span style={{ fontSize: 11, fontFamily: mono, color: colors.textMuted }}>screenpipe pipeline</span>
         </div>
 
-        {/* Live Timeline */}
-        <div className="bg-white border border-stone-200 rounded-2xl p-4 mb-3">
-          <h2 className="text-[10px] font-bold text-stone-400 tracking-wider uppercase mb-2.5">
-            Live Timeline ({timelineEntries.length} events)
-          </h2>
+        <Panel title={`Live Timeline (${timelineEntries.length} events)`}>
           {timelineEntries.length > 0 ? (
-            <div className="max-h-[400px] overflow-y-auto">
+            <div style={{ maxHeight: 400, overflowY: 'auto' }}>
               {[...timelineEntries].reverse().map((e, i) => (
                 <TimelineEntryRow key={i} entry={e} />
               ))}
             </div>
           ) : (
-            <div className="text-sm text-stone-400">No activity yet. Start a session.</div>
+            <div style={{ fontSize: 13, color: colors.textMuted }}>No activity yet. Start a session.</div>
           )}
-        </div>
+        </Panel>
 
-        {/* Batch History */}
-        <div className="bg-white border border-stone-200 rounded-2xl p-4 mb-3">
-          <div className="flex items-center justify-between mb-2.5">
-            <h2 className="text-[10px] font-bold text-stone-400 tracking-wider uppercase">
-              Batch History ({batchHistory.length} summaries)
-            </h2>
-            <span className="text-[11px] font-mono font-semibold text-amber-600">
+        <Panel
+          title={`Batch History (${batchHistory.length} summaries)`}
+          right={
+            <span style={{ fontSize: 11, fontFamily: mono, fontWeight: 600, color: colors.amber }}>
               Session: ${sessionCost.toFixed(4)}
             </span>
-          </div>
+          }
+        >
           {batchHistory.length > 0 ? (
-            <div className="max-h-[500px] overflow-y-auto">
+            <div style={{ maxHeight: 500, overflowY: 'auto' }}>
               {[...batchHistory].reverse().map((entry, i) => (
                 <BatchHistoryRow key={i} entry={entry} />
               ))}
             </div>
           ) : (
-            <div className="text-sm text-stone-400">No batch summaries yet. First one runs after ~60 seconds.</div>
+            <div style={{ fontSize: 13, color: colors.textMuted }}>
+              No batch summaries yet. First one runs after ~60 seconds.
+            </div>
           )}
-        </div>
+        </Panel>
 
-        {/* LLM State */}
-        <div className="bg-white border border-stone-200 rounded-2xl p-4 mb-3">
-          <h2 className="text-[10px] font-bold text-stone-400 tracking-wider uppercase mb-2.5">LLM State</h2>
-          <div className="flex items-center gap-2 text-sm text-stone-800">
+        <Panel title="LLM State">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: colors.textPrimary }}>
             Pending call:
             <Badge
               label={pipelineState?.pendingLlmCall ? 'Yes' : 'No'}
-              variant={pipelineState?.pendingLlmCall ? 'pending' : 'muted'}
+              bg={pipelineState?.pendingLlmCall ? colors.amberBg : colors.panelBg}
+              color={pipelineState?.pendingLlmCall ? colors.amber : colors.textMuted}
             />
           </div>
-        </div>
+        </Panel>
       </div>
     </div>
   );
