@@ -15,7 +15,6 @@ const pages: Record<string, ComponentType> = {
   '/debug': DebugDashboard,
   '/permissions': PermissionsPage,
   '/api-key': ApiKeyPage,
-  '/settings': SettingsPage,
 };
 
 function getHashRoute(): string {
@@ -26,6 +25,7 @@ export function App() {
   const hashRoute = getHashRoute();
   const needsOnboardingCheck = hashRoute === '/start';
   const [route, setRoute] = useState(needsOnboardingCheck ? '' : hashRoute);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     const onHashChange = () => setRoute(getHashRoute());
@@ -40,8 +40,19 @@ export function App() {
     });
   }, []);
 
+  useEffect(() => {
+    return window.tomato.onShowSettings(() => setSettingsOpen(true));
+  }, []);
+
   if (!route) return null;
 
   const Page = pages[route] ?? StartPage;
-  return <Page />;
+  return (
+    <>
+      <Page />
+      {settingsOpen && (
+        <SettingsPage onClose={() => setSettingsOpen(false)} />
+      )}
+    </>
+  );
 }

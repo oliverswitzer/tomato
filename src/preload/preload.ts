@@ -32,7 +32,13 @@ const api: TomatoApi = {
   updateModel: (modelId: string) => ipcRenderer.send('update-model', { modelId }),
   quitApp: () => ipcRenderer.send('quit-app'),
   openSettings: () => ipcRenderer.send('open-settings'),
+  closeSettings: () => ipcRenderer.send('close-settings'),
 
+  onShowSettings: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('show-settings', handler);
+    return () => { ipcRenderer.removeListener('show-settings', handler); };
+  },
   onApiError: (callback) => {
     const handler = (_e: IpcRendererEvent, data: ApiErrorEvent) => callback(data);
     ipcRenderer.on('api-error', handler);

@@ -22,7 +22,7 @@ import { AnthropicLlmClient } from './llm-summarizer';
 import { saveSession, getRecentSessions } from './session-store';
 import { ElectronKeychainStore } from './keychain';
 import { validateApiKey } from './api-key-validator';
-import { DEFAULT_MODEL, getPriceTier } from '../config/model-pricing';
+import { DEFAULT_MODEL, getPriceTier, getModelPricing } from '../config/model-pricing';
 import type { SessionState } from '../shared/ipc';
 
 const APP_ROOT = path.join(__dirname, '..', '..');
@@ -254,7 +254,17 @@ function showApiKeyWindow(): void {
 }
 
 function showSettingsWindow(): void {
-  showOnboardingWindow('/settings');
+  if (startWin) {
+    startWin.show();
+    startWin.focus();
+    startWin.webContents.send('show-settings');
+  } else {
+    showOnboardingWindow('/start');
+    const win = startWin as BrowserWindow | null;
+    win?.webContents.once('did-finish-load', () => {
+      win?.webContents.send('show-settings');
+    });
+  }
 }
 
 function showOnboardingWindow(hash: string): void {
@@ -730,7 +740,15 @@ ipcMain.handle('fetch-models', async () => {
 
     const body = await response.json() as { data?: { id: string }[] };
     const modelIds = (body.data ?? []).map((m) => m.id);
-    const models = modelIds.map((id) => ({ id, priceTier: getPriceTier(id) }));
+    const models = modelIds.map((id) => {
+      const pricing = getModelPricing(id);
+      return {
+        id,
+        priceTier: getPriceTier(id),
+        inputPer1M: pricing?.inputPer1M ?? null,
+        outputPer1M: pricing?.outputPer1M ?? null,
+      };
+    });
     return { models };
   } catch {
     return { models: [], error: "Couldn't reach Anthropic — check your connection." };
@@ -758,6 +776,12 @@ ipcMain.on('quit-app', () => {
 
 ipcMain.on('open-settings', () => {
   showSettingsWindow();
+});
+
+ipcMain.on('close-settings', () => {
+  if (startWin) {
+    startWin.webContents.send('hide-settings');
+  }
 });
 
 ipcMain.handle('get-debug-pipeline-state', () => {
