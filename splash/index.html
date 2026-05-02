@@ -1694,10 +1694,20 @@
         if (e.key === 'Escape' && overlay.classList.contains('active')) closeOverlay();
       });
 
+      function getSourceInfo() {
+        var params = new URLSearchParams(window.location.search);
+        return {
+          referrer: document.referrer || undefined,
+          utm_source: params.get('utm_source') || undefined,
+          utm_medium: params.get('utm_medium') || undefined,
+          utm_campaign: params.get('utm_campaign') || undefined,
+        };
+      }
+
       form.addEventListener('submit', function(e) {
+        e.preventDefault();
         var email = input.value.trim();
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          e.preventDefault();
           errorEl.textContent = 'Please enter a valid email address.';
           input.classList.add('input-error');
           input.focus();
@@ -1705,6 +1715,19 @@
         }
         errorEl.textContent = '';
         input.classList.remove('input-error');
+
+        var source = getSourceInfo();
+        if (window.va) window.va('event', { name: 'subscribe', data: source });
+
+        fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, referrer: source.referrer, utm_source: source.utm_source, utm_medium: source.utm_medium, utm_campaign: source.utm_campaign }),
+        }).then(function() {
+          window.location.href = '/download.html';
+        }).catch(function() {
+          window.location.href = '/download.html';
+        });
       });
 
       input.addEventListener('input', function() {
