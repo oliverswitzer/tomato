@@ -76,6 +76,17 @@ export function HudPage() {
 
   const recentTimeline = activities.slice(-6).reverse();
 
+  let hudOpacity = 1;
+  if (liquidGlass) {
+    if (!driftInfo) {
+      hudOpacity = 0.35;
+    } else if (driftInfo.confidence < 0.6) {
+      hudOpacity = 0.65;
+    } else {
+      hudOpacity = 1;
+    }
+  }
+
   return (
     <div
       id="session-timer"
@@ -83,6 +94,7 @@ export function HudPage() {
         liquidGlass ? 'liquid-glass' : '',
         !liquidGlass && driftInfo ? 'glow-drift' : '',
       ].join(' ').trim() || undefined}
+      style={liquidGlass ? { opacity: hudOpacity } : undefined}
     >
       {/* Shared header: status badge + toggle */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -135,7 +147,9 @@ export function HudPage() {
               display: 'flex',
               alignItems: 'center',
               gap: 10,
-              background: apiError.type === 'auth' ? '#FEE4E2' : '#FFF3E0',
+              background: liquidGlass
+                ? (apiError.type === 'auth' ? 'rgba(226, 87, 76, 0.15)' : 'rgba(255, 152, 0, 0.15)')
+                : (apiError.type === 'auth' ? '#FEE4E2' : '#FFF3E0'),
               borderRadius: 10,
               padding: '8px 12px',
               margin: '0 2px',
@@ -179,7 +193,7 @@ export function HudPage() {
           </div>
 
           {driftInfo && (
-            <div className="activity-section" style={{ background: '#FEE4E2', borderRadius: 12, padding: '10px 14px' }}>
+            <div className="activity-section" style={{ background: liquidGlass ? 'rgba(226, 87, 76, 0.15)' : '#FEE4E2', borderRadius: 12, padding: '10px 14px' }}>
               <span className="activity-label" style={{ color: '#B42318' }}>OFF TRACK</span>
               <div style={{ fontSize: 13, color: '#2A2A2A', lineHeight: 1.4 }}>{driftInfo.reason}</div>
               <div style={{ fontSize: 11, color: '#8B8477', marginTop: 4 }}>
