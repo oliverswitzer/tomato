@@ -9,8 +9,8 @@ import {
   shell,
   desktopCapturer,
   systemPreferences,
-  globalShortcut,
 } from 'electron';
+import liquidGlass from 'electron-liquid-glass';
 import { spawn, execFileSync, ChildProcess } from 'child_process';
 import path from 'path';
 import os from 'os';
@@ -28,6 +28,13 @@ import type { SessionState } from '../shared/ipc';
 
 const APP_ROOT = path.join(__dirname, '..', '..');
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
+
+function isMacOS26OrNewer(): boolean {
+  if (process.platform !== 'darwin') return false;
+  const ver = process.getSystemVersion?.() ?? '';
+  const major = parseInt(ver.split('.')[0], 10);
+  return major >= 26;
+}
 
 function getLogPath(): string {
   try {
@@ -356,6 +363,8 @@ function showTimerWindow(): void {
 
   const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
 
+  const supportsLiquidGlass = isMacOS26OrNewer();
+
   timerWin = new BrowserWindow({
     width: 360,
     height: 220,
@@ -366,13 +375,27 @@ function showTimerWindow(): void {
     alwaysOnTop: true,
     resizable: false,
     skipTaskbar: true,
-    hasShadow: false,
+    hasShadow: !supportsLiquidGlass,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: getPreloadPath(),
     },
   });
+
+  if (supportsLiquidGlass) {
+    timerWin.webContents.once('did-finish-load', () => {
+      if (!timerWin) return;
+      try {
+        liquidGlass.addView(timerWin.getNativeWindowHandle(), {
+          cornerRadius: 22,
+        });
+        log('Liquid Glass applied to timer window');
+      } catch (err) {
+        log(`Liquid Glass failed: ${(err as Error).message}`);
+      }
+    });
+  }
 
   loadRendererPage(timerWin, '/hud');
   timerWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
@@ -805,54 +828,7 @@ ipcMain.on('close-settings', () => {
   }
 });
 
-// --- Vibrancy PoC (IDE-134) ---
-
-const VIBRANCY_TYPES = [
-  null,
-  'under-window',
-  'hud',
-  'popover',
-  'sidebar',
-  'header',
-  'sheet',
-  'window',
-  'menu',
-  'tooltip',
-  'selection',
-  'content',
-  'fullscreen-ui',
-  'under-page',
-  'titlebar',
-] as const;
-
-let currentVibrancyIndex = 0;
-let glassMode = false;
-
-ipcMain.handle('cycle-vibrancy', () => {
-  if (!timerWin) return { vibrancy: null };
-  currentVibrancyIndex = (currentVibrancyIndex + 1) % VIBRANCY_TYPES.length;
-  const vibrancy = VIBRANCY_TYPES[currentVibrancyIndex];
-  try {
-    timerWin.setVibrancy(vibrancy as any);
-  } catch (err) {
-    log(`setVibrancy(${vibrancy}) failed: ${(err as Error).message}`);
-  }
-  log(`Vibrancy set to: ${vibrancy ?? 'none'}`);
-  timerWin.webContents.send('vibrancy-changed', vibrancy);
-  return { vibrancy };
-});
-
-ipcMain.on('toggle-glass-mode', () => {
-  if (!timerWin) return;
-  glassMode = !glassMode;
-  if (glassMode) {
-    timerWin.setVibrancy('under-window' as any);
-  } else {
-    timerWin.setVibrancy(null as any);
-  }
-  timerWin.webContents.send('glass-mode', glassMode);
-  log(`Glass mode: ${glassMode}`);
-});
+ipcMain.handle('get-liquid-glass-supported', () => isMacOS26OrNewer());
 
 ipcMain.handle('get-debug-pipeline-state', () => {
   return focusTracker?.getDebugState() ?? null;
@@ -914,32 +890,6 @@ app.whenReady().then(async () => {
   }
 
   createTray();
-
-  // PoC shortcuts for vibrancy testing (IDE-134)
-  globalShortcut.register('CommandOrControl+Shift+G', () => {
-    if (!timerWin) return;
-    glassMode = !glassMode;
-    if (glassMode) {
-      timerWin.setVibrancy('under-window' as any);
-    } else {
-      timerWin.setVibrancy(null as any);
-    }
-    timerWin.webContents.send('glass-mode', glassMode);
-    log(`Glass mode toggled: ${glassMode}`);
-  });
-
-  globalShortcut.register('CommandOrControl+Shift+V', () => {
-    if (!timerWin) return;
-    currentVibrancyIndex = (currentVibrancyIndex + 1) % VIBRANCY_TYPES.length;
-    const vibrancy = VIBRANCY_TYPES[currentVibrancyIndex];
-    try {
-      timerWin.setVibrancy(vibrancy as any);
-    } catch (err) {
-      log(`setVibrancy(${vibrancy}) failed: ${(err as Error).message}`);
-    }
-    timerWin.webContents.send('vibrancy-changed', vibrancy);
-    log(`Vibrancy cycled to: ${vibrancy ?? 'none'}`);
-  });
 
   const hasApiKey = keychain.getApiKey() !== null;
 
