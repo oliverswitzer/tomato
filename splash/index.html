@@ -1275,6 +1275,140 @@
       transform: translateY(0);
     }
 
+    /* ─── MOCK MODAL (step 1 intention) ─── */
+    .mock-modal {
+      background: var(--cream-warm);
+      border-radius: 14px;
+      border: 1px solid rgba(43, 38, 32, 0.06);
+      box-shadow: 0 12px 32px rgba(43, 38, 32, 0.12), 0 4px 10px rgba(43, 38, 32, 0.06);
+      overflow: hidden;
+    }
+
+    .mock-modal-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 12px;
+    }
+
+    .mock-modal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .mock-modal-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 2px 20px 16px;
+    }
+
+    .mock-modal-icon {
+      width: 42px;
+      height: 42px;
+      background: var(--red-blush);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .mock-modal-title {
+      font-family: 'Fraunces', serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--brown-dark);
+    }
+
+    .mock-modal-input {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--cream);
+      border-radius: 10px;
+      border: 1px solid rgba(43, 38, 32, 0.1);
+      font-size: 13px;
+      color: var(--brown-dark);
+    }
+
+    .mock-modal-pills {
+      display: flex;
+      gap: 6px;
+    }
+
+    .mock-modal-pill {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--cream-warm);
+      border: 1px solid rgba(43, 38, 32, 0.12);
+      font-family: 'Fraunces', serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--brown-dark);
+    }
+
+    .mock-modal-pill.active {
+      background: var(--red);
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .mock-modal-start {
+      width: 100%;
+      padding: 10px;
+      background: var(--red);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      border-radius: 10px;
+    }
+
+    /* ─── MOCK BUBBLE (step 3 nudge) ─── */
+    .mock-bubble {
+      background: #fff;
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.14), 0 3px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .mock-bubble-text {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 13px;
+      font-style: italic;
+      color: #2A2A2A;
+      line-height: 1.45;
+    }
+
+    .mock-bubble-buttons {
+      display: flex;
+      gap: 6px;
+    }
+
+    .mock-bubble-btn {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .mock-bubble-btn.secondary {
+      background: #F3EFE9;
+      color: #2A2A2A;
+    }
+
+    .mock-bubble-btn.primary {
+      background: #E2574C;
+      color: #fff;
+    }
+
     /* ─── MOCK OVERLAY (step 2 HUD) ─── */
     .mock-overlay {
       background: #fff;
@@ -1616,8 +1750,25 @@
           <h3 class="card-title">Tell it what you mean to do</h3>
           <p class="card-body">Open Tomato, type your intention (e.g. "Debug the auth flow"), pick a session length, hit start. That sentence is now the lens.</p>
           <div class="step-mock">
-            <div class="mock-input-sm">Debug the auth flow</div>
-            <span class="mock-start-pill">Start</span>
+            <div class="mock-modal">
+              <div class="mock-modal-titlebar">
+                <div class="mock-modal-dot" style="background: #FF5F57;"></div>
+                <div class="mock-modal-dot" style="background: #FEBC2E;"></div>
+                <div class="mock-modal-dot" style="background: #28C840;"></div>
+              </div>
+              <div class="mock-modal-body">
+                <div class="mock-modal-icon">🍅</div>
+                <span class="mock-modal-title">What are you working on?</span>
+                <div class="mock-modal-input">Debug the auth flow</div>
+                <div class="mock-modal-pills">
+                  <span class="mock-modal-pill">15</span>
+                  <span class="mock-modal-pill active">25</span>
+                  <span class="mock-modal-pill">45</span>
+                  <span class="mock-modal-pill">60</span>
+                </div>
+                <div class="mock-modal-start">Start 25-minute session</div>
+              </div>
+            </div>
           </div>
         </div>
         <!-- Step 2 -->
@@ -1650,14 +1801,11 @@
           <h3 class="card-title">Drifted? Tomato says something</h3>
           <p class="card-body">When the gist of your active window stops matching your intention for too long, a calm card appears with a one-line reason and a confidence score. Get back, snooze it, or call the session.</p>
           <div class="step-mock" style="gap: 8px;">
-            <div class="mock-nudge">
-              <div class="nudge-header">
-                <div class="nudge-icon-bg"><div class="nudge-dot"></div></div>
-                <span class="nudge-title">Possible distraction</span>
-              </div>
-              <p class="nudge-reason">Twitter doesn't look like "debug the auth flow"</p>
-              <div class="nudge-actions">
-                <button class="ghost-btn">Got it</button>
+            <div class="mock-bubble">
+              <p class="mock-bubble-text">I noticed you don't seem to be working on "debug the auth flow" right now.</p>
+              <div class="mock-bubble-buttons">
+                <span class="mock-bubble-btn secondary">Pause session</span>
+                <span class="mock-bubble-btn primary">Refocus</span>
               </div>
             </div>
           </div>
