@@ -376,7 +376,7 @@ describe('TimelineBuilder', () => {
       const chromeWindow = 'Tomato — The Smartest Pomodoro on Your Mac - Google Chrome - User';
       const db = mockDb({
         passiveFrames: [
-          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: chromeWindow, browser_url: 'https://tomato-ashy-six.vercel.app/', screen_text: 'Tomato\nThe Smartest Pomodoro on Your Mac\nStart 25-minute session\nChrome File Edit View', capture_trigger: 'click' },
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: chromeWindow, browser_url: 'https://tomatoapp.dev/', screen_text: 'Tomato\nThe Smartest Pomodoro on Your Mac\nStart 25-minute session\nChrome File Edit View', capture_trigger: 'click' },
         ],
         clickEvents: [
           { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_title: chromeWindow, element_name: 'Start 25-minute session' },
