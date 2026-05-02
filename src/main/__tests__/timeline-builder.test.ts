@@ -1,12 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import { TimelineBuilder } from '../timeline-builder';
-import type { ScreenpipeDb, TextEventRow, AppSwitchRow, ClipboardRow, FrameRow, AccessibilityElementRow } from '../screenpipe-db';
+import type { ScreenpipeDb, TextEventRow, AppSwitchRow, ClipboardRow, FrameRow, PassiveFrameRow, ClickEventRow, AccessibilityElementRow } from '../screenpipe-db';
 
 function mockDb(overrides: Partial<{
   textEvents: TextEventRow[];
   appSwitches: AppSwitchRow[];
   clipboardEvents: ClipboardRow[];
   frames: FrameRow[];
+  passiveFrames: PassiveFrameRow[];
+  clickEvents: ClickEventRow[];
   a11yElements: AccessibilityElementRow[];
 }> = {}): ScreenpipeDb {
   return {
@@ -15,6 +17,8 @@ function mockDb(overrides: Partial<{
     getClipboardEvents: vi.fn().mockReturnValue(overrides.clipboardEvents ?? []),
     getLatestFrame: vi.fn().mockReturnValue(null),
     getFrames: vi.fn().mockReturnValue(overrides.frames ?? []),
+    getPassiveFrames: vi.fn().mockReturnValue(overrides.passiveFrames ?? []),
+    getClickEvents: vi.fn().mockReturnValue(overrides.clickEvents ?? []),
     getAccessibilityElements: vi.fn().mockReturnValue(overrides.a11yElements ?? []),
     isHealthy: vi.fn().mockReturnValue(true),
     close: vi.fn(),
@@ -286,5 +290,121 @@ describe('TimelineBuilder', () => {
     const timeline = builder.buildFromDb(db, since, until);
 
     expect(timeline.entries[0].browserUrl).toBeNull();
+  });
+
+  describe('passive activity capture', () => {
+    it('creates passive entries from frames when no typing or app_switch events exist', () => {
+      const windowName = 'How i book 3-5 meetings a day Cold Calling - YouTube - Audio playing - Google Chrome - User';
+      const db = mockDb({
+        passiveFrames: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: windowName, browser_url: 'https://www.youtube.com/watch?v=tU52nLIUz8Y', screen_text: 'How i book 3-5 meetings a day\nCold Calling ($319,000/month web design agency - full script)\nChrome File Edit View History Bookmarks Profiles Tab Window Help', capture_trigger: 'visual_change' },
+          { id: 2, timestamp: '2026-04-25T10:00:20Z', app_name: 'Google Chrome', window_name: windowName, browser_url: 'https://www.youtube.com/watch?v=tU52nLIUz8Y', screen_text: 'How i book 3-5 meetings a day\nCold Calling ($319,000/month web design agency - full script)\n2:35 / 14:22', capture_trigger: 'idle' },
+        ],
+      });
+
+      const timeline = builder.buildFromDb(db, since, until);
+
+      expect(timeline.entries).toHaveLength(1);
+      expect(timeline.entries[0].eventType).toBe('passive');
+      expect(timeline.entries[0].app).toBe('Google Chrome');
+      expect(timeline.entries[0].window).toBe(windowName);
+      expect(timeline.entries[0].browserUrl).toBe('https://www.youtube.com/watch?v=tU52nLIUz8Y');
+      expect(timeline.entries[0].timestampEnd).toBe('2026-04-25T10:00:20Z');
+      expect(timeline.entries[0].passiveContext).toBeDefined();
+      expect(timeline.entries[0].passiveContext!.urls).toEqual(['https://www.youtube.com/watch?v=tU52nLIUz8Y']);
+      expect(timeline.entries[0].passiveContext!.screenText).toContain('Cold Calling');
+    });
+
+    it('does not create passive entries when typing events exist', () => {
+      const db = mockDb({
+        textEvents: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', text_content: 'hello', app_name: 'Cursor', window_title: 'main.ts — tomato' },
+        ],
+        passiveFrames: [
+          { id: 1, timestamp: '2026-04-25T10:00:10Z', app_name: 'Google Chrome', window_name: 'Opening soon… - YouTube - Audio playing - Google Chrome - User', browser_url: 'https://www.youtube.com/shorts/r5QMIVEud1U', screen_text: 'Opening soon…\nYouTube Shorts', capture_trigger: 'idle' },
+        ],
+      });
+
+      const timeline = builder.buildFromDb(db, since, until);
+
+      const passiveEntries = timeline.entries.filter(e => e.eventType === 'passive');
+      expect(passiveEntries).toHaveLength(0);
+    });
+
+    it('groups passive frames by app+window', () => {
+      const ytWindow = 'a letter to cinephiles - YouTube - Google Chrome - User';
+      const ghWindow = 'Pull requests · testuser/tomato - Google Chrome - User';
+      const db = mockDb({
+        passiveFrames: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: ytWindow, browser_url: 'https://www.youtube.com/shorts/dvN1MQabawY', screen_text: 'a letter to cinephiles', capture_trigger: 'idle' },
+          { id: 2, timestamp: '2026-04-25T10:00:30Z', app_name: 'Google Chrome', window_name: ghWindow, browser_url: 'https://github.com/testuser/tomato/pulls', screen_text: 'Pull requests\ntestuser/tomato\n3 Open 12 Closed', capture_trigger: 'click' },
+          { id: 3, timestamp: '2026-04-25T10:01:00Z', app_name: 'Google Chrome', window_name: ytWindow, browser_url: 'https://www.youtube.com/shorts/dvN1MQabawY', screen_text: 'a letter to cinephiles continued', capture_trigger: 'idle' },
+        ],
+      });
+
+      const timeline = builder.buildFromDb(db, since, until);
+
+      const passiveEntries = timeline.entries.filter(e => e.eventType === 'passive');
+      expect(passiveEntries).toHaveLength(2);
+      const youtubeEntry = passiveEntries.find(e => e.window === ytWindow);
+      const ghEntry = passiveEntries.find(e => e.window === ghWindow);
+      expect(youtubeEntry).toBeDefined();
+      expect(ghEntry).toBeDefined();
+    });
+
+    it('enriches existing entries with passive context when both active and passive data exist', () => {
+      const chromeWindow = 'node.js - How to handle API request timeout - Stack Overflow - Google Chrome - User';
+      const db = mockDb({
+        textEvents: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', text_content: 'searching...', app_name: 'Google Chrome', window_title: chromeWindow },
+          { id: 2, timestamp: '2026-04-25T10:00:07Z', text_content: 'more search', app_name: 'Google Chrome', window_title: chromeWindow },
+        ],
+        passiveFrames: [
+          { id: 1, timestamp: '2026-04-25T10:00:06Z', app_name: 'Google Chrome', window_name: chromeWindow, browser_url: 'https://stackoverflow.com/questions/123/how-to-handle-api-request-timeout', screen_text: 'How to handle API request timeout\nAsked 3 years ago\nModified 1 year ago\nViewed 45k times\n\nI have a Node.js application that makes HTTP requests', capture_trigger: 'visual_change' },
+        ],
+      });
+
+      const timeline = builder.buildFromDb(db, since, until);
+
+      expect(timeline.entries).toHaveLength(1);
+      expect(timeline.entries[0].passiveContext).toBeDefined();
+      expect(timeline.entries[0].passiveContext!.urls).toEqual(['https://stackoverflow.com/questions/123/how-to-handle-api-request-timeout']);
+      expect(timeline.entries[0].passiveContext!.screenText).toContain('How to handle API request timeout');
+    });
+
+    it('includes click targets in passive context', () => {
+      const chromeWindow = 'Tomato — The Smartest Pomodoro on Your Mac - Google Chrome - User';
+      const db = mockDb({
+        passiveFrames: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: chromeWindow, browser_url: 'https://tomato-ashy-six.vercel.app/', screen_text: 'Tomato\nThe Smartest Pomodoro on Your Mac\nStart 25-minute session\nChrome File Edit View', capture_trigger: 'click' },
+        ],
+        clickEvents: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_title: chromeWindow, element_name: 'Start 25-minute session' },
+          { id: 2, timestamp: '2026-04-25T10:00:08Z', app_name: 'Google Chrome', window_title: chromeWindow, element_name: 'Refocus' },
+        ],
+      });
+
+      const timeline = builder.buildFromDb(db, since, until);
+
+      expect(timeline.entries[0].passiveContext).toBeDefined();
+      expect(timeline.entries[0].passiveContext!.clickTargets).toContain('Start 25-minute session');
+      expect(timeline.entries[0].passiveContext!.clickTargets).toContain('Refocus');
+    });
+
+    it('includes passive apps in uniqueApps and dominantApp', () => {
+      const windowName = 'How i book 3-5 meetings a day Cold Calling - YouTube - Google Chrome - User';
+      const db = mockDb({
+        passiveFrames: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: windowName, browser_url: 'https://www.youtube.com/watch?v=tU52nLIUz8Y', screen_text: 'How i book 3-5 meetings\nChrome File Edit View', capture_trigger: 'idle' },
+          { id: 2, timestamp: '2026-04-25T10:00:20Z', app_name: 'Google Chrome', window_name: windowName, browser_url: 'https://www.youtube.com/watch?v=tU52nLIUz8Y', screen_text: 'How i book 3-5 meetings\n2:35 / 14:22', capture_trigger: 'idle' },
+          { id: 3, timestamp: '2026-04-25T10:00:40Z', app_name: 'Google Chrome', window_name: windowName, browser_url: 'https://www.youtube.com/watch?v=tU52nLIUz8Y', screen_text: 'How i book 3-5 meetings\n5:10 / 14:22', capture_trigger: 'idle' },
+        ],
+      });
+
+      const timeline = builder.buildFromDb(db, since, until);
+
+      expect(timeline.uniqueApps).toContain('Google Chrome');
+      expect(timeline.dominantApp).toBe('Google Chrome');
+    });
   });
 });

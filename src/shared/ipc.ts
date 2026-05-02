@@ -42,12 +42,18 @@ export interface CaptureResult {
 
 export interface TimelineEntryIpc {
   timestamp: string;
+  timestampEnd?: string;
   app: string;
   window: string;
   typedText: string | null;
-  eventType: 'typing' | 'app_switch' | 'clipboard' | 'idle';
+  eventType: 'typing' | 'app_switch' | 'clipboard' | 'idle' | 'passive';
   accessibilityHints: string[];
   browserUrl: string | null;
+  passiveContext?: {
+    urls: string[];
+    screenText: string | null;
+    clickTargets: string[];
+  };
 }
 
 export interface PollState {
@@ -55,6 +61,19 @@ export interface PollState {
   activeApp: string;
   windowTitle: string;
   screenpipeStatus: 'ok' | 'error' | 'unavailable';
+}
+
+export interface BatchHistoryEntry {
+  timestamp: string;
+  prompt: string;
+  summary: string;
+  level2Classification: string;
+  isDrifting: boolean;
+  confidence: number;
+  reason: string;
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
 }
 
 export interface DebugPipelineState {
@@ -67,6 +86,8 @@ export interface DebugPipelineState {
     level2Classification: string;
     isDrifting: boolean;
   } | null;
+  batchHistory: BatchHistoryEntry[];
+  sessionCostUsd: number;
 }
 
 export interface ApiKeyValidationResult {

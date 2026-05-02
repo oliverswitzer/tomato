@@ -181,17 +181,24 @@ function createTray(): void {
   tray.setToolTip('Tomato');
   updateTrayMenu();
 
-  tray.on('click', () => {
-    if (sessionState.active) {
-      if (timerWin) {
-        timerWin.isVisible() ? timerWin.hide() : timerWin.show();
+  // On macOS, tray.setContextMenu() already shows the menu on click.
+  // A separate click handler would fire simultaneously, causing conflicts
+  // (e.g. toggling the timer hidden right before the menu appears).
+  // Only add the click handler on non-macOS where the context menu doesn't
+  // auto-show on left click.
+  if (process.platform !== 'darwin') {
+    tray.on('click', () => {
+      if (sessionState.active) {
+        if (timerWin) {
+          timerWin.isVisible() ? timerWin.hide() : timerWin.show();
+        } else {
+          showTimerWindow();
+        }
       } else {
-        showTimerWindow();
+        showStartWindow();
       }
-    } else {
-      showStartWindow();
-    }
-  });
+    });
+  }
 }
 
 function updateTrayMenu(): void {
@@ -367,7 +374,7 @@ function showTimerWindow(): void {
   });
 
   loadRendererPage(timerWin, '/hud');
-  timerWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  timerWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
   timerWin.on('closed', () => {
     timerWin = null;
   });
@@ -386,6 +393,7 @@ function showDebugWindow(): void {
     width: 700,
     height: 800,
     title: 'Debug Dashboard',
+    alwaysOnTop: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -394,6 +402,7 @@ function showDebugWindow(): void {
   });
 
   loadRendererPage(debugWin, '/debug');
+  debugWin.setAlwaysOnTop(true, 'floating');
   debugWin.on('closed', () => {
     debugWin = null;
   });
@@ -427,7 +436,7 @@ function showNudgeWindow(): void {
   });
 
   loadRendererPage(nudgeWin, '/nudge');
-  nudgeWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  nudgeWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
   nudgeWin.on('closed', () => {
     nudgeWin = null;
   });
@@ -459,12 +468,6 @@ function startSession(intention: string, durationMin: number): void {
   startScreenpipe();
 
   const dbPath = path.join(os.homedir(), '.screenpipe', 'db.sqlite');
-  try {
-    db = new SqliteScreenpipeDb(new Database(dbPath, { readonly: true }));
-    log(`Opened screenpipe DB: ${dbPath}`);
-  } catch (err) {
-    log(`Failed to open screenpipe DB: ${(err as Error).message}`);
-  }
 
   const apiKey = keychain?.getApiKey() ?? process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -476,39 +479,56 @@ function startSession(intention: string, durationMin: number): void {
     selectedModel,
   );
   const batchMs = process.env.TOMATO_BATCH_MS ? parseInt(process.env.TOMATO_BATCH_MS) : undefined;
-  focusTracker = new FocusTracker({ db: db!, llm, batchIntervalMs: batchMs });
 
-  focusTracker.onActivity = (activity) => {
-    if (timerWin) {
-      timerWin.webContents.send('activity-update', activity);
+  function tryOpenDbAndStart(): void {
+    try {
+      db = new SqliteScreenpipeDb(new Database(dbPath, { readonly: true }));
+      log(`Opened screenpipe DB: ${dbPath}`);
+    } catch (err) {
+      log(`Waiting for screenpipe DB: ${(err as Error).message}`);
+      setTimeout(tryOpenDbAndStart, 3000);
+      return;
     }
-  };
 
-  focusTracker.onDrift = (data) => {
-    log(`Drift detected: ${data.reason} (confidence: ${data.confidence}, classification: ${data.level2Classification})`);
-    showNudgeWindow();
-    if (timerWin) {
-      timerWin.webContents.send('drift-detected', data);
-    }
-  };
+    focusTracker = new FocusTracker({ db, llm, batchIntervalMs: batchMs });
 
-  focusTracker.onApiError = (data) => {
-    log(`API error: type=${data.type}, message=${data.message}`);
-    if (timerWin) {
-      timerWin.webContents.send('api-error', data);
-    }
-    if (data.type === 'model_deprecated' && keychain) {
-      keychain.setSelectedModel(DEFAULT_MODEL);
-    }
-  };
+    focusTracker.onActivity = (activity) => {
+      if (timerWin) {
+        timerWin.webContents.send('activity-update', activity);
+      }
+    };
 
-  focusTracker.onTimelineUpdate = (entries) => {
-    if (timerWin) {
-      timerWin.webContents.send('timeline-update', entries);
-    }
-  };
+    focusTracker.onDrift = (data) => {
+      log(`Drift detected: ${data.reason} (confidence: ${data.confidence}, classification: ${data.level2Classification})`);
+      showNudgeWindow();
+      if (timerWin) {
+        timerWin.webContents.send('drift-detected', data);
+      }
+    };
 
-  focusTracker.start(intention, durationMin);
+    focusTracker.onApiError = (data) => {
+      log(`API error: type=${data.type}, message=${data.message}`);
+      if (timerWin) {
+        timerWin.webContents.send('api-error', data);
+      }
+      if (data.type === 'model_deprecated' && keychain) {
+        keychain.setSelectedModel(DEFAULT_MODEL);
+      }
+    };
+
+    focusTracker.onTimelineUpdate = (entries) => {
+      if (timerWin) {
+        timerWin.webContents.send('timeline-update', entries);
+      }
+      if (debugWin) {
+        debugWin.webContents.send('timeline-update', entries);
+      }
+    };
+
+    focusTracker.start(intention, durationMin);
+  }
+
+  tryOpenDbAndStart();
 
   timerInterval = setInterval(() => {
     if (sessionState.paused) return;
@@ -862,6 +882,10 @@ app.whenReady().then(async () => {
 function cleanup(): void {
   stopScreenpipe();
   if (focusTracker) focusTracker.stop();
+  if (debugWin) {
+    debugWin.close();
+    debugWin = null;
+  }
   if (db) {
     db.close();
     db = null;
@@ -872,6 +896,7 @@ app.on('before-quit', cleanup);
 app.on('window-all-closed', () => {
   // tray app — don't quit on window close
 });
+
 
 process.on('SIGTERM', () => {
   cleanup();

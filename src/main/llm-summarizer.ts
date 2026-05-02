@@ -15,6 +15,11 @@ export class LlmModelNotFoundError extends Error {
   }
 }
 
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+}
+
 export interface BatchSummaryResult {
   summary: string;
   level2Classification: string;
@@ -23,6 +28,7 @@ export interface BatchSummaryResult {
     confidence: number;
     reason: string;
   };
+  usage: TokenUsage;
 }
 
 export interface SessionSummaryResult {
@@ -42,6 +48,7 @@ export interface LlmClient {
     durationMin: number,
   ): Promise<SessionSummaryResult | null>;
   getLastPrompt(): string | null;
+  getModel(): string;
   setModel?(model: string): void;
 }
 
@@ -72,7 +79,12 @@ export class AnthropicLlmClient implements LlmClient {
       const block = res.content.find((b) => b.type === 'text');
       if (!block || block.type !== 'text') return null;
 
-      return this.parseResponse(block.text);
+      const usage: TokenUsage = {
+        inputTokens: res.usage?.input_tokens ?? 0,
+        outputTokens: res.usage?.output_tokens ?? 0,
+      };
+
+      return this.parseResponse(block.text, usage);
     } catch (err: any) {
       const status = err?.status ?? err?.statusCode;
       if (status === 401 || status === 403) throw new LlmAuthError(err.message);
@@ -83,6 +95,10 @@ export class AnthropicLlmClient implements LlmClient {
 
   getLastPrompt(): string | null {
     return this.lastPrompt;
+  }
+
+  getModel(): string {
+    return this.model;
   }
 
   private buildPrompt(timeline: ActivityTimeline, intention: string, sessionContext?: { durationMin: number; batchWindowSec: number }): string {
@@ -96,12 +112,15 @@ export class AnthropicLlmClient implements LlmClient {
               if (e.typedText) parts.push(`  typed: "${e.typedText}"`);
               if (e.eventType === 'app_switch') parts.push('  (switched to this app)');
               if (e.eventType === 'clipboard') parts.push('  (clipboard)');
+              if (e.eventType === 'passive') parts.push('  (passive consumption — no typing detected)');
               if (e.accessibilityHints.length > 0)
                 parts.push(`  headings: ${e.accessibilityHints.join(', ')}`);
               return parts.join('\n');
             })
             .join('\n')
         : 'No activity detected in this time window.';
+
+    const passiveContextSections = this.buildPassiveContextSection(timeline);
 
     const windowNote = sessionContext
       ? `\n\nIMPORTANT: This is a ${sessionContext.batchWindowSec}-second snapshot within a ${sessionContext.durationMin}-minute pomodoro session. You are summarizing ONLY this short window, not the entire session. A brief distraction in a ${sessionContext.batchWindowSec}-second window does not mean the user failed — they may have been focused for the other ${sessionContext.durationMin - 1} minutes. Be proportionate in your assessment.`
@@ -133,7 +152,10 @@ Drift means the user shifted to activity UNRELATED to their intention. Use these
 Apps used: ${timeline.uniqueApps.join(', ') || 'none'}
 Most active: ${timeline.dominantApp || 'none'}
 
-${timelineText}${windowNote}
+${timelineText}${passiveContextSections}${windowNote}
+
+## Anti-hallucination rule
+Only describe content that is directly present in the provided context. Do not infer or fabricate video titles, article names, or page content that is not explicitly shown.
 
 ## Instructions
 Analyze the activity in this window and respond with EXACTLY this JSON (no other text):
@@ -148,7 +170,42 @@ Analyze the activity in this window and respond with EXACTLY this JSON (no other
 }`;
   }
 
-  private parseResponse(text: string): BatchSummaryResult | null {
+  private buildPassiveContextSection(timeline: ActivityTimeline): string {
+    const allUrls: string[] = [];
+    const allScreenTexts: string[] = [];
+    const allClickTargets: string[] = [];
+
+    for (const e of timeline.entries) {
+      if (!e.passiveContext) continue;
+      for (const url of e.passiveContext.urls) {
+        if (!allUrls.includes(url)) allUrls.push(url);
+      }
+      if (e.passiveContext.screenText) {
+        allScreenTexts.push(e.passiveContext.screenText);
+      }
+      for (const ct of e.passiveContext.clickTargets) {
+        if (!allClickTargets.includes(ct)) allClickTargets.push(ct);
+      }
+    }
+
+    if (allUrls.length === 0 && allScreenTexts.length === 0 && allClickTargets.length === 0) {
+      return '';
+    }
+
+    const parts = ['\n\n## Passive Context (from screen capture)'];
+    if (allUrls.length > 0) {
+      parts.push(`URLs visited: ${allUrls.join(', ')}`);
+    }
+    if (allScreenTexts.length > 0) {
+      parts.push(`Screen text: ${allScreenTexts[0].slice(0, 200)}`);
+    }
+    if (allClickTargets.length > 0) {
+      parts.push(`Click targets: ${allClickTargets.join(', ')}`);
+    }
+    return parts.join('\n');
+  }
+
+  private parseResponse(text: string, usage: TokenUsage): BatchSummaryResult | null {
     try {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) return null;
@@ -171,6 +228,7 @@ Analyze the activity in this window and respond with EXACTLY this JSON (no other
           confidence: Number(parsed.driftAssessment.confidence) || 0,
           reason: String(parsed.driftAssessment.reason || ''),
         },
+        usage,
       };
     } catch {
       return null;

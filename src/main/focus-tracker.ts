@@ -1,11 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
-import type { Activity, PollState, DebugPipelineState } from '../shared/ipc';
+import type { Activity, PollState, DebugPipelineState, BatchHistoryEntry } from '../shared/ipc';
 import type { ScreenpipeDb } from './screenpipe-db';
 import type { LlmClient, BatchSummaryResult } from './llm-summarizer';
 import { LlmAuthError, LlmModelNotFoundError } from './llm-summarizer';
-import { DEFAULT_MODEL } from '../config/model-pricing';
+import { DEFAULT_MODEL, getModelPricing } from '../config/model-pricing';
 import { TimelineBuilder, type TimelineEntry, type ActivityTimeline } from './timeline-builder';
 
 const DEFAULT_TICK_MS = 15_000;
@@ -34,6 +34,8 @@ export class FocusTracker {
   private intention = '';
   private durationMin = 25;
   private lastBatchResult: BatchSummaryResult | null = null;
+  private batchHistory: BatchHistoryEntry[] = [];
+  private sessionCostUsd = 0;
   private pendingLlmCall = false;
   private _paused = false;
 
@@ -111,6 +113,8 @@ export class FocusTracker {
             isDrifting: this.lastBatchResult.driftAssessment.isDrifting,
           }
         : null,
+      batchHistory: this.batchHistory,
+      sessionCostUsd: this.sessionCostUsd,
     };
   }
 
@@ -207,6 +211,26 @@ export class FocusTracker {
     log(`batch: summary="${result.summary}", classification=${result.level2Classification}, drifting=${result.driftAssessment.isDrifting}`);
 
     this.lastBatchResult = result;
+
+    const pricing = getModelPricing(this.deps.llm.getModel());
+    const costUsd = pricing
+      ? (result.usage.inputTokens * pricing.inputPer1M + result.usage.outputTokens * pricing.outputPer1M) / 1_000_000
+      : 0;
+    this.sessionCostUsd += costUsd;
+
+    this.batchHistory.push({
+      timestamp: until,
+      prompt: this.deps.llm.getLastPrompt() ?? '',
+      summary: result.summary,
+      level2Classification: result.level2Classification,
+      isDrifting: result.driftAssessment.isDrifting,
+      confidence: result.driftAssessment.confidence,
+      reason: result.driftAssessment.reason,
+      inputTokens: result.usage.inputTokens,
+      outputTokens: result.usage.outputTokens,
+      costUsd,
+    });
+    if (this.batchHistory.length > 50) this.batchHistory.shift();
 
     const activity: Activity = {
       summary: result.summary,

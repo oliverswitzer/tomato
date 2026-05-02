@@ -136,6 +136,57 @@ describe('SqliteScreenpipeDb', () => {
     });
   });
 
+  describe('getPassiveFrames', () => {
+    it('returns frames with screen text and browser URL', () => {
+      const mockDb = createMockDb({
+        frames: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_name: 'How i book 3-5 meetings a day Cold Calling - YouTube - Audio playing - Google Chrome - User', browser_url: 'https://www.youtube.com/watch?v=tU52nLIUz8Y', screen_text: 'How i book 3-5 meetings a day\nCold Calling ($319,000/month web design agency)\nChrome File Edit View', capture_trigger: 'idle' },
+          { id: 2, timestamp: '2026-04-25T10:00:20Z', app_name: 'Google Chrome', window_name: 'How i book 3-5 meetings a day Cold Calling - YouTube - Audio playing - Google Chrome - User', browser_url: 'https://www.youtube.com/watch?v=tU52nLIUz8Y', screen_text: 'How i book 3-5 meetings a day\nCold Calling ($319,000/month web design agency)\n2:35 / 14:22', capture_trigger: 'visual_change' },
+        ],
+      });
+      const db = new SqliteScreenpipeDb(mockDb);
+
+      const frames = db.getPassiveFrames('2026-04-25T10:00:00Z', '2026-04-25T10:01:00Z');
+      expect(frames).toHaveLength(2);
+      expect(frames[0].browser_url).toBe('https://www.youtube.com/watch?v=tU52nLIUz8Y');
+      expect(frames[0].screen_text).toContain('Cold Calling');
+      expect(frames[0].capture_trigger).toBe('idle');
+    });
+
+    it('returns empty array when no frames in range', () => {
+      const mockDb = createMockDb({});
+      const db = new SqliteScreenpipeDb(mockDb);
+
+      const frames = db.getPassiveFrames('2026-04-25T10:00:00Z', '2026-04-25T10:01:00Z');
+      expect(frames).toEqual([]);
+    });
+  });
+
+  describe('getClickEvents', () => {
+    it('returns click events with element names', () => {
+      const mockDb = createMockDb({
+        ui_events: [
+          { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Google Chrome', window_title: 'chore: Developer ID signing by testuser · Pull Request #15 · testuser/tomato - Google Chrome - User', element_name: 'Merge pull request' },
+          { id: 2, timestamp: '2026-04-25T10:00:10Z', app_name: 'Google Chrome', window_title: 'chore: Developer ID signing by testuser · Pull Request #15 · testuser/tomato - Google Chrome - User', element_name: 'Confirm merge' },
+        ],
+      });
+      const db = new SqliteScreenpipeDb(mockDb);
+
+      const clicks = db.getClickEvents('2026-04-25T10:00:00Z', '2026-04-25T10:01:00Z');
+      expect(clicks).toHaveLength(2);
+      expect(clicks[0].element_name).toBe('Merge pull request');
+      expect(clicks[1].element_name).toBe('Confirm merge');
+    });
+
+    it('returns empty array when no click events in range', () => {
+      const mockDb = createMockDb({});
+      const db = new SqliteScreenpipeDb(mockDb);
+
+      const clicks = db.getClickEvents('2026-04-25T10:00:00Z', '2026-04-25T10:01:00Z');
+      expect(clicks).toEqual([]);
+    });
+  });
+
   describe('close', () => {
     it('delegates to underlying db', () => {
       const mockDb = createMockDb({});

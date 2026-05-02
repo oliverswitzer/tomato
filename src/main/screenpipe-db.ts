@@ -36,6 +36,24 @@ export interface FrameRow {
   browser_url: string | null;
 }
 
+export interface PassiveFrameRow {
+  id: number;
+  timestamp: string;
+  app_name: string;
+  window_name: string;
+  browser_url: string | null;
+  screen_text: string | null;
+  capture_trigger: string | null;
+}
+
+export interface ClickEventRow {
+  id: number;
+  timestamp: string;
+  app_name: string | null;
+  window_title: string | null;
+  element_name: string | null;
+}
+
 export interface AccessibilityElementRow {
   frame_id: number;
   role: string;
@@ -49,6 +67,8 @@ export interface ScreenpipeDb {
   getClipboardEvents(since: string, until: string): ClipboardRow[];
   getLatestFrame(): FrameRow | null;
   getFrames(since: string, until: string, limit?: number): FrameRow[];
+  getPassiveFrames(since: string, until: string): PassiveFrameRow[];
+  getClickEvents(since: string, until: string): ClickEventRow[];
   getAccessibilityElements(
     since: string,
     until: string,
@@ -133,6 +153,34 @@ export class SqliteScreenpipeDb implements ScreenpipeDb {
          ORDER BY timestamp DESC LIMIT ?`,
       )
       .all(since, until, limit) as FrameRow[];
+  }
+
+  getPassiveFrames(since: string, until: string): PassiveFrameRow[] {
+    return this.db
+      .prepare(
+        `SELECT id, timestamp, app_name, window_name, browser_url,
+           substr(full_text, 1, 500) as screen_text,
+           capture_trigger
+         FROM frames
+         WHERE app_name IS NOT NULL
+           AND timestamp BETWEEN ? AND ?
+         GROUP BY content_hash
+         ORDER BY timestamp ASC`,
+      )
+      .all(since, until) as PassiveFrameRow[];
+  }
+
+  getClickEvents(since: string, until: string): ClickEventRow[] {
+    return this.db
+      .prepare(
+        `SELECT id, timestamp, app_name, window_title, element_name
+         FROM ui_events
+         WHERE event_type = 'click'
+           AND element_name IS NOT NULL AND length(element_name) > 0
+           AND timestamp BETWEEN ? AND ?
+         ORDER BY timestamp ASC`,
+      )
+      .all(since, until) as ClickEventRow[];
   }
 
   getAccessibilityElements(
