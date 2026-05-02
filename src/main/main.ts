@@ -402,6 +402,7 @@ function showDebugWindow(): void {
   });
 
   loadRendererPage(debugWin, '/debug');
+  debugWin.webContents.openDevTools({ mode: 'detach' });
   debugWin.setAlwaysOnTop(true, 'floating');
   debugWin.on('closed', () => {
     debugWin = null;
