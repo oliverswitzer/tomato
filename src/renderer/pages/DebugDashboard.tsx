@@ -39,7 +39,7 @@ function Expandable({ label, children }: { label: React.ReactNode; children: Rea
 
 function Panel({ title, right, children }: { title: string; right?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl p-4 mb-3" style={{ background: '#FFFFFF', border: '1px solid #EFE8DD' }}>
+    <div className="rounded-2xl p-4 mb-3" style={{ background: '#FFFFFF', border: '1px solid #E0D8CC', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
       <div className="flex items-center justify-between mb-2.5">
         <h2
           className="text-[10px] font-bold tracking-wider uppercase m-0"
