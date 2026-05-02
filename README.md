@@ -6,8 +6,6 @@ Pomodoro timer for macOS with screen-reading focus tracking. Uses [screenpipe](h
 
 [**Download Tomato.dmg**](https://github.com/oliverswitzer/tomato/releases/latest/download/Tomato.dmg) — macOS Apple Silicon only.
 
-The app is signed and notarized by Apple — just open the DMG, drag Tomato to Applications, and launch it. No extra steps required.
-
 ## How it works
 
 1. Set an intention ("Ship the pricing page rewrite") and a timer (15/25/45/60 min)
