@@ -34,9 +34,6 @@ const api: TomatoApi = {
   openSettings: () => ipcRenderer.send('open-settings'),
   closeSettings: () => ipcRenderer.send('close-settings'),
 
-  cycleVibrancy: () => ipcRenderer.invoke('cycle-vibrancy'),
-  toggleGlassMode: () => ipcRenderer.send('toggle-glass-mode'),
-
   onShowSettings: (callback) => {
     const handler = () => callback();
     ipcRenderer.on('show-settings', handler);
@@ -73,16 +70,7 @@ const api: TomatoApi = {
     ipcRenderer.on('timeline-update', handler);
     return () => { ipcRenderer.removeListener('timeline-update', handler); };
   },
-  onGlassMode: (callback) => {
-    const handler = (_e: IpcRendererEvent, enabled: boolean) => callback(enabled);
-    ipcRenderer.on('glass-mode', handler);
-    return () => { ipcRenderer.removeListener('glass-mode', handler); };
-  },
-  onVibrancyChanged: (callback) => {
-    const handler = (_e: IpcRendererEvent, vibrancy: string | null) => callback(vibrancy);
-    ipcRenderer.on('vibrancy-changed', handler);
-    return () => { ipcRenderer.removeListener('vibrancy-changed', handler); };
-  },
+  getLiquidGlassSupported: () => ipcRenderer.invoke('get-liquid-glass-supported'),
 };
 
 contextBridge.exposeInMainWorld('tomato', api);

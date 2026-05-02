@@ -152,9 +152,6 @@ export interface TomatoApi {
   openSettings(): void;
   closeSettings(): void;
 
-  cycleVibrancy(): Promise<{ vibrancy: string | null }>;
-  toggleGlassMode(): void;
-
   onShowSettings(callback: () => void): () => void;
   onApiError(callback: (data: ApiErrorEvent) => void): () => void;
 
@@ -163,8 +160,7 @@ export interface TomatoApi {
   onDriftDetected(callback: (data: { reason: string; confidence: number; level2Classification: string }) => void): () => void;
   onSessionEnded(callback: () => void): () => void;
   onTimelineUpdate(callback: (entries: TimelineEntryIpc[]) => void): () => void;
-  onGlassMode(callback: (enabled: boolean) => void): () => void;
-  onVibrancyChanged(callback: (vibrancy: string | null) => void): () => void;
+  getLiquidGlassSupported(): Promise<boolean>;
 }
 
 declare global {

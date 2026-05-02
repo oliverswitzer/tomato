@@ -20,6 +20,7 @@
     "@anthropic-ai/sdk": "^0.90.0",
     "@types/better-sqlite3": "^7.6.13",
     "better-sqlite3": "^12.9.0",
+    "electron-liquid-glass": "^1.1.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "screenpipe": "^0.3.289"
@@ -82,8 +83,16 @@
       "title": "Tomato",
       "iconSize": 128,
       "contents": [
-        { "x": 130, "y": 220 },
-        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
       ]
     }
   }

@@ -12,87 +12,39 @@
   -webkit-app-region: drag;
   max-height: 100vh;
   overflow: hidden;
-  transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+  transition: box-shadow 0.6s ease;
 }
 
-/* Glass mode: transparent background reveals vibrancy */
-#session-timer.glass-mode {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+/* Liquid Glass: transparent background lets NSGlassEffectView show through */
+#session-timer.liquid-glass {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* Fallback glow: pulsating yellow outline when drifting (pre-macOS 26) */
+#session-timer.glow-drift {
   box-shadow:
-    0 20px 44px rgba(0, 0, 0, 0.08),
-    0 0 0 0.5px rgba(255, 255, 255, 0.4) inset;
-  backdrop-filter: blur(1px);
+    0 0 12px 3px rgba(230, 160, 0, 0.5),
+    0 0 24px 6px rgba(230, 160, 0, 0.25),
+    0 20px 44px rgba(0, 0, 0, 0.12);
+  border-color: rgba(230, 160, 0, 0.6);
+  animation: drift-pulse 2s ease-in-out infinite;
 }
 
-#session-timer.glass-mode .timer-time,
-#session-timer.glass-mode .summary-text,
-#session-timer.glass-mode .entry-duration {
-  color: #1A1A1A;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
-}
-
-#session-timer.glass-mode .timer-remaining,
-#session-timer.glass-mode .status-badge,
-#session-timer.glass-mode .focused-label,
-#session-timer.glass-mode .activity-label,
-#session-timer.glass-mode .timeline-label,
-#session-timer.glass-mode .timeline-count,
-#session-timer.glass-mode .entry-desc,
-#session-timer.glass-mode .entry-time {
-  text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
-}
-
-#session-timer.glass-mode .timeline-header {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-#session-timer.glass-mode .timeline-entry {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-#session-timer.glass-mode .timer-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(4px);
-}
-
-#session-timer.glass-mode .timer-btn:hover {
-  background: rgba(255, 255, 255, 0.35);
-}
-
-#session-timer.glass-mode .expand-btn {
-  background: rgba(255, 255, 255, 0.2);
-}
-#session-timer.glass-mode .expand-btn:hover {
-  background: rgba(255, 255, 255, 0.35);
-}
-
-#session-timer.glass-mode .progress-wrap {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-#session-timer.glass-mode .divider {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.vibrancy-indicator {
-  font-family: 'Geist Mono', monospace;
-  font-size: 10px;
-  font-weight: 600;
-  color: #8B8477;
-  background: rgba(0, 0, 0, 0.05);
-  padding: 3px 8px;
-  border-radius: 6px;
-  text-align: center;
-  letter-spacing: 0.5px;
-}
-
-#session-timer.glass-mode .vibrancy-indicator {
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(0, 0, 0, 0.15);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+@keyframes drift-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 12px 3px rgba(230, 160, 0, 0.5),
+      0 0 24px 6px rgba(230, 160, 0, 0.25),
+      0 20px 44px rgba(0, 0, 0, 0.12);
+  }
+  50% {
+    box-shadow:
+      0 0 20px 6px rgba(230, 160, 0, 0.7),
+      0 0 40px 12px rgba(230, 160, 0, 0.35),
+      0 20px 44px rgba(0, 0, 0, 0.12);
+  }
 }
 
 #session-timer::-webkit-scrollbar {
