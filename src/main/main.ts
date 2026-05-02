@@ -10,7 +10,12 @@ import {
   desktopCapturer,
   systemPreferences,
 } from 'electron';
-import liquidGlass from 'electron-liquid-glass';
+let liquidGlass: { addView: (handle: Buffer, options?: { cornerRadius?: number; tintColor?: string; opaque?: boolean }) => number } | null = null;
+try {
+  liquidGlass = require('electron-liquid-glass');
+} catch {
+  // Not available on non-macOS (optional dependency)
+}
 import { spawn, execFileSync, ChildProcess } from 'child_process';
 import path from 'path';
 import os from 'os';
@@ -383,9 +388,9 @@ function showTimerWindow(): void {
     },
   });
 
-  if (supportsLiquidGlass) {
+  if (supportsLiquidGlass && liquidGlass) {
     timerWin.webContents.once('did-finish-load', () => {
-      if (!timerWin) return;
+      if (!timerWin || !liquidGlass) return;
       try {
         liquidGlass.addView(timerWin.getNativeWindowHandle(), {
           cornerRadius: 22,
