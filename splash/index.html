@@ -522,224 +522,6 @@
       line-height: 1.55;
     }
 
-    /* ─── HOW IT WORKS ─── */
-    .section-how {
-      background: var(--cream-light);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 48px;
-      min-height: 780px;
-      padding: 64px 96px;
-    }
-
-    .section-how .section-heading {
-      gap: 16px;
-    }
-
-    .cards-row {
-      display: flex;
-      gap: 24px;
-      width: 100%;
-    }
-
-    .step-card {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      padding: 32px;
-      background: var(--cream);
-      border-radius: 20px;
-      box-shadow: 0 8px 24px rgba(43, 38, 32, 0.08);
-    }
-
-    .step-num {
-      width: 44px;
-      height: 44px;
-      background: var(--red);
-      border-radius: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Fraunces', serif;
-      font-size: 22px;
-      font-weight: 600;
-      color: #fff;
-    }
-
-    .step-card .card-title {
-      font-family: 'Fraunces', serif;
-      font-size: 22px;
-      font-weight: 600;
-    }
-
-    .step-card .card-body {
-      font-size: 14px;
-      color: var(--brown-body);
-      line-height: 1.5;
-    }
-
-    .step-mock {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding-top: 12px;
-    }
-
-    .mock-input-sm {
-      padding: 12px;
-      background: #fff;
-      border-radius: 8px;
-      border: 1px solid #E5DDD2;
-      font-size: 13px;
-      color: var(--brown-dark);
-    }
-
-    .mock-start-pill {
-      display: inline-block;
-      padding: 8px 16px;
-      background: var(--red);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 600;
-      border-radius: 999px;
-      align-self: flex-start;
-    }
-
-    /* Card 2 mock: menubar + HUD */
-    .mock-menubar {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 8px;
-      padding: 6px 10px;
-      background: var(--brown-dark);
-      border-radius: 6px;
-    }
-
-    .mock-menubar .menu-dot {
-      width: 10px;
-      height: 10px;
-      background: var(--red);
-      border-radius: 50%;
-    }
-
-    .mock-menubar .menu-time {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--cream-light);
-    }
-
-    .mock-hud {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px;
-      background: #fff;
-      border-radius: 12px;
-      border: 1px solid #E5DDD2;
-      box-shadow: 0 4px 12px rgba(43, 38, 32, 0.1);
-    }
-
-    .mock-hud .hud-icon {
-      width: 18px;
-      height: 18px;
-      background: var(--red);
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .mock-hud .hud-time {
-      font-family: 'Fraunces', serif;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .mock-hud .hud-intent {
-      font-size: 11px;
-      color: var(--brown-body);
-      flex: 1;
-    }
-
-    .mock-hud .hud-status-dot {
-      width: 8px;
-      height: 8px;
-      background: var(--green-status);
-      border-radius: 50%;
-    }
-
-    .mock-hud .hud-status {
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--green-status);
-    }
-
-    /* Card 3 mock: nudge */
-    .mock-nudge {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 14px;
-      background: #fff;
-      border-radius: 12px;
-      border: 1px solid var(--red-pink);
-      box-shadow: 0 4px 12px rgba(43, 38, 32, 0.1);
-    }
-
-    .nudge-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .nudge-icon-bg {
-      width: 22px;
-      height: 22px;
-      background: var(--red-pink);
-      border-radius: 11px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .nudge-icon-bg .nudge-dot {
-      width: 8px;
-      height: 8px;
-      background: var(--red);
-      border-radius: 50%;
-    }
-
-    .nudge-header .nudge-title {
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .nudge-reason {
-      font-size: 11px;
-      color: var(--brown-body);
-      line-height: 1.4;
-    }
-
-    .nudge-actions {
-      display: flex;
-      justify-content: flex-end;
-      padding-top: 4px;
-    }
-
-    .ghost-btn {
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--brown-body);
-      padding: 6px 12px;
-      border-radius: 6px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-    }
-
-    .ghost-btn:hover { background: rgba(43, 38, 32, 0.05); }
-
     /* ─── SCREENSHOTS ─── */
     .section-screenshots {
       background: var(--cream);
@@ -747,15 +529,16 @@
       flex-direction: column;
       align-items: center;
       gap: 56px;
-      padding: 80px 64px 88px;
+      padding: 80px 96px 88px;
     }
 
     .section-screenshots .section-heading { gap: 18px; }
 
-    .screenshot-row {
-      display: flex;
-      gap: 28px;
-      justify-content: center;
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      width: 100%;
     }
 
     .screenshot-card {
@@ -764,25 +547,39 @@
       gap: 14px;
     }
 
-    .screenshot-card:nth-child(1) { width: 360px; }
-    .screenshot-card:nth-child(2) { width: 520px; }
-    .screenshot-card:nth-child(3) { width: 376px; }
-
     .screenshot-img {
-      border-radius: 18px;
+      border-radius: 14px;
       box-shadow: 0 18px 42px -10px rgba(43, 38, 32, 0.15);
       overflow: hidden;
+      aspect-ratio: 16 / 10;
     }
-
-    .screenshot-card:nth-child(1) .screenshot-img { height: 406px; }
-    .screenshot-card:nth-child(2) .screenshot-img { height: 349px; }
-    .screenshot-card:nth-child(3) .screenshot-img { height: 337px; }
 
     .screenshot-img img {
       display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
+    }
+
+    .screenshot-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .screenshot-label .label-num {
+      width: 28px;
+      height: 28px;
+      background: var(--red);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fraunces', serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      flex-shrink: 0;
     }
 
     .screenshot-card .card-title {
@@ -795,6 +592,7 @@
       font-size: 14px;
       color: var(--brown-body);
       line-height: 1.45;
+      padding-left: 38px;
     }
 
     /* ─── IN-ACTION (DARK) ─── */
@@ -1276,6 +1074,93 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    /* ─── RESPONSIVE: TABLET ─── */
+    @media (max-width: 900px) {
+      .section-hero { padding: 20px 24px 20px; }
+      .section-problem { padding: 56px 24px; min-height: auto; }
+      .section-features { padding: 56px 24px; min-height: auto; }
+
+      .section-screenshots { padding: 56px 24px; }
+      .section-action { padding: 56px 24px; min-height: auto; gap: 40px; }
+      .cta-wrap { padding: 56px 24px 32px; }
+      .footer-wrap { padding: 0 24px 32px; }
+
+      .nav-right a:not(.btn-primary) { display: none; }
+
+      .hero-headline { font-size: 36px; letter-spacing: -0.5px; }
+      .hero-headline br { display: none; }
+      .hero-sub { font-size: 16px; }
+
+      .section-problem .headline { font-size: 34px; }
+      .section-problem .headline br { display: none; }
+      .section-problem .subhead { font-size: 16px; }
+
+      .section-heading .headline { font-size: 32px; }
+
+      .feature-row { flex-direction: column; }
+
+
+
+      .screenshot-grid { grid-template-columns: 1fr; max-width: 520px; gap: 24px; }
+
+      .section-action { flex-direction: column; }
+      .action-left { width: 100%; }
+      .action-left .headline { font-size: 36px; }
+      .action-right { width: 100%; height: 360px; }
+      .scene-browser { left: 24px; top: 40px; width: calc(100% - 48px); height: 260px; }
+      .scene-hud { left: auto; right: 16px; top: 140px; width: 240px; height: 64px; }
+      .scene-hud .hud-time { font-size: 20px; }
+      .scene-nudge { left: auto; right: 8px; top: 220px; width: 280px; padding: 12px 14px; }
+
+      .cta-card { padding: 40px 24px; }
+      .cta-card .heading { font-size: 36px; }
+      .cta-card .sub { font-size: 16px; }
+
+      .pill-row { flex-wrap: wrap; justify-content: center; }
+
+      .cta-row { flex-direction: column; align-items: stretch; }
+      .btn-primary-lg { justify-content: center; }
+      .btn-secondary { justify-content: center; }
+
+      .testi { flex-direction: column; text-align: center; gap: 8px; }
+      .testi .sep { display: none; }
+
+      .footer-row { flex-direction: column; gap: 16px; text-align: center; }
+      .footer-links { gap: 16px; }
+    }
+
+    /* ─── RESPONSIVE: PHONE ─── */
+    @media (max-width: 480px) {
+      .hero-headline { font-size: 30px; }
+      .hero-sub { font-size: 15px; }
+
+      .section-problem .headline { font-size: 28px; }
+      .section-heading .headline { font-size: 26px; }
+
+      .feature-card { padding: 24px; }
+      .feature-card .card-title { font-size: 20px; }
+
+
+
+      .action-left .headline { font-size: 28px; }
+      .action-left .subhead { font-size: 16px; }
+      .action-right { height: 300px; }
+      .scene-hud { width: 200px; height: 56px; padding: 0 12px; }
+      .scene-hud .hud-time { font-size: 18px; }
+      .scene-hud .hud-label { font-size: 11px; }
+      .scene-nudge { width: 240px; }
+      .scene-nudge .nudge-body { font-size: 12px; }
+
+      .cta-card .heading { font-size: 28px; }
+
+      .mac-window { width: 100%; }
+
+      .micro-row span { font-size: 12px; text-align: center; }
+
+      .btn-primary { width: 100%; justify-content: center; min-height: 44px; }
+      .btn-secondary { width: 100%; min-height: 44px; }
+    }
   </style>
 </head>
 <body>
@@ -1310,7 +1195,7 @@
 
         <div class="cta-row fade-up fade-up-d4">
           <a href="download.html" class="btn-primary btn-primary-lg">Download for Mac</a>
-          <a href="#how" class="btn-secondary">See how it works</a>
+          <a href="#features" class="btn-secondary">See how it works</a>
         </div>
 
         <div class="micro-row fade-up fade-up-d4">
@@ -1409,7 +1294,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M19.938 10.5a4 4 0 0 1 .585.396"/><path d="M6 18a4 4 0 0 1-1.967-.516"/><path d="M19.967 17.484A4 4 0 0 1 18 18"/></svg>
             </div>
             <h3 class="serif card-title">Reads context, not URLs</h3>
-            <p class="card-body">A small on-device model peeks at the gist of your active window and asks one question: is this aligned with what you said you'd do? Reddit might be — it depends.</p>
+            <p class="card-body">Screen capture stays entirely on your machine. Every few minutes, a single Anthropic API call summarizes your high-level activity and checks alignment with your intention. Reddit might be on-task — it depends.</p>
           </div>
         </div>
         <div class="feature-row">
@@ -1431,64 +1316,6 @@
       </div>
     </section>
 
-    <!-- ═══ HOW IT WORKS ═══ -->
-    <section class="section-how" id="how">
-      <div class="section-heading reveal">
-        <span class="eyebrow" style="letter-spacing: 2px;">HOW IT WORKS</span>
-        <h2 class="serif headline">Three steps. No willpower required.</h2>
-        <p class="subhead">No app banlists to maintain, no rituals to remember. Just an intention and a friendly observer that already understands what you set out to do.</p>
-      </div>
-      <div class="cards-row">
-        <!-- Step 1 -->
-        <div class="step-card reveal">
-          <div class="step-num">1</div>
-          <h3 class="card-title">Tell it what you mean to do</h3>
-          <p class="card-body">Open Tomato, type your intention (e.g. "Debug the auth flow"), pick a session length, hit start. That sentence is now the lens.</p>
-          <div class="step-mock">
-            <div class="mock-input-sm">Debug the auth flow</div>
-            <span class="mock-start-pill">Start</span>
-          </div>
-        </div>
-        <!-- Step 2 -->
-        <div class="step-card reveal">
-          <div class="step-num">2</div>
-          <h3 class="card-title">Work like you normally would</h3>
-          <p class="card-body">Tomato tucks into your menu bar. A floating HUD shows time remaining and your intention. Open Reddit, open the docs, open whatever you need — nothing is blocked.</p>
-          <div class="step-mock" style="gap: 12px;">
-            <div class="mock-menubar">
-              <div class="menu-dot"></div>
-              <span class="menu-time">24:52</span>
-            </div>
-            <div class="mock-hud">
-              <div class="hud-icon"></div>
-              <span class="hud-time">24:52</span>
-              <span class="hud-intent">Debugging auth flow</span>
-              <div class="hud-status-dot"></div>
-              <span class="hud-status">On track</span>
-            </div>
-          </div>
-        </div>
-        <!-- Step 3 -->
-        <div class="step-card reveal">
-          <div class="step-num">3</div>
-          <h3 class="card-title">Drifted? Tomato says something</h3>
-          <p class="card-body">When the gist of your active window stops matching your intention for too long, a calm card appears with a one-line reason and a confidence score. Get back, snooze it, or call the session.</p>
-          <div class="step-mock" style="gap: 8px;">
-            <div class="mock-nudge">
-              <div class="nudge-header">
-                <div class="nudge-icon-bg"><div class="nudge-dot"></div></div>
-                <span class="nudge-title">Possible distraction</span>
-              </div>
-              <p class="nudge-reason">Twitter doesn't look like "debug the auth flow"</p>
-              <div class="nudge-actions">
-                <button class="ghost-btn">Got it</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- ═══ SCREENSHOTS ═══ -->
     <section class="section-screenshots" id="screenshots">
       <div class="section-heading reveal">
@@ -1496,27 +1323,46 @@
         <h2 class="serif headline">What it looks like.</h2>
         <p class="subhead">Designed to feel like part of macOS, not on top of it. A few real moments from a session.</p>
       </div>
-      <div class="screenshot-row">
+      <div class="screenshot-grid">
         <div class="screenshot-card reveal">
           <div class="screenshot-img">
-            <img src="assets/Gwc4H.png" alt="Tomato start session screen showing intention input">
+            <img src="assets/01-set-intention.png" alt="Setting an intention before starting a focus session">
           </div>
-          <h3 class="card-title">Set the intention</h3>
-          <p class="card-cap">One line is enough — Tomato remembers.</p>
+          <div class="screenshot-label">
+            <span class="label-num">1</span>
+            <h3 class="card-title">Set your intention</h3>
+          </div>
+          <p class="card-cap">Type what you're working on, pick a session length, and hit start.</p>
         </div>
         <div class="screenshot-card reveal">
           <div class="screenshot-img">
-            <img src="assets/z40dm.png" alt="Tomato drift nudge floating over desktop">
+            <img src="assets/02-on-track.png" alt="Compact HUD overlay showing timer and on-track status">
           </div>
-          <h3 class="card-title">A nudge when you drift</h3>
-          <p class="card-cap">Floating, friendly, dismissable in one click.</p>
+          <div class="screenshot-label">
+            <span class="label-num">2</span>
+            <h3 class="card-title">Work on track</h3>
+          </div>
+          <p class="card-cap">A quiet overlay with your timer and intention. Nothing is blocked.</p>
         </div>
         <div class="screenshot-card reveal">
           <div class="screenshot-img">
-            <img src="assets/HFxoA.png" alt="Tomato HUD showing timer and on-track status">
+            <img src="assets/03-expanded-hud.png" alt="Expanded timer showing activity timeline and session progress">
           </div>
-          <h3 class="card-title">On track at a glance</h3>
-          <p class="card-cap">A quiet HUD with your timer, intent, and current state.</p>
+          <div class="screenshot-label">
+            <span class="label-num">3</span>
+            <h3 class="card-title">Check your progress</h3>
+          </div>
+          <p class="card-cap">Expand the HUD to see what you've been doing and how long you've been at it.</p>
+        </div>
+        <div class="screenshot-card reveal">
+          <div class="screenshot-img">
+            <img src="assets/04-drift-nudge.png" alt="Drift detection alert when browsing LinkedIn during a focus session">
+          </div>
+          <div class="screenshot-label">
+            <span class="label-num">4</span>
+            <h3 class="card-title">Get nudged when you drift</h3>
+          </div>
+          <p class="card-cap">Tomato notices when your activity stops matching your intention — and gently says so.</p>
         </div>
       </div>
     </section>
