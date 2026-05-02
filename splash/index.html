@@ -532,10 +532,12 @@
 
     .section-screenshots .section-heading { gap: 18px; }
 
-    .screenshot-row {
-      display: flex;
-      gap: 28px;
-      justify-content: center;
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      width: 100%;
+      max-width: 1100px;
     }
 
     .screenshot-card {
@@ -544,25 +546,39 @@
       gap: 14px;
     }
 
-    .screenshot-card:nth-child(1) { width: 360px; }
-    .screenshot-card:nth-child(2) { width: 520px; }
-    .screenshot-card:nth-child(3) { width: 376px; }
-
     .screenshot-img {
-      border-radius: 18px;
+      border-radius: 14px;
       box-shadow: 0 18px 42px -10px rgba(43, 38, 32, 0.15);
       overflow: hidden;
+      aspect-ratio: 16 / 10;
     }
-
-    .screenshot-card:nth-child(1) .screenshot-img { height: 406px; }
-    .screenshot-card:nth-child(2) .screenshot-img { height: 349px; }
-    .screenshot-card:nth-child(3) .screenshot-img { height: 337px; }
 
     .screenshot-img img {
       display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
+    }
+
+    .screenshot-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .screenshot-label .label-num {
+      width: 28px;
+      height: 28px;
+      background: var(--red);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fraunces', serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      flex-shrink: 0;
     }
 
     .screenshot-card .card-title {
@@ -575,6 +591,7 @@
       font-size: 14px;
       color: var(--brown-body);
       line-height: 1.45;
+      padding-left: 38px;
     }
 
     /* ─── IN-ACTION (DARK) ─── */
@@ -1084,13 +1101,7 @@
 
 
 
-      .screenshot-row { flex-direction: column; align-items: center; }
-      .screenshot-card:nth-child(1),
-      .screenshot-card:nth-child(2),
-      .screenshot-card:nth-child(3) { width: 100%; max-width: 520px; }
-      .screenshot-card:nth-child(1) .screenshot-img,
-      .screenshot-card:nth-child(2) .screenshot-img,
-      .screenshot-card:nth-child(3) .screenshot-img { height: auto; aspect-ratio: 3 / 2; }
+      .screenshot-grid { grid-template-columns: 1fr; max-width: 520px; gap: 24px; }
 
       .section-action { flex-direction: column; }
       .action-left { width: 100%; }
@@ -1311,27 +1322,46 @@
         <h2 class="serif headline">What it looks like.</h2>
         <p class="subhead">Designed to feel like part of macOS, not on top of it. A few real moments from a session.</p>
       </div>
-      <div class="screenshot-row">
+      <div class="screenshot-grid">
         <div class="screenshot-card reveal">
           <div class="screenshot-img">
-            <img src="assets/Gwc4H.png" alt="Tomato start session screen showing intention input">
+            <img src="assets/Gwc4H.png" alt="Setting an intention before starting a focus session">
           </div>
-          <h3 class="card-title">Set the intention</h3>
-          <p class="card-cap">One line is enough — Tomato remembers.</p>
+          <div class="screenshot-label">
+            <span class="label-num">1</span>
+            <h3 class="card-title">Set your intention</h3>
+          </div>
+          <p class="card-cap">Type what you're working on, pick a session length, and hit start.</p>
         </div>
         <div class="screenshot-card reveal">
           <div class="screenshot-img">
-            <img src="assets/z40dm.png" alt="Tomato drift nudge floating over desktop">
+            <img src="assets/HFxoA.png" alt="Compact HUD overlay showing timer and on-track status">
           </div>
-          <h3 class="card-title">A nudge when you drift</h3>
-          <p class="card-cap">Floating, friendly, dismissable in one click.</p>
+          <div class="screenshot-label">
+            <span class="label-num">2</span>
+            <h3 class="card-title">Work on track</h3>
+          </div>
+          <p class="card-cap">A quiet overlay with your timer and intention. Nothing is blocked.</p>
         </div>
         <div class="screenshot-card reveal">
           <div class="screenshot-img">
-            <img src="assets/HFxoA.png" alt="Tomato HUD showing timer and on-track status">
+            <img src="assets/fbykS.png" alt="Expanded timer showing activity timeline and session progress">
           </div>
-          <h3 class="card-title">On track at a glance</h3>
-          <p class="card-cap">A quiet HUD with your timer, intent, and current state.</p>
+          <div class="screenshot-label">
+            <span class="label-num">3</span>
+            <h3 class="card-title">Check your progress</h3>
+          </div>
+          <p class="card-cap">Expand the HUD to see what you've been doing and how long you've been at it.</p>
+        </div>
+        <div class="screenshot-card reveal">
+          <div class="screenshot-img">
+            <img src="assets/z40dm.png" alt="Drift detection alert when browsing LinkedIn during a focus session">
+          </div>
+          <div class="screenshot-label">
+            <span class="label-num">4</span>
+            <h3 class="card-title">Get nudged when you drift</h3>
+          </div>
+          <p class="card-cap">Tomato notices when your activity stops matching your intention — and gently says so.</p>
         </div>
       </div>
     </section>
