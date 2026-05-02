@@ -1717,7 +1717,7 @@
         input.classList.remove('input-error');
 
         var source = getSourceInfo();
-        if (window.va) window.va('event', { name: 'subscribe', data: source });
+        if (window.va) window.va('event', { name: 'subscribe' });
 
         fetch('/api/subscribe', {
           method: 'POST',
