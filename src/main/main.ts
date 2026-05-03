@@ -437,39 +437,7 @@ function showDebugWindow(): void {
   });
 }
 
-function showNudgeWindow(): void {
-  if (nudgeWin) {
-    nudgeWin.show();
-    return;
-  }
 
-  const { width: screenWidth, height: screenHeight } =
-    screen.getPrimaryDisplay().workAreaSize;
-
-  nudgeWin = new BrowserWindow({
-    width: 340,
-    height: 180,
-    x: Math.round((screenWidth - 340) / 2),
-    y: Math.round(screenHeight * 0.55),
-    frame: false,
-    transparent: true,
-    alwaysOnTop: true,
-    resizable: false,
-    skipTaskbar: true,
-    hasShadow: false,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: getPreloadPath(),
-    },
-  });
-
-  loadRendererPage(nudgeWin, '/nudge');
-  nudgeWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
-  nudgeWin.on('closed', () => {
-    nudgeWin = null;
-  });
-}
 
 // --- Session logic ---
 
@@ -529,7 +497,6 @@ function startSession(intention: string, durationMin: number): void {
 
     focusTracker.onDrift = (data) => {
       log(`Drift detected: ${data.reason} (confidence: ${data.confidence}, classification: ${data.level2Classification})`);
-      showNudgeWindow();
       if (timerWin) {
         timerWin.webContents.send('drift-detected', data);
       }
