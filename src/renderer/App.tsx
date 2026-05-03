@@ -5,6 +5,7 @@ import { NudgePage } from './pages/NudgePage';
 import { DebugDashboard } from './pages/DebugDashboard';
 import { PermissionsPage } from './pages/PermissionsPage';
 import { ApiKeyPage } from './pages/ApiKeyPage';
+import { LlmSourcePage } from './pages/LlmSourcePage';
 import { SettingsPage } from './pages/SettingsPage';
 import type { ComponentType } from 'react';
 
@@ -15,6 +16,7 @@ const pages: Record<string, ComponentType> = {
   '/debug': DebugDashboard,
   '/permissions': PermissionsPage,
   '/api-key': ApiKeyPage,
+  '/llm-source': LlmSourcePage,
 };
 
 function getHashRoute(): string {
@@ -36,7 +38,11 @@ export function App() {
   useEffect(() => {
     if (!needsOnboardingCheck) return;
     window.tomato.getOnboardingState().then((state) => {
-      setRoute(state.hasApiKey ? '/start' : '/api-key');
+      if (state.llmSource) {
+        setRoute('/start');
+      } else {
+        setRoute('/llm-source');
+      }
     });
   }, []);
 

@@ -19,9 +19,13 @@ import { FocusTracker } from './focus-tracker';
 import Database from 'better-sqlite3';
 import { SqliteScreenpipeDb } from './screenpipe-db';
 import { AnthropicLlmClient } from './llm-summarizer';
+import type { LlmClient } from './llm-summarizer';
+import { LocalLlmClient } from './local-llm-client';
+import { NodeLlamaEngine } from './node-llama-engine';
 import { saveSession, getRecentSessions } from './session-store';
 import { ElectronKeychainStore } from './keychain';
 import { validateApiKey } from './api-key-validator';
+import { ModelDownloadManager, MODEL_FILENAME } from './model-download-manager';
 import { DEFAULT_MODEL, getPriceTier, getModelPricing } from '../config/model-pricing';
 import type { SessionState } from '../shared/ipc';
 
@@ -42,6 +46,41 @@ function log(msg: string): void {
 }
 
 let keychain: ElectronKeychainStore | null = null;
+let downloadManager: ModelDownloadManager | null = null;
+let localEngine: NodeLlamaEngine | null = null;
+
+function getModelsDir(): string {
+  try {
+    return path.join(app.getPath('userData'), 'models');
+  } catch {
+    return path.join(APP_ROOT, 'models');
+  }
+}
+
+function createLlmClient(): LlmClient {
+  const source = keychain?.getLlmSource();
+
+  if (source === 'local') {
+    const modelPath = path.join(getModelsDir(), MODEL_FILENAME);
+    if (fs.existsSync(modelPath)) {
+      if (!localEngine) {
+        localEngine = new NodeLlamaEngine(modelPath, { logPath: getLogPath() });
+      }
+      return new LocalLlmClient(localEngine);
+    }
+    log('Local model not found, falling back to anthropic');
+  }
+
+  const apiKey = keychain?.getApiKey() ?? process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    log('No API key available — AI features disabled for this session');
+  }
+  const selectedModel = keychain?.getSelectedModel() ?? DEFAULT_MODEL;
+  return new AnthropicLlmClient(
+    new Anthropic({ apiKey: apiKey || undefined, dangerouslyAllowBrowser: true }),
+    selectedModel,
+  );
+}
 
 let tray: Tray | null = null;
 let startWin: BrowserWindow | null = null;
@@ -256,8 +295,8 @@ function showPermissionsWindow(): void {
   showOnboardingWindow('/permissions');
 }
 
-function showApiKeyWindow(): void {
-  showOnboardingWindow('/api-key');
+function showLlmSourceWindow(): void {
+  showOnboardingWindow('/llm-source');
 }
 
 function showSettingsWindow(): void {
@@ -469,15 +508,8 @@ function startSession(intention: string, durationMin: number): void {
 
   const dbPath = path.join(os.homedir(), '.screenpipe', 'db.sqlite');
 
-  const apiKey = keychain?.getApiKey() ?? process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    log('No API key available — AI features disabled for this session');
-  }
-  const selectedModel = keychain?.getSelectedModel() ?? DEFAULT_MODEL;
-  const llm = new AnthropicLlmClient(
-    new Anthropic({ apiKey: apiKey || undefined, dangerouslyAllowBrowser: true }),
-    selectedModel,
-  );
+  const llm = createLlmClient();
+  log(`Session using LLM: ${llm.getModel()}`);
   const batchMs = process.env.TOMATO_BATCH_MS ? parseInt(process.env.TOMATO_BATCH_MS) : undefined;
 
   function tryOpenDbAndStart(): void {
@@ -697,7 +729,7 @@ ipcMain.on('open-accessibility-permission-settings', () => {
 });
 
 ipcMain.on('permissions-complete', () => {
-  showApiKeyWindow();
+  showLlmSourceWindow();
 });
 
 ipcMain.handle('validate-api-key', async (_event, key: string) => {
@@ -725,10 +757,11 @@ ipcMain.handle('save-api-key', async (_event, key: string, selectedModel: string
 });
 
 ipcMain.handle('get-onboarding-state', () => {
-  if (!keychain) return { hasApiKey: false, selectedModel: null };
+  if (!keychain) return { hasApiKey: false, selectedModel: null, llmSource: null };
   return {
     hasApiKey: keychain.getApiKey() !== null,
     selectedModel: keychain.getSelectedModel(),
+    llmSource: keychain.getLlmSource(),
   };
 });
 
@@ -738,6 +771,71 @@ ipcMain.on('api-key-complete', () => {
     startWin = null;
   }
   showStartWindow();
+});
+
+ipcMain.on('llm-source-complete', (_event, { source }: { source: string }) => {
+  if (keychain && (source === 'local' || source === 'anthropic')) {
+    keychain.setLlmSource(source);
+    log(`LLM source set to ${source}`);
+  }
+  if (startWin) {
+    startWin.close();
+    startWin = null;
+  }
+  showStartWindow();
+});
+
+ipcMain.handle('start-model-download', async () => {
+  if (!downloadManager) return { success: false, error: 'Download manager not initialized' };
+  try {
+    downloadManager.setProgressCallback((status) => {
+      const ipcStatus = status.state === 'completed'
+        ? { state: 'completed' as const }
+        : status;
+      for (const win of [startWin, timerWin]) {
+        if (win && !win.isDestroyed()) {
+          win.webContents.send('model-download-progress', ipcStatus);
+        }
+      }
+    });
+    await downloadManager.download();
+    return { success: true };
+  } catch (err: any) {
+    if (err.message === 'Download cancelled') return { success: false, error: 'Cancelled' };
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.on('cancel-model-download', () => {
+  downloadManager?.cancel();
+});
+
+ipcMain.handle('get-model-download-status', () => {
+  if (!downloadManager) return { state: 'idle' };
+  const status = downloadManager.getStatus();
+  return status.state === 'completed'
+    ? { state: 'completed' }
+    : status;
+});
+
+ipcMain.handle('check-model-exists', () => {
+  return downloadManager?.modelExists() ?? false;
+});
+
+ipcMain.handle('get-system-memory-gb', () => {
+  return Math.round(os.totalmem() / (1024 * 1024 * 1024));
+});
+
+ipcMain.handle('set-llm-source', async (_event, source: string) => {
+  if (keychain && (source === 'local' || source === 'anthropic')) {
+    keychain.setLlmSource(source);
+    log(`LLM source changed to ${source} via settings`);
+    // Dispose old local engine when switching away from local
+    if (source === 'anthropic' && localEngine) {
+      await localEngine.dispose();
+      localEngine = null;
+    }
+  }
 });
 
 ipcMain.handle('fetch-models', async () => {
@@ -776,12 +874,14 @@ ipcMain.handle('fetch-models', async () => {
 });
 
 ipcMain.handle('get-settings-state', () => {
-  if (!keychain) return { hasApiKey: false, maskedKey: null, selectedModel: null };
+  if (!keychain) return { hasApiKey: false, maskedKey: null, selectedModel: null, llmSource: null, modelDownloaded: false };
   const rawKey = keychain.getApiKey();
   return {
     hasApiKey: rawKey !== null,
     maskedKey: rawKey ? `sk-ant-•••••${rawKey.slice(-4)}` : null,
     selectedModel: keychain.getSelectedModel(),
+    llmSource: keychain.getLlmSource(),
+    modelDownloaded: downloadManager?.modelExists() ?? false,
   };
 });
 
@@ -838,6 +938,7 @@ app.whenReady().then(async () => {
   app.dock?.setIcon(path.join(APP_ROOT, 'assets', 'app-icon.png'));
 
   keychain = new ElectronKeychainStore(app.getPath('userData'));
+  downloadManager = new ModelDownloadManager(getModelsDir());
 
   const screenOk = systemPreferences.getMediaAccessStatus('screen') === 'granted';
   const a11yOk = systemPreferences.isTrustedAccessibilityClient(false);
@@ -865,16 +966,17 @@ app.whenReady().then(async () => {
 
   createTray();
 
-  const hasApiKey = keychain.getApiKey() !== null;
+  const llmSource = keychain.getLlmSource();
+  const hasLlmConfigured = llmSource !== null;
 
   if (!screenOk || !a11yOk) {
     log('Routing to permissions window');
     showPermissionsWindow();
-  } else if (!hasApiKey) {
-    log('Routing to API key onboarding');
-    showApiKeyWindow();
+  } else if (!hasLlmConfigured) {
+    log('Routing to LLM source selection');
+    showLlmSourceWindow();
   } else {
-    log('Routing to start window');
+    log(`Routing to start window (llm=${llmSource})`);
     showStartWindow();
   }
 });
@@ -890,6 +992,11 @@ function cleanup(): void {
     db.close();
     db = null;
   }
+  if (localEngine) {
+    localEngine.dispose().catch(() => {});
+    localEngine = null;
+  }
+  downloadManager?.cancel();
 }
 
 app.on('before-quit', cleanup);

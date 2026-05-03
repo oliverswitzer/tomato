@@ -4,7 +4,7 @@
   "description": "Pomodoro Mac app with screen-reading focus tracking",
   "main": "dist/main/main.js",
   "scripts": {
-    "predev": "electron-rebuild -f -w better-sqlite3 2>/dev/null || true",
+    "predev": "electron-rebuild -f -w better-sqlite3 2>/dev/null || true; electron-rebuild -f -w node-llama-cpp 2>/dev/null || true",
     "dev": "node scripts/dev.js",
     "build:main": "tsc -p tsconfig.node.json",
     "build:renderer": "vite build",
@@ -22,6 +22,7 @@
     "better-sqlite3": "^12.9.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "node-llama-cpp": "^3.18.1",
     "screenpipe": "^0.3.289"
   },
   "devDependencies": {
@@ -48,7 +49,8 @@
       "assets/**/*"
     ],
     "asarUnpack": [
-      "**/better-sqlite3/**"
+      "**/better-sqlite3/**",
+      "**/node-llama-cpp/**"
     ],
     "nodeGypRebuild": false,
     "buildDependenciesFromSource": false,

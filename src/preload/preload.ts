@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import type { TomatoApi, SessionStateWithActivities, Activity, TimelineEntryIpc, ApiErrorEvent } from '../shared/ipc';
+import type { TomatoApi, SessionStateWithActivities, Activity, TimelineEntryIpc, ApiErrorEvent, ModelDownloadStatus } from '../shared/ipc';
 
 const api: TomatoApi = {
   startSession: (intention, durationMin) =>
@@ -26,6 +26,14 @@ const api: TomatoApi = {
   saveApiKey: (key: string, selectedModel: string) => ipcRenderer.invoke('save-api-key', key, selectedModel),
   getOnboardingState: () => ipcRenderer.invoke('get-onboarding-state'),
   apiKeyComplete: () => ipcRenderer.send('api-key-complete'),
+  llmSourceComplete: (source: string) => ipcRenderer.send('llm-source-complete', { source }),
+
+  startModelDownload: () => ipcRenderer.invoke('start-model-download'),
+  cancelModelDownload: () => ipcRenderer.send('cancel-model-download'),
+  getModelDownloadStatus: () => ipcRenderer.invoke('get-model-download-status'),
+  checkModelExists: () => ipcRenderer.invoke('check-model-exists'),
+  getSystemMemoryGB: () => ipcRenderer.invoke('get-system-memory-gb'),
+  setLlmSource: (source: string) => ipcRenderer.invoke('set-llm-source', source),
 
   fetchModels: () => ipcRenderer.invoke('fetch-models'),
   getSettingsState: () => ipcRenderer.invoke('get-settings-state'),
@@ -43,6 +51,11 @@ const api: TomatoApi = {
     const handler = (_e: IpcRendererEvent, data: ApiErrorEvent) => callback(data);
     ipcRenderer.on('api-error', handler);
     return () => { ipcRenderer.removeListener('api-error', handler); };
+  },
+  onModelDownloadProgress: (callback) => {
+    const handler = (_e: IpcRendererEvent, status: ModelDownloadStatus) => callback(status);
+    ipcRenderer.on('model-download-progress', handler);
+    return () => { ipcRenderer.removeListener('model-download-progress', handler); };
   },
 
   onSessionState: (callback) => {
