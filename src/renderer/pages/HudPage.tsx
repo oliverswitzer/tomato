@@ -36,7 +36,7 @@ export function HudPage() {
   const toggleExpand = useCallback(() => {
     setIsExpanded((prev) => {
       const next = !prev;
-      window.tomato.timerResize(next ? 600 : 175);
+      window.tomato.timerResize(next ? 700 : 175);
       return next;
     });
   }, []);
@@ -180,60 +180,73 @@ export function HudPage() {
         )}
 
       {isExpanded && (
-        <div id="expanded" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div id="expanded" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
 
-          <div className="activity-section">
-            <span className="activity-label">CURRENT ACTIVITY</span>
-            <div className="activity-text">{displaySummary}</div>
-          </div>
-
-          {driftInfo && (
-            <div className="activity-section" style={{ background: driftLevel === 'off-track' ? '#FCE5E2' : '#FBE6B6', borderRadius: 12, padding: '10px 14px' }}>
-              <span className="activity-label" style={{ color: driftLevel === 'off-track' ? '#B42318' : '#8A6420' }}>OFF TRACK</span>
-              <div style={{ fontSize: 13, color: '#2A2A2A', lineHeight: 1.4 }}>{driftInfo.reason}</div>
-              <div style={{ fontSize: 11, color: '#8B8477', marginTop: 4 }}>
-                {driftInfo.level2Classification} &middot; {Math.round(driftInfo.confidence * 100)}% confidence
-              </div>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div className="activity-section">
+              <span className="activity-label">CURRENT ACTIVITY</span>
+              <div className="activity-text">{displaySummary}</div>
             </div>
-          )}
 
-          <div className="timeline-section">
-            <div className="timeline-header">
-              <span className="timeline-label">
-                LAST {state.durationMin} MINUTES
-              </span>
-              <span className="timeline-count">
-                {activities.length} ACTIVIT{activities.length === 1 ? 'Y' : 'IES'}
-              </span>
-            </div>
-            <div>
-              {recentTimeline.length === 0 ? (
-                <div className="timeline-entry">
-                  <div className="entry-header">
-                    <span className="entry-dot" />
-                    <span className="entry-duration">0:00</span>
-                  </div>
-                  <div className="entry-desc">Waiting for screen activity...</div>
-                  <div className="entry-time">now</div>
+            {driftInfo && (
+              <div className="activity-section" style={{ background: driftLevel === 'off-track' ? '#FCE5E2' : '#FBE6B6', borderRadius: 12, padding: '10px 14px' }}>
+                <span className="activity-label" style={{ color: driftLevel === 'off-track' ? '#B42318' : '#8A6420' }}>OFF TRACK</span>
+                <div
+                title={driftInfo.reason}
+                style={{
+                  fontSize: 13,
+                  color: '#2A2A2A',
+                  lineHeight: 1.4,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >{driftInfo.reason}</div>
+                <div style={{ fontSize: 11, color: '#8B8477', marginTop: 4 }}>
+                  {driftInfo.level2Classification} &middot; {Math.round(driftInfo.confidence * 100)}% confidence
                 </div>
-              ) : (
-                recentTimeline.map((a) => (
-                  <div className="timeline-entry" key={a.timestamp}>
+              </div>
+            )}
+
+            <div className="timeline-section">
+              <div className="timeline-header">
+                <span className="timeline-label">
+                  LAST {state.durationMin} MINUTES
+                </span>
+                <span className="timeline-count">
+                  {activities.length} ACTIVIT{activities.length === 1 ? 'Y' : 'IES'}
+                </span>
+              </div>
+              <div className="timeline-entries">
+                {recentTimeline.length === 0 ? (
+                  <div className="timeline-entry">
                     <div className="entry-header">
                       <span className="entry-dot" />
-                      <span className="entry-duration">
-                        {formatActivityTime(a.timestamp)}
-                      </span>
+                      <span className="entry-duration">0:00</span>
                     </div>
-                    <div className="entry-desc">{a.summary}</div>
-                    {a.apps.length > 0 && <div className="entry-time">{a.apps.join(', ')}</div>}
+                    <div className="entry-desc">Waiting for screen activity...</div>
+                    <div className="entry-time">now</div>
                   </div>
-                ))
-              )}
+                ) : (
+                  recentTimeline.map((a) => (
+                    <div className="timeline-entry" key={a.timestamp}>
+                      <div className="entry-header">
+                        <span className="entry-dot" />
+                        <span className="entry-duration">
+                          {formatActivityTime(a.timestamp)}
+                        </span>
+                      </div>
+                      <div className="entry-desc">{a.summary}</div>
+                      {a.apps.length > 0 && <div className="entry-time">{a.apps.join(', ')}</div>}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="timer-controls no-drag">
+          <div className="timer-controls no-drag" style={{ flexShrink: 0, paddingTop: 14 }}>
             <button className="timer-btn" onClick={() => window.tomato.togglePause()}>
               {state.paused ? 'Resume' : 'Pause'}
             </button>
