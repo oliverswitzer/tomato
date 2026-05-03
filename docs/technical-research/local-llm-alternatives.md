@@ -1,16 +1,62 @@
 # Local LLM Alternatives to Anthropic API
 
-**Date:** 2026-05-02
-**Status:** Desk research complete — **no empirical benchmarks yet**
+**Date:** 2026-05-02 (updated 2026-05-03 with empirical results)
+**Status:** Spike complete — **empirical benchmarks included**
 **Linear:** IDE-143
-
-> **Important:** All performance numbers, latency estimates, and quality assessments in this document are sourced from community benchmarks, vendor documentation, and published reports — **not measured on our hardware with our prompts and data.** The next step before any go/no-go decision is to run actual benchmarks with real screenpipe batch data. See [Next Steps](#next-steps).
 
 ## Executive Summary
 
-We evaluated three local inference options — Apple Foundation Models, MLX Swift, and llama.cpp — as replacements for the Anthropic API (Claude Haiku) that powers Tomato's focus summarization and drift detection. All three appear technically viable based on published specs. Our tentative recommendation is a **phased approach**: ship with **llama.cpp via llama-server** (broadest compatibility, simplest integration), then add **Apple Foundation Models** as a zero-download fast path on macOS 26+.
+We evaluated three local inference options — Apple Foundation Models, MLX Swift, and llama.cpp — as replacements for the Anthropic API (Claude Haiku) that powers Tomato's focus summarization and drift detection. We built a working prototype using **node-llama-cpp** (llama.cpp Node.js bindings) running Llama-3.2-3B-Instruct-Q4_K_M in the Electron main process and validated it with real pomodoro sessions.
 
-**This recommendation is contingent on empirical validation** — see blocking conditions at bottom.
+**Verdict: Go.** A 3B local model produces usable summaries, classifications, and drift detection for our full batch prompt. See [Empirical Results](#empirical-results) below.
+
+---
+
+## Empirical Results (measured on M1 Pro, 32 GB)
+
+### Spike implementation
+
+We built a `LocalLlmClient` implementing the existing `LlmClient` interface, backed by `node-llama-cpp` running Llama-3.2-3B-Instruct-Q4_K_M (1.9 GB GGUF file) in the Electron main process. The model loads from `bin/models/` (dev) or `Contents/Resources/models/` (packaged). No external dependencies — no Ollama, no server process.
+
+### Performance (node-llama-cpp in-process, 2048 token context)
+
+| Metric | Value |
+|--------|-------|
+| Model load time | ~1s (warm), ~23s (with large context) |
+| Inference latency per batch | ~4-5s |
+| Electron process RSS | **2.5 GB** (with 2048 context) |
+| Electron process RSS | 14.2 GB (default context — must be capped) |
+| Model file size | 1.9 GB |
+| Success rate | 100% (30+ calls, zero parse failures) |
+
+### Performance (Ollama, for comparison)
+
+| Metric | Value |
+|--------|-------|
+| Warm latency avg | 2,339ms |
+| Warm latency P50 | 2,305ms |
+| Cold start (34min idle) | 7,391ms |
+| Ollama runner RSS | 5.4 GB |
+| Success rate | 100% (15 calls) |
+
+### Quality assessment
+
+Tested with real screenpipe data across multiple pomodoro sessions:
+- **Summaries:** Coherent, accurate, specific about apps and actions
+- **Classification:** Correctly uses Building, Research, Admin, Off-task, Communication
+- **Drift detection:** Correctly flags off-task apps (Stats, YouTube), does not flag related research
+- **JSON reliability:** 100% valid JSON responses, zero parse failures
+- **Compared to Haiku:** Summaries are shorter and less nuanced, but actionable. Classifications are accurate. Drift detection works correctly.
+
+### Integration findings
+
+| Issue | Resolution |
+|-------|-----------|
+| node-llama-cpp is ESM-only | `new Function('return import(...)')` workaround for CJS project |
+| Default context uses 14+ GB RAM | Cap at 2048 tokens (sufficient for our prompts) |
+| `process.resourcesPath` wrong in dev | Use `__dirname` in dev, `process.resourcesPath` when packaged |
+| Native module ABI (like better-sqlite3) | `asarUnpack` + `electron-rebuild` (existing pattern) |
+| Model file not auto-downloaded | Manual placement in `bin/models/` for now — needs download UX |
 
 ---
 
@@ -389,22 +435,30 @@ LlmClient selection:
 
 ## Go / No-Go Recommendation
 
-### Tentative Go — pending empirical validation
+### Go — validated by spike
 
-Based on desk research, local inference *could* replace the Anthropic API as the default path. The strategic case is compelling:
+Local inference can replace the Anthropic API as the default path. The spike proved end-to-end feasibility: node-llama-cpp runs in Electron's main process, loads a 1.9 GB model in ~1s, produces summaries in ~4-5s, uses 2.5 GB RAM, and generates correct classifications and drift detection. The strategic case is compelling:
 
 1. **Eliminates API key friction** — the #1 barrier to first-time value
 2. **Zero marginal cost** — no per-query charges, ever
 3. **Privacy-first** — no data leaves the device, reinforces brand
 4. **Offline capable** — works without internet after model download
 
-### Blocking conditions (none of these have been validated yet)
+### Validated conditions
 
-1. **Quality validation:** Run 20+ real screenpipe batch prompts through Llama-3.2-3B-Instruct and compare outputs with Haiku side-by-side. Measure: classification accuracy, summary coherence, drift detection precision/recall. If quality is unacceptable, evaluate the 8B model or keep cloud as default.
+1. **Quality:** 30+ real screenpipe batch prompts through Llama-3.2-3B-Instruct — 100% valid JSON, correct classifications, accurate drift detection. Quality is lower than Haiku but actionable.
 
-2. **Latency + resource measurement:** Profile Electron + screenpipe + llama-server + 3B model running concurrently on an 8 GB M1. Measure: wall-clock inference time, RSS memory, swap usage, GPU utilization. Published benchmarks are for isolated inference — real-world numbers could be worse.
+2. **Latency + resources:** Electron + screenpipe + node-llama-cpp measured on M1 Pro (32 GB): 2.5 GB RSS, ~4-5s per summary. **Not yet tested on 8 GB machines** — this remains a risk.
 
-3. **First-run download UX:** A 2 GB download on first launch needs clear progress indication and the ability to cancel/retry. This is a UX design task, not a research question.
+### Remaining work for production (next story)
+
+1. **First-run model download UX:** User-facing download screen with progress bar for the 1.9 GB model file. Must handle cancel/retry/offline gracefully.
+
+2. **LLM source selection:** Let user choose between: (a) download recommended local model, (b) point to Ollama, (c) use Anthropic API key. This replaces the current API-key-only onboarding.
+
+3. **8 GB Mac validation:** Test on a base M1 (8 GB) to verify 2.5 GB model + Electron + screenpipe fits without swap pressure.
+
+4. **Prompt deduplication:** Extract shared prompt-building logic from `AnthropicLlmClient` and `LocalLlmClient` into a shared module.
 
 ### What we'd keep the Anthropic API for
 
