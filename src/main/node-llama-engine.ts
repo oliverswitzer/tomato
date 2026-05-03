@@ -10,11 +10,15 @@ function log(msg: string): void {
   } catch {}
 }
 
-let nodeLlamaCpp: typeof import('node-llama-cpp') | null = null;
+let nodeLlamaCpp: any = null;
+
+// node-llama-cpp is ESM-only. TypeScript compiles import() to require() in CJS mode,
+// which fails on ESM packages. This preserves the real import() at runtime.
+const dynamicImport = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<any>;
 
 async function importNodeLlamaCpp() {
   if (!nodeLlamaCpp) {
-    nodeLlamaCpp = await import('node-llama-cpp');
+    nodeLlamaCpp = await dynamicImport('node-llama-cpp');
   }
   return nodeLlamaCpp;
 }
