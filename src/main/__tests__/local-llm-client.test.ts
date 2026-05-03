@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { LocalLlmClient } from '../local-llm-client';
+import type { LlamaEngine } from '../local-llm-client';
 import type { ActivityTimeline } from '../timeline-builder';
 
 const validBatchResponse = JSON.stringify({
@@ -17,17 +18,11 @@ const validSessionResponse = JSON.stringify({
   focusScore: 78,
 });
 
-function makeMockFetch(responseText: string, options: { status?: number; ok?: boolean } = {}) {
-  const status = options.status ?? 200;
-  const ok = options.ok ?? status < 400;
-  return vi.fn().mockResolvedValue({
-    ok,
-    status,
-    json: vi.fn().mockResolvedValue({
-      choices: [{ message: { content: responseText } }],
-      usage: { prompt_tokens: 400, completion_tokens: 90 },
-    }),
-  });
+function mockEngine(response: string): LlamaEngine {
+  return {
+    prompt: vi.fn().mockResolvedValue(response),
+    getModelName: vi.fn().mockReturnValue('llama3.2-3b-local'),
+  };
 }
 
 function sampleTimeline(overrides: Partial<ActivityTimeline> = {}): ActivityTimeline {
@@ -62,28 +57,23 @@ function sampleTimeline(overrides: Partial<ActivityTimeline> = {}): ActivityTime
 
 describe('LocalLlmClient', () => {
   describe('batchSummarize', () => {
-    it('sends prompt with timeline entries and intention to Ollama endpoint', async () => {
-      const fetchFn = makeMockFetch(validBatchResponse);
-      const client = new LocalLlmClient({ fetchFn });
+    it('sends prompt with timeline entries and intention to engine', async () => {
+      const engine = mockEngine(validBatchResponse);
+      const client = new LocalLlmClient({ engine });
 
       await client.batchSummarize(sampleTimeline(), 'Build the focus tracker');
 
-      expect(fetchFn).toHaveBeenCalledOnce();
-      const [url, options] = fetchFn.mock.calls[0];
-      expect(url).toBe('http://localhost:11434/v1/chat/completions');
-
-      const body = JSON.parse(options.body);
-      expect(body.model).toBe('llama3.2:3b');
-      expect(body.messages[0].role).toBe('user');
-      expect(body.messages[0].content).toContain('Build the focus tracker');
-      expect(body.messages[0].content).toContain('Cursor');
-      expect(body.messages[0].content).toContain('const x = 42;');
-      expect(body.messages[0].content).toContain('main.ts');
-      expect(body.messages[0].content).toContain('switched to this app');
+      expect(engine.prompt).toHaveBeenCalledOnce();
+      const prompt = (engine.prompt as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(prompt).toContain('Build the focus tracker');
+      expect(prompt).toContain('Cursor');
+      expect(prompt).toContain('const x = 42;');
+      expect(prompt).toContain('main.ts');
+      expect(prompt).toContain('switched to this app');
     });
 
     it('parses valid JSON response into BatchSummaryResult', async () => {
-      const client = new LocalLlmClient({ fetchFn: makeMockFetch(validBatchResponse) });
+      const client = new LocalLlmClient({ engine: mockEngine(validBatchResponse) });
 
       const result = await client.batchSummarize(sampleTimeline(), 'Build it');
 
@@ -92,20 +82,21 @@ describe('LocalLlmClient', () => {
       expect(result!.level2Classification).toBe('Building');
       expect(result!.driftAssessment.isDrifting).toBe(false);
       expect(result!.driftAssessment.confidence).toBe(0.9);
-      expect(result!.usage.inputTokens).toBe(400);
-      expect(result!.usage.outputTokens).toBe(90);
     });
 
-    it('returns null when fetch throws (server down)', async () => {
-      const fetchFn = vi.fn().mockRejectedValue(new Error('Connection refused'));
-      const client = new LocalLlmClient({ fetchFn });
+    it('returns null when engine throws (model not loaded)', async () => {
+      const engine = {
+        prompt: vi.fn().mockRejectedValue(new Error('Model not loaded')),
+        getModelName: vi.fn().mockReturnValue('llama3.2-3b-local'),
+      };
+      const client = new LocalLlmClient({ engine });
 
       const result = await client.batchSummarize(sampleTimeline(), 'test');
       expect(result).toBeNull();
     });
 
     it('returns null on malformed JSON response', async () => {
-      const client = new LocalLlmClient({ fetchFn: makeMockFetch('This is not JSON at all') });
+      const client = new LocalLlmClient({ engine: mockEngine('This is not JSON at all') });
 
       const result = await client.batchSummarize(sampleTimeline(), 'test');
       expect(result).toBeNull();
@@ -113,7 +104,7 @@ describe('LocalLlmClient', () => {
 
     it('returns null when response JSON is missing required fields', async () => {
       const client = new LocalLlmClient({
-        fetchFn: makeMockFetch(JSON.stringify({ summary: 'hello' })),
+        engine: mockEngine(JSON.stringify({ summary: 'hello' })),
       });
 
       const result = await client.batchSummarize(sampleTimeline(), 'test');
@@ -121,7 +112,7 @@ describe('LocalLlmClient', () => {
     });
 
     it('getLastPrompt stores the most recent prompt', async () => {
-      const client = new LocalLlmClient({ fetchFn: makeMockFetch(validBatchResponse) });
+      const client = new LocalLlmClient({ engine: mockEngine(validBatchResponse) });
 
       expect(client.getLastPrompt()).toBeNull();
       await client.batchSummarize(sampleTimeline(), 'Build focus tracker');
@@ -129,13 +120,12 @@ describe('LocalLlmClient', () => {
     });
 
     it('prompt contains identical drift guidance as AnthropicLlmClient', async () => {
-      const fetchFn = makeMockFetch(validBatchResponse);
-      const client = new LocalLlmClient({ fetchFn });
+      const engine = mockEngine(validBatchResponse);
+      const client = new LocalLlmClient({ engine });
 
       await client.batchSummarize(sampleTimeline(), 'Fix the auth bug');
 
-      const body = JSON.parse(fetchFn.mock.calls[0][1].body);
-      const prompt = body.messages[0].content;
+      const prompt = (engine.prompt as ReturnType<typeof vi.fn>).mock.calls[0][0];
       expect(prompt).toContain('App-switching speed is NOT a drift signal');
       expect(prompt).toContain('Judge by app and content relevance');
       expect(prompt).toContain('Flag drift only when apps are clearly unrelated');
@@ -151,7 +141,7 @@ describe('LocalLlmClient', () => {
     ];
 
     it('returns summary and focus score', async () => {
-      const client = new LocalLlmClient({ fetchFn: makeMockFetch(validSessionResponse) });
+      const client = new LocalLlmClient({ engine: mockEngine(validSessionResponse) });
       const result = await client.summarizeSession('Build focus tracker', activities, 25);
 
       expect(result).not.toBeNull();
@@ -161,17 +151,27 @@ describe('LocalLlmClient', () => {
 
     it('clamps focus score to 0-100', async () => {
       const client = new LocalLlmClient({
-        fetchFn: makeMockFetch(JSON.stringify({ summary: 'test', focusScore: 150 })),
+        engine: mockEngine(JSON.stringify({ summary: 'test', focusScore: 150 })),
       });
       const result = await client.summarizeSession('test', activities, 25);
       expect(result!.focusScore).toBe(100);
     });
 
-    it('returns null when fetch throws (server down)', async () => {
-      const fetchFn = vi.fn().mockRejectedValue(new Error('Connection refused'));
-      const client = new LocalLlmClient({ fetchFn });
+    it('returns null when engine throws', async () => {
+      const engine = {
+        prompt: vi.fn().mockRejectedValue(new Error('Model crashed')),
+        getModelName: vi.fn().mockReturnValue('llama3.2-3b-local'),
+      };
+      const client = new LocalLlmClient({ engine });
       const result = await client.summarizeSession('test', activities, 25);
       expect(result).toBeNull();
+    });
+  });
+
+  describe('getModel', () => {
+    it('returns engine model name', () => {
+      const client = new LocalLlmClient({ engine: mockEngine('') });
+      expect(client.getModel()).toBe('llama3.2-3b-local');
     });
   });
 });

@@ -6,22 +6,21 @@ import type {
   TokenUsage,
 } from './llm-summarizer';
 
+export interface LlamaEngine {
+  prompt(text: string): Promise<string>;
+  getModelName(): string;
+}
+
 export interface LocalLlmClientOptions {
-  baseUrl?: string;
-  model?: string;
-  fetchFn?: typeof fetch;
+  engine: LlamaEngine;
 }
 
 export class LocalLlmClient implements LlmClient {
-  private baseUrl: string;
-  private model: string;
-  private fetchFn: typeof fetch;
+  private engine: LlamaEngine;
   private lastPrompt: string | null = null;
 
-  constructor(options: LocalLlmClientOptions = {}) {
-    this.baseUrl = options.baseUrl ?? 'http://localhost:11434';
-    this.model = options.model ?? 'llama3.2:3b';
-    this.fetchFn = options.fetchFn ?? fetch;
+  constructor(options: LocalLlmClientOptions) {
+    this.engine = options.engine;
   }
 
   getLastPrompt(): string | null {
@@ -29,11 +28,11 @@ export class LocalLlmClient implements LlmClient {
   }
 
   getModel(): string {
-    return this.model;
+    return this.engine.getModelName();
   }
 
-  setModel(model: string): void {
-    this.model = model;
+  setModel(_model: string): void {
+    // Local models are set at startup via model path, not swappable at runtime
   }
 
   async batchSummarize(
@@ -45,28 +44,10 @@ export class LocalLlmClient implements LlmClient {
     this.lastPrompt = prompt;
 
     try {
-      const response = await this.fetchFn(`${this.baseUrl}/v1/chat/completions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: this.model,
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 300,
-          temperature: 0.3,
-        }),
-      });
-
-      if (!response.ok) return null;
-
-      const data = await response.json();
-      const content = data?.choices?.[0]?.message?.content;
+      const content = await this.engine.prompt(prompt);
       if (!content) return null;
 
-      const usage: TokenUsage = {
-        inputTokens: data?.usage?.prompt_tokens ?? 0,
-        outputTokens: data?.usage?.completion_tokens ?? 0,
-      };
-
+      const usage: TokenUsage = { inputTokens: 0, outputTokens: 0 };
       return this.parseResponse(content, usage);
     } catch {
       return null;
@@ -109,21 +90,7 @@ Respond with EXACTLY this JSON (no other text):
     this.lastPrompt = prompt;
 
     try {
-      const response = await this.fetchFn(`${this.baseUrl}/v1/chat/completions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: this.model,
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 300,
-          temperature: 0.3,
-        }),
-      });
-
-      if (!response.ok) return null;
-
-      const data = await response.json();
-      const content = data?.choices?.[0]?.message?.content;
+      const content = await this.engine.prompt(prompt);
       if (!content) return null;
 
       const jsonMatch = content.match(/\{[\s\S]*\}/);

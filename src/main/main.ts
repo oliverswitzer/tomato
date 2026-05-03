@@ -21,6 +21,7 @@ import { SqliteScreenpipeDb } from './screenpipe-db';
 import { AnthropicLlmClient } from './llm-summarizer';
 import type { LlmClient } from './llm-summarizer';
 import { LocalLlmClient } from './local-llm-client';
+import { NodeLlamaEngine } from './node-llama-engine';
 import { saveSession, getRecentSessions } from './session-store';
 import { ElectronKeychainStore } from './keychain';
 import { validateApiKey } from './api-key-validator';
@@ -475,10 +476,11 @@ function startSession(intention: string, durationMin: number): void {
   let llm: LlmClient;
 
   if (useLocalLlm) {
-    const localModel = process.env.TOMATO_LOCAL_MODEL ?? 'llama3.2:3b';
-    const localUrl = process.env.TOMATO_LOCAL_URL ?? 'http://localhost:11434';
-    log(`Using local LLM: ${localModel} at ${localUrl}`);
-    llm = new LocalLlmClient({ baseUrl: localUrl, model: localModel });
+    const modelPath = process.env.TOMATO_MODEL_PATH
+      ?? path.join(process.resourcesPath ?? path.join(__dirname, '..', '..', 'bin'), 'models', 'hf_bartowski_Llama-3.2-3B-Instruct-Q4_K_M.gguf');
+    log(`Using local LLM: node-llama-cpp with model at ${modelPath}`);
+    const engine = new NodeLlamaEngine(modelPath);
+    llm = new LocalLlmClient({ engine });
   } else {
     const apiKey = keychain?.getApiKey() ?? process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {

@@ -4,7 +4,7 @@
   "description": "Pomodoro Mac app with screen-reading focus tracking",
   "main": "dist/main/main.js",
   "scripts": {
-    "predev": "electron-rebuild -f -w better-sqlite3 2>/dev/null || true",
+    "predev": "electron-rebuild -f -w better-sqlite3 2>/dev/null || true; electron-rebuild -f -w node-llama-cpp 2>/dev/null || true",
     "dev": "node scripts/dev.js",
     "build:main": "tsc -p tsconfig.node.json",
     "build:renderer": "vite build",
@@ -20,6 +20,7 @@
     "@anthropic-ai/sdk": "^0.90.0",
     "@types/better-sqlite3": "^7.6.13",
     "better-sqlite3": "^12.9.0",
+    "node-llama-cpp": "^3.18.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "screenpipe": "^0.3.289"
@@ -48,7 +49,8 @@
       "assets/**/*"
     ],
     "asarUnpack": [
-      "**/better-sqlite3/**"
+      "**/better-sqlite3/**",
+      "**/node-llama-cpp/**"
     ],
     "nodeGypRebuild": false,
     "buildDependenciesFromSource": false,
@@ -68,6 +70,10 @@
       {
         "from": "bin/request-screen-access",
         "to": "request-screen-access"
+      },
+      {
+        "from": "bin/models",
+        "to": "models"
       }
     ],
     "mac": {
@@ -82,8 +88,16 @@
       "title": "Tomato",
       "iconSize": 128,
       "contents": [
-        { "x": 130, "y": 220 },
-        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
       ]
     }
   }
