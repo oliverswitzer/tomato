@@ -97,10 +97,26 @@ export interface ApiKeyValidationResult {
   selectedModel?: string;
 }
 
+export type LlmSource = 'local' | 'anthropic';
+
 export interface OnboardingState {
   hasApiKey: boolean;
   selectedModel: string | null;
+  llmSource: LlmSource | null;
 }
+
+export interface ModelDownloadProgress {
+  downloadedBytes: number;
+  totalBytes: number;
+  percent: number;
+}
+
+export type ModelDownloadStatus =
+  | { state: 'idle' }
+  | { state: 'downloading'; progress: ModelDownloadProgress }
+  | { state: 'completed' }
+  | { state: 'cancelled' }
+  | { state: 'error'; error: string };
 
 export interface ModelInfo {
   id: string;
@@ -113,6 +129,8 @@ export interface SettingsState {
   hasApiKey: boolean;
   maskedKey: string | null;
   selectedModel: string | null;
+  llmSource: LlmSource | null;
+  modelDownloaded: boolean;
 }
 
 export interface ApiErrorEvent {
@@ -144,6 +162,14 @@ export interface TomatoApi {
   saveApiKey(key: string, selectedModel: string): Promise<{ success: boolean; error?: string }>;
   getOnboardingState(): Promise<OnboardingState>;
   apiKeyComplete(): void;
+  llmSourceComplete(source: LlmSource): void;
+
+  startModelDownload(): Promise<{ success: boolean; error?: string }>;
+  cancelModelDownload(): void;
+  getModelDownloadStatus(): Promise<ModelDownloadStatus>;
+  checkModelExists(): Promise<boolean>;
+  getSystemMemoryGB(): Promise<number>;
+  setLlmSource(source: LlmSource): Promise<void>;
 
   fetchModels(): Promise<{ models: ModelInfo[]; error?: string }>;
   getSettingsState(): Promise<SettingsState>;
@@ -154,6 +180,7 @@ export interface TomatoApi {
 
   onShowSettings(callback: () => void): () => void;
   onApiError(callback: (data: ApiErrorEvent) => void): () => void;
+  onModelDownloadProgress(callback: (status: ModelDownloadStatus) => void): () => void;
 
   onSessionState(callback: (state: SessionStateWithActivities) => void): () => void;
   onActivityUpdate(callback: (activity: Activity) => void): () => void;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { ModelInfo, SettingsState } from '@shared/ipc';
+import type { ModelInfo, SettingsState, ModelDownloadStatus, LlmSource } from '@shared/ipc';
 import { ModelPicker, formatModelName } from '../components/ModelPicker';
 
 const noDrag = { WebkitAppRegion: 'no-drag' } as React.CSSProperties;
@@ -75,6 +75,14 @@ function Toast({ message, onDone }: { message: string; onDone: () => void }) {
   );
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / Math.pow(1024, i);
+  return `${value.toFixed(i > 1 ? 1 : 0)} ${units[i]}`;
+}
+
 interface SettingsPageProps {
   onClose: () => void;
 }
@@ -90,15 +98,22 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modelError, setModelError] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [llmSource, setLlmSource] = useState<LlmSource | null>(null);
+  const [downloadStatus, setDownloadStatus] = useState<ModelDownloadStatus>({ state: 'idle' });
+  const [modelDownloaded, setModelDownloaded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     window.tomato.getSettingsState().then((state) => {
       setSettingsState(state);
       setSelectedModel(state.selectedModel);
-      setMode(state.hasApiKey ? 'saved' : 'no-key');
+      setLlmSource(state.llmSource);
+      setModelDownloaded(state.modelDownloaded);
+      setMode(state.llmSource === 'anthropic'
+        ? (state.hasApiKey ? 'saved' : 'no-key')
+        : 'saved');
 
-      if (state.hasApiKey) {
+      if (state.hasApiKey && state.llmSource === 'anthropic') {
         window.tomato.fetchModels().then((result) => {
           if (result.models.length > 0) {
             setModels(result.models);
@@ -108,6 +123,17 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
         });
       }
     });
+  }, []);
+
+  useEffect(() => {
+    const unsub = window.tomato.onModelDownloadProgress((status) => {
+      setDownloadStatus(status);
+      if (status.state === 'completed') {
+        setModelDownloaded(true);
+        setToastMessage('Model downloaded — switched to local AI');
+      }
+    });
+    return unsub;
   }, []);
 
   function handleKeyChange(value: string) {
@@ -187,6 +213,28 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
     setToastMessage(`Switched to ${formatModelName(modelId)}`);
   }
 
+  async function handleSourceSwitch(source: LlmSource) {
+    if (source === llmSource) return;
+
+    if (source === 'local') {
+      if (!modelDownloaded) {
+        setDownloadStatus({ state: 'idle' });
+        window.tomato.startModelDownload();
+      }
+      await window.tomato.setLlmSource('local');
+      setLlmSource('local');
+      setMode('saved');
+      if (modelDownloaded) {
+        setToastMessage('Switched to local AI');
+      }
+    } else {
+      await window.tomato.setLlmSource('anthropic');
+      setLlmSource('anthropic');
+      setMode(settingsState?.hasApiKey ? 'saved' : 'no-key');
+      setToastMessage('Switched to Anthropic API');
+    }
+  }
+
   const dismissToast = useCallback(() => setToastMessage(null), []);
 
   const maskedInput = keyInput.length > 4
@@ -198,6 +246,8 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
   const isSaved = mode === 'saved';
   const isEditing = mode === 'editing';
   const isError = mode === 'error';
+  const showAnthropicSection = llmSource === 'anthropic';
+  const isDownloading = downloadStatus.state === 'downloading';
 
   if (mode === 'loading') return null;
 
@@ -224,7 +274,7 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
           border: '1px solid #E8E1D7',
           boxShadow: '0 12px 28px rgba(0,0,0,0.1)',
           padding: '20px 22px',
-          gap: isSaved ? 16 : 18,
+          gap: 16,
           ...noDrag,
           position: 'relative',
         }}
@@ -259,116 +309,83 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
           </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, color: '#2A2A2A' }}>
-              Anthropic API key
-            </span>
-            {isNoKey && (
-              <a
-                href="https://console.anthropic.com/settings/keys"
-                onClick={(e) => { e.preventDefault(); window.open('https://console.anthropic.com/settings/keys', '_blank'); }}
-                style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: '#B86B60', cursor: 'pointer', textDecoration: 'none' }}
-              >
-                Get a key &rarr;
-              </a>
-            )}
-          </div>
-
-          {(isNoKey || isEditing || isError) ? (
-            <div
+        {/* LLM Source Toggle */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, color: '#2A2A2A' }}>
+            AI engine
+          </span>
+          <div
+            style={{
+              display: 'flex',
+              borderRadius: 8,
+              border: '1px solid #E8E1D7',
+              overflow: 'hidden',
+            }}
+          >
+            <button
+              onClick={() => handleSourceSwitch('local')}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: '#FBF7F1',
-                borderRadius: 8,
-                border: `1px solid ${isError ? '#E2574C' : '#E8E1D7'}`,
-                padding: '10px 12px',
-              }}
-            >
-              <input
-                ref={inputRef}
-                type="text"
-                style={{
-                  flex: 1,
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  fontFamily: "'Geist Mono', monospace",
-                  fontSize: 12,
-                  color: '#2A2A2A',
-                }}
-                placeholder="sk-ant-api03-…"
-                value={maskedInput}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v.length < maskedInput.length) {
-                    setKeyInput(keyInput.slice(0, -1));
-                  } else {
-                    const added = v.slice(maskedInput.length);
-                    handleKeyChange(keyInput + added);
-                  }
-                }}
-                onPaste={(e) => {
-                  e.preventDefault();
-                  handleKeyChange(e.clipboardData.getData('text'));
-                }}
-                disabled={isValidating}
-                autoFocus
-              />
-            </div>
-          ) : (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: '#FBF7F1',
-                borderRadius: 8,
-                border: '1px solid #E8E1D7',
-                padding: '10px 12px',
-                gap: 8,
+                flex: 1,
+                padding: '8px 12px',
+                border: 'none',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 12,
+                fontWeight: 500,
                 cursor: 'pointer',
+                background: llmSource === 'local' ? '#EEF6E3' : '#FBF7F1',
+                color: llmSource === 'local' ? '#5A7A2F' : '#8B8477',
+                transition: 'background 0.15s',
               }}
-              onClick={() => setMode('editing')}
             >
-              <span
-                style={{
-                  flex: 1,
-                  fontFamily: "'Geist Mono', monospace",
-                  fontSize: 12,
-                  color: '#2A2A2A',
-                }}
-              >
-                {settingsState?.maskedKey ?? ''}
-              </span>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  background: '#EEF6E3',
-                  borderRadius: 999,
-                  padding: '3px 8px',
-                  fontFamily: "'Geist Mono', monospace",
-                  fontSize: 10,
-                  fontWeight: 500,
-                  color: '#5A7A2F',
-                  letterSpacing: 0.3,
-                }}
-              >
-                &#x2713; Connected
-              </span>
-            </div>
-          )}
-
-          {isNoKey && (
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#8B8477', lineHeight: 1.5, margin: 0 }}>
-              Used to summarize your screen activity. Stored in your Mac&apos;s Keychain &mdash; never sent anywhere else.
-            </p>
-          )}
+              💻 Local
+            </button>
+            <button
+              onClick={() => handleSourceSwitch('anthropic')}
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                border: 'none',
+                borderLeft: '1px solid #E8E1D7',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 12,
+                fontWeight: 500,
+                cursor: 'pointer',
+                background: llmSource === 'anthropic' ? '#FBE9E7' : '#FBF7F1',
+                color: llmSource === 'anthropic' ? '#B86B60' : '#8B8477',
+                transition: 'background 0.15s',
+              }}
+            >
+              🔑 Anthropic
+            </button>
+          </div>
         </div>
 
-        {isError && errorMessage && (
+        {/* Local model download progress */}
+        {llmSource === 'local' && isDownloading && downloadStatus.state === 'downloading' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ width: '100%', height: 6, borderRadius: 999, background: '#EFE8DD', overflow: 'hidden' }}>
+              <div
+                style={{
+                  height: '100%',
+                  borderRadius: 999,
+                  background: '#E2574C',
+                  width: `${downloadStatus.progress.percent}%`,
+                  transition: 'width 0.3s ease',
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#8B8477' }}>
+                Downloading model… {downloadStatus.progress.percent}%
+              </span>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#8B8477' }}>
+                {formatBytes(downloadStatus.progress.downloadedBytes)} / {formatBytes(downloadStatus.progress.totalBytes)}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {llmSource === 'local' && downloadStatus.state === 'error' && (
           <div
             style={{
               display: 'flex',
@@ -381,93 +398,231 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
           >
             <AlertCircleIcon />
             <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#7A2E25', lineHeight: 1.5, flex: 1 }}>
-              {errorMessage}
+              {downloadStatus.error}
             </span>
           </div>
         )}
 
-        {isError && (
-          <button
-            onClick={() => { setMode('editing'); setErrorMessage(''); inputRef.current?.focus(); }}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 12,
-              fontWeight: 500,
-              color: '#B86B60',
-              cursor: 'pointer',
-              textAlign: 'center',
-              padding: 0,
-            }}
-          >
-            Edit key &rarr;
-          </button>
-        )}
-
-        {isNoKey && (
-          <p
-            style={{
-              fontFamily: "'Newsreader', Georgia, serif",
-              fontSize: 12,
-              fontStyle: 'italic',
-              color: '#A89F94',
-              margin: 0,
-            }}
-          >
-            Model selector appears here once a key is saved.
+        {llmSource === 'local' && modelDownloaded && (
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#5A7A2F', margin: 0 }}>
+            ✓ Llama 3.2 3B running locally — all data stays on your device.
           </p>
         )}
 
-        {(isSaved || isEditing) && (
-          <ModelPicker
-            models={models}
-            selectedModel={selectedModel}
-            onSelect={handleModelSelect}
-            open={dropdownOpen}
-            onToggle={() => setDropdownOpen(!dropdownOpen)}
-            error={modelError}
-          />
-        )}
+        {/* Anthropic section */}
+        {showAnthropicSection && (
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, color: '#2A2A2A' }}>
+                  Anthropic API key
+                </span>
+                {isNoKey && (
+                  <a
+                    href="https://console.anthropic.com/settings/keys"
+                    onClick={(e) => { e.preventDefault(); window.open('https://console.anthropic.com/settings/keys', '_blank'); }}
+                    style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: '#B86B60', cursor: 'pointer', textDecoration: 'none' }}
+                  >
+                    Get a key &rarr;
+                  </a>
+                )}
+              </div>
 
-        {!isError && hasKeyChanges && (
-          <button
-            onClick={handleSave}
-            disabled={isValidating}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              background: '#E2574C',
-              color: 'white',
-              border: 'none',
-              borderRadius: 8,
-              padding: '10px 16px',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: isValidating ? 'not-allowed' : 'pointer',
-              opacity: isValidating ? 0.4 : 1,
-              transition: 'opacity 0.15s',
-            }}
-          >
-            {isValidating ? (
-              <>
-                <Spinner />
-                Verifying key&hellip;
-              </>
-            ) : (
-              'Save'
+              {(isNoKey || isEditing || isError) ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    background: '#FBF7F1',
+                    borderRadius: 8,
+                    border: `1px solid ${isError ? '#E2574C' : '#E8E1D7'}`,
+                    padding: '10px 12px',
+                  }}
+                >
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    style={{
+                      flex: 1,
+                      background: 'transparent',
+                      border: 'none',
+                      outline: 'none',
+                      fontFamily: "'Geist Mono', monospace",
+                      fontSize: 12,
+                      color: '#2A2A2A',
+                    }}
+                    placeholder="sk-ant-api03-…"
+                    value={maskedInput}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v.length < maskedInput.length) {
+                        setKeyInput(keyInput.slice(0, -1));
+                      } else {
+                        const added = v.slice(maskedInput.length);
+                        handleKeyChange(keyInput + added);
+                      }
+                    }}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      handleKeyChange(e.clipboardData.getData('text'));
+                    }}
+                    disabled={isValidating}
+                    autoFocus
+                  />
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    background: '#FBF7F1',
+                    borderRadius: 8,
+                    border: '1px solid #E8E1D7',
+                    padding: '10px 12px',
+                    gap: 8,
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => setMode('editing')}
+                >
+                  <span
+                    style={{
+                      flex: 1,
+                      fontFamily: "'Geist Mono', monospace",
+                      fontSize: 12,
+                      color: '#2A2A2A',
+                    }}
+                  >
+                    {settingsState?.maskedKey ?? ''}
+                  </span>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      background: '#EEF6E3',
+                      borderRadius: 999,
+                      padding: '3px 8px',
+                      fontFamily: "'Geist Mono', monospace",
+                      fontSize: 10,
+                      fontWeight: 500,
+                      color: '#5A7A2F',
+                      letterSpacing: 0.3,
+                    }}
+                  >
+                    &#x2713; Connected
+                  </span>
+                </div>
+              )}
+
+              {isNoKey && (
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#8B8477', lineHeight: 1.5, margin: 0 }}>
+                  Used to summarize your screen activity. Stored encrypted on your Mac &mdash; never sent anywhere else.
+                </p>
+              )}
+            </div>
+
+            {isError && errorMessage && (
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 10,
+                  background: '#FBE9E7',
+                  borderRadius: 10,
+                  border: '1px solid #E2574C',
+                  padding: '12px 14px',
+                }}
+              >
+                <AlertCircleIcon />
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#7A2E25', lineHeight: 1.5, flex: 1 }}>
+                  {errorMessage}
+                </span>
+              </div>
             )}
-          </button>
-        )}
 
-        {isSaved && !hasKeyChanges && (
-          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#A89F94', textAlign: 'center', margin: 0 }}>
-            Models are fetched live from your Anthropic account.
-          </p>
+            {isError && (
+              <button
+                onClick={() => { setMode('editing'); setErrorMessage(''); inputRef.current?.focus(); }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: '#B86B60',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  padding: 0,
+                }}
+              >
+                Edit key &rarr;
+              </button>
+            )}
+
+            {isNoKey && (
+              <p
+                style={{
+                  fontFamily: "'Newsreader', Georgia, serif",
+                  fontSize: 12,
+                  fontStyle: 'italic',
+                  color: '#A89F94',
+                  margin: 0,
+                }}
+              >
+                Model selector appears here once a key is saved.
+              </p>
+            )}
+
+            {(isSaved || isEditing) && (
+              <ModelPicker
+                models={models}
+                selectedModel={selectedModel}
+                onSelect={handleModelSelect}
+                open={dropdownOpen}
+                onToggle={() => setDropdownOpen(!dropdownOpen)}
+                error={modelError}
+              />
+            )}
+
+            {!isError && hasKeyChanges && (
+              <button
+                onClick={handleSave}
+                disabled={isValidating}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  background: '#E2574C',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '10px 16px',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: isValidating ? 'not-allowed' : 'pointer',
+                  opacity: isValidating ? 0.4 : 1,
+                  transition: 'opacity 0.15s',
+                }}
+              >
+                {isValidating ? (
+                  <>
+                    <Spinner />
+                    Verifying key&hellip;
+                  </>
+                ) : (
+                  'Save'
+                )}
+              </button>
+            )}
+
+            {isSaved && !hasKeyChanges && (
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#A89F94', textAlign: 'center', margin: 0 }}>
+                Models are fetched live from your Anthropic account.
+              </p>
+            )}
+          </>
         )}
       </div>
 

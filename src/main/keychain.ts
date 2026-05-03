@@ -6,12 +6,16 @@ import path from 'path';
 
 const ENCRYPTION_SALT = 'com.tomato.pomodoro.v1';
 
+export type LlmSource = 'local' | 'anthropic';
+
 export interface KeychainStore {
   saveApiKey(key: string): void;
   getApiKey(): string | null;
   deleteApiKey(): void;
   setSelectedModel(model: string): void;
   getSelectedModel(): string | null;
+  setLlmSource(source: LlmSource): void;
+  getLlmSource(): LlmSource | null;
 }
 
 export class ElectronKeychainStore implements KeychainStore {
@@ -64,6 +68,15 @@ export class ElectronKeychainStore implements KeychainStore {
   getSelectedModel(): string | null {
     const val = this.readJson('onboarding.json')?.selectedModel;
     return typeof val === 'string' ? val : null;
+  }
+
+  setLlmSource(source: LlmSource): void {
+    this.writeJson('onboarding.json', { ...this.readJson('onboarding.json'), llmSource: source });
+  }
+
+  getLlmSource(): LlmSource | null {
+    const val = this.readJson('onboarding.json')?.llmSource;
+    return val === 'local' || val === 'anthropic' ? val : null;
   }
 
   private keyFilePath(): string {
