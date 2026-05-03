@@ -132,7 +132,7 @@ export class AnthropicLlmClient implements LlmClient {
     const passiveContextSections = this.buildPassiveContextSection(timeline);
 
     const windowNote = sessionContext
-      ? `\n\nIMPORTANT: This is a ${sessionContext.batchWindowSec}-second snapshot within a ${sessionContext.durationMin}-minute pomodoro session. You are summarizing ONLY this short window, not the entire session. A brief distraction in a ${sessionContext.batchWindowSec}-second window does not mean the user failed — they may have been focused for the other ${sessionContext.durationMin - 1} minutes. Be proportionate in your assessment.`
+      ? `\n\nIMPORTANT: This is a ${sessionContext.batchWindowSec}-second snapshot within a ${sessionContext.durationMin}-minute pomodoro session. You are summarizing ONLY this short window, not the entire session. A brief distraction in one ${sessionContext.batchWindowSec}-second window is a tiny fraction of the full session. Be proportionate in your assessment.`
       : '';
 
     const rollingContextSection = this.buildRollingContextSection(previousActivities);
