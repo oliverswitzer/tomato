@@ -30,6 +30,7 @@ import { saveSession, getRecentSessions } from './session-store';
 import { ElectronKeychainStore } from './keychain';
 import { validateApiKey } from './api-key-validator';
 import { DEFAULT_MODEL, getPriceTier, getModelPricing } from '../config/model-pricing';
+import { initAutoUpdater, checkForUpdates, quitAndInstall, getUpdateStatus, onUpdateStatus, stopAutoUpdater } from './auto-updater';
 import type { SessionState } from '../shared/ipc';
 
 const APP_ROOT = path.join(__dirname, '..', '..');
@@ -256,6 +257,24 @@ function updateTrayMenu(): void {
     { label: 'Settings...', click: () => showSettingsWindow() },
     { label: 'Send Feedback...', click: () => shell.openExternal('https://tomato.canny.io') },
   );
+
+  const updateStatus = getUpdateStatus();
+  if (updateStatus.state === 'downloaded') {
+    template.push({
+      label: `Restart to Update (v${updateStatus.version})`,
+      click: () => quitAndInstall(),
+    });
+  } else if (updateStatus.state === 'downloading') {
+    template.push({
+      label: `Downloading Update (${Math.round(updateStatus.progress ?? 0)}%)...`,
+      enabled: false,
+    });
+  } else {
+    template.push({
+      label: 'Check for Updates',
+      click: () => checkForUpdates('manual'),
+    });
+  }
 
   template.push(
     { type: 'separator' },
@@ -811,6 +830,18 @@ ipcMain.on('close-settings', () => {
 
 ipcMain.handle('get-liquid-glass-supported', () => isMacOS26OrNewer());
 
+ipcMain.on('check-for-updates', () => {
+  checkForUpdates('manual');
+});
+
+ipcMain.on('quit-and-install', () => {
+  quitAndInstall();
+});
+
+ipcMain.handle('get-update-status', () => getUpdateStatus());
+
+ipcMain.handle('get-app-version', () => app.getVersion());
+
 ipcMain.handle('get-debug-pipeline-state', () => {
   return focusTracker?.getDebugState() ?? null;
 });
@@ -912,6 +943,14 @@ app.whenReady().then(async () => {
 
   createTray();
 
+  initAutoUpdater(log);
+  onUpdateStatus((status) => {
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.send('update-status', status);
+    }
+    updateTrayMenu();
+  });
+
   const hasApiKey = keychain.getApiKey() !== null;
 
   if (!screenOk || !a11yOk) {
@@ -927,6 +966,7 @@ app.whenReady().then(async () => {
 });
 
 function cleanup(): void {
+  stopAutoUpdater();
   stopScreenpipe();
   if (focusTracker) focusTracker.stop();
   if (debugWin) {

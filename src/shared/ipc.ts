@@ -122,6 +122,13 @@ export interface ApiErrorEvent {
   message: string;
 }
 
+export interface UpdateStatusEvent {
+  state: 'idle' | 'checking' | 'available' | 'downloading' | 'downloaded' | 'error';
+  version?: string;
+  progress?: number;
+  error?: string;
+}
+
 export interface TomatoApi {
   startSession(intention: string, durationMin: number): void;
   togglePause(): void;
@@ -163,6 +170,12 @@ export interface TomatoApi {
   onSessionEnded(callback: () => void): () => void;
   onTimelineUpdate(callback: (entries: TimelineEntryIpc[]) => void): () => void;
   getLiquidGlassSupported(): Promise<boolean>;
+
+  checkForUpdates(): void;
+  quitAndInstall(): void;
+  getUpdateStatus(): Promise<UpdateStatusEvent>;
+  getAppVersion(): Promise<string>;
+  onUpdateStatus(callback: (status: UpdateStatusEvent) => void): () => void;
 }
 
 declare global {
