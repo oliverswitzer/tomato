@@ -253,6 +253,7 @@ function updateTrayMenu(): void {
   template.push(
     { type: 'separator' },
     { label: 'Settings...', click: () => showSettingsWindow() },
+    { label: 'Send Feedback...', click: () => shell.openExternal('https://tomato.canny.io') },
   );
 
   template.push(
