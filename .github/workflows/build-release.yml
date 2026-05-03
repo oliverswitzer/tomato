@@ -1,6 +1,9 @@
 name: Build & Release DMG
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       release_notes:
@@ -123,6 +126,52 @@ jobs:
       - name: Staple notarization ticket
         run: xcrun stapler staple release/Tomato.dmg
 
+      - name: Staple notarization ticket to app bundle
+        run: xcrun stapler staple release/mac-arm64/Tomato.app
+
+      - name: Create ZIP archive
+        run: cd release/mac-arm64 && zip -ry ../Tomato.zip Tomato.app
+
+      - name: Generate latest-mac.yml
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          DMG_SIZE=$(stat -f%z release/Tomato.dmg)
+          ZIP_SIZE=$(stat -f%z release/Tomato.zip)
+          DMG_SHA512=$(shasum -a 512 release/Tomato.dmg | awk '{print $1}' | xxd -r -p | base64)
+          ZIP_SHA512=$(shasum -a 512 release/Tomato.zip | awk '{print $1}' | xxd -r -p | base64)
+
+          cat > release/latest-mac.yml <<EOF
+          version: ${VERSION}
+          files:
+            - url: Tomato-${VERSION}.dmg
+              sha512: ${DMG_SHA512}
+              size: ${DMG_SIZE}
+            - url: Tomato-${VERSION}.zip
+              sha512: ${ZIP_SHA512}
+              size: ${ZIP_SIZE}
+          path: Tomato-${VERSION}.dmg
+          sha512: ${DMG_SHA512}
+          releaseDate: $(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
+          EOF
+
+      - name: Upload artifacts to Cloudflare R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+
+          # Upload versioned artifacts
+          aws s3 cp release/Tomato.dmg "s3://tomato-releases/Tomato-${VERSION}.dmg" --endpoint-url "$R2_ENDPOINT"
+          aws s3 cp release/Tomato.zip "s3://tomato-releases/Tomato-${VERSION}.zip" --endpoint-url "$R2_ENDPOINT"
+
+          # Upload/overwrite latest aliases
+          aws s3 cp release/Tomato.dmg "s3://tomato-releases/Tomato-latest.dmg" --endpoint-url "$R2_ENDPOINT"
+          aws s3 cp release/Tomato.zip "s3://tomato-releases/Tomato-latest.zip" --endpoint-url "$R2_ENDPOINT"
+          aws s3 cp release/latest-mac.yml "s3://tomato-releases/latest-mac.yml" --endpoint-url "$R2_ENDPOINT"
+
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
@@ -138,10 +187,16 @@ jobs:
           gh release delete latest --yes 2>/dev/null || true
           git push --delete origin latest 2>/dev/null || true
 
+          NOTES="${{ github.event.inputs.release_notes }}"
+          if [ -z "$NOTES" ]; then
+            NOTES="Release $(node -p \"require('./package.json').version\")"
+          fi
+
           gh release create latest \
             --title "Tomato (latest build)" \
-            --notes "${{ github.event.inputs.release_notes }}" \
-            release/Tomato.dmg
+            --notes "$NOTES" \
+            release/Tomato.dmg \
+            release/Tomato.zip
 
       - name: Clean up keychain
         if: always()
