@@ -1,18 +1,315 @@
 #session-timer {
-  background: #FFFFFF;
   border-radius: 22px;
-  border: 1px solid #EFE8DD;
   padding: 16px 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  -webkit-app-region: drag;
+  height: 100vh;
+  overflow: hidden;
+
+  /* Default: solid white (non-liquid-glass) */
+  background: #FFFFFF;
+  border: 1px solid #EFE8DD;
   box-shadow:
     0 20px 44px rgba(0, 0, 0, 0.12),
     0 2px 8px rgba(0, 0, 0, 0.06);
-  -webkit-app-region: drag;
-  max-height: 100vh;
-  overflow: hidden;
+
+  /* Smooth transitions for all drift-level changes */
+  transition:
+    background 0.8s ease,
+    border-color 0.8s ease,
+    box-shadow 0.8s ease;
 }
+
+/* ===== LIQUID GLASS: ON TRACK (ghost mode) ===== */
+#session-timer.lg-on-track {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  box-shadow: none;
+}
+#session-timer.lg-on-track .timer-time {
+  color: #FFFFFF;
+  font-weight: 300;
+}
+#session-timer.lg-on-track .summary-text {
+  color: rgba(255, 255, 255, 0.8);
+}
+#session-timer.lg-on-track .session-badge {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.8);
+}
+#session-timer.lg-on-track .session-badge .dot {
+  background: rgba(255, 255, 255, 0.9);
+}
+#session-timer.lg-on-track .expand-btn {
+  background: rgba(255, 255, 255, 0.2);
+}
+#session-timer.lg-on-track .expand-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+#session-timer.lg-on-track .expand-btn svg {
+  color: rgba(255, 255, 255, 0.8);
+}
+#session-timer.lg-on-track .progress-wrap {
+  background: rgba(255, 255, 255, 0.2);
+}
+#session-timer.lg-on-track .progress-bar {
+  background: rgba(255, 255, 255, 0.4);
+}
+#session-timer.lg-on-track .activity-label {
+  color: rgba(255, 255, 255, 0.6);
+}
+#session-timer.lg-on-track .activity-text {
+  color: rgba(255, 255, 255, 0.8);
+}
+#session-timer.lg-on-track .timeline-header {
+  background: transparent;
+  border-bottom-color: rgba(255, 255, 255, 0.15);
+}
+#session-timer.lg-on-track .timeline-label,
+#session-timer.lg-on-track .timeline-count {
+  color: rgba(255, 255, 255, 0.6);
+}
+#session-timer.lg-on-track .timeline-entry {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+#session-timer.lg-on-track .entry-duration {
+  color: rgba(255, 255, 255, 0.9);
+}
+#session-timer.lg-on-track .entry-desc {
+  color: rgba(255, 255, 255, 0.7);
+}
+#session-timer.lg-on-track .entry-time {
+  color: rgba(255, 255, 255, 0.5);
+}
+#session-timer.lg-on-track .entry-dot {
+  background: rgba(255, 255, 255, 0.6);
+}
+#session-timer.lg-on-track .timer-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+}
+#session-timer.lg-on-track .timer-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+#session-timer.lg-on-track .timer-btn.danger {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+}
+#session-timer.lg-on-track .timer-btn.danger:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+#session-timer.lg-on-track .divider {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ===== LIQUID GLASS: DRIFTING (color emerges) ===== */
+#session-timer.lg-drifting {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  box-shadow: none;
+}
+#session-timer.lg-drifting .timer-time {
+  color: #1A1A1A;
+  font-weight: 600;
+}
+#session-timer.lg-drifting .summary-text {
+  color: #2A2A2A;
+}
+#session-timer.lg-drifting .session-badge {
+  background: #FBE6B6;
+  color: #8A6420;
+}
+#session-timer.lg-drifting .session-badge .dot {
+  background: #C18A1A;
+}
+#session-timer.lg-drifting .expand-btn {
+  background: #FFFFFF;
+  border: 2px solid #D9822E;
+}
+#session-timer.lg-drifting .expand-btn svg {
+  color: #D9822E;
+}
+#session-timer.lg-drifting .progress-wrap {
+  background: #F4EEE3;
+}
+#session-timer.lg-drifting .progress-bar {
+  background: #D9822E;
+}
+#session-timer.lg-drifting .activity-label {
+  color: #8A6420;
+}
+#session-timer.lg-drifting .activity-text {
+  color: #2A2A2A;
+}
+#session-timer.lg-drifting .timeline-header {
+  background: transparent;
+  border-bottom-color: #F0EAE2;
+}
+#session-timer.lg-drifting .timeline-label,
+#session-timer.lg-drifting .timeline-count {
+  color: #BAA898;
+}
+#session-timer.lg-drifting .timeline-entry {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: #EFE8DD;
+}
+#session-timer.lg-drifting .entry-duration {
+  color: #2A2A2A;
+}
+#session-timer.lg-drifting .entry-desc {
+  color: #6B6259;
+}
+#session-timer.lg-drifting .entry-time {
+  color: #BAA898;
+}
+#session-timer.lg-drifting .entry-dot {
+  background: #D9822E;
+}
+#session-timer.lg-drifting .timer-btn {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: #EFE8DD;
+  color: #2A2A2A;
+}
+#session-timer.lg-drifting .timer-btn:hover {
+  background: #F0EAE2;
+}
+#session-timer.lg-drifting .timer-btn.danger {
+  border-color: #D9822E66;
+  color: #D9822E;
+}
+#session-timer.lg-drifting .timer-btn.danger:hover {
+  background: #FBE6B6;
+}
+#session-timer.lg-drifting .divider {
+  background: #F0EAE2;
+}
+
+/* ===== LIQUID GLASS: OFF TRACK (full color, demands attention) ===== */
+#session-timer.lg-off-track {
+  background: #FFFFFF;
+  border: 1.5px solid rgba(226, 87, 76, 0.4);
+  box-shadow:
+    0 10px 36px rgba(226, 87, 76, 0.15),
+    0 0 60px rgba(226, 87, 76, 0.1);
+}
+#session-timer.lg-off-track .timer-time {
+  color: #1A1A1A;
+  font-weight: 600;
+}
+#session-timer.lg-off-track .summary-text {
+  color: #2A2A2A;
+}
+#session-timer.lg-off-track .session-badge {
+  background: #FCE5E2;
+  color: #8A3D34;
+}
+#session-timer.lg-off-track .session-badge .dot {
+  background: #C7402F;
+}
+#session-timer.lg-off-track .expand-btn {
+  background: #FFFFFF;
+  border: 2px solid #C7402F;
+}
+#session-timer.lg-off-track .expand-btn svg {
+  color: #C7402F;
+}
+#session-timer.lg-off-track .progress-wrap {
+  background: #F4EEE3;
+}
+#session-timer.lg-off-track .progress-bar {
+  background: #E2574C;
+}
+#session-timer.lg-off-track .activity-label {
+  color: #B42318;
+}
+#session-timer.lg-off-track .timeline-header {
+  background: #FFFFFF;
+  border-bottom-color: #F0EAE2;
+}
+#session-timer.lg-off-track .timeline-label,
+#session-timer.lg-off-track .timeline-count {
+  color: #BAA898;
+}
+#session-timer.lg-off-track .timeline-entry {
+  background: #FBF7F1;
+  border-color: #EFE8DD;
+}
+#session-timer.lg-off-track .entry-dot {
+  background: #E2574C;
+}
+#session-timer.lg-off-track .timer-btn {
+  background: #FBF7F1;
+  border-color: #EFE8DD;
+  color: #2A2A2A;
+}
+#session-timer.lg-off-track .timer-btn:hover {
+  background: #F0EAE2;
+}
+#session-timer.lg-off-track .timer-btn.danger {
+  border-color: #E2574C33;
+  color: #E2574C;
+}
+#session-timer.lg-off-track .timer-btn.danger:hover {
+  background: #FEE4E2;
+}
+
+/* ===== FALLBACK GLOW (pre-macOS 26): pulsating yellow on drift ===== */
+#session-timer.glow-drift {
+  box-shadow:
+    0 0 12px 3px rgba(230, 160, 0, 0.5),
+    0 0 24px 6px rgba(230, 160, 0, 0.25),
+    0 20px 44px rgba(0, 0, 0, 0.12);
+  border-color: rgba(230, 160, 0, 0.6);
+  animation: drift-pulse 2s ease-in-out infinite;
+}
+
+@keyframes drift-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 12px 3px rgba(230, 160, 0, 0.5),
+      0 0 24px 6px rgba(230, 160, 0, 0.25),
+      0 20px 44px rgba(0, 0, 0, 0.12);
+  }
+  50% {
+    box-shadow:
+      0 0 20px 6px rgba(230, 160, 0, 0.7),
+      0 0 40px 12px rgba(230, 160, 0, 0.35),
+      0 20px 44px rgba(0, 0, 0, 0.12);
+  }
+}
+
+/* ===== Transition all inner elements smoothly ===== */
+.session-badge,
+.session-badge .dot,
+.expand-btn,
+.expand-btn svg,
+.timer-time,
+.summary-text,
+.progress-wrap,
+.progress-bar,
+.timeline-header,
+.timeline-entry,
+.entry-dot,
+.entry-duration,
+.entry-desc,
+.entry-time,
+.timer-btn,
+.activity-label,
+.activity-text,
+.divider {
+  transition:
+    color 0.8s ease,
+    background 0.8s ease,
+    border-color 0.8s ease,
+    font-weight 0.3s ease;
+}
+
+/* ===== Base element styles (unchanged layout) ===== */
 
 #session-timer::-webkit-scrollbar {
   width: 4px;
@@ -160,6 +457,7 @@
   font-weight: 700;
   color: #E2574C;
   letter-spacing: 1.2px;
+  white-space: nowrap;
 }
 
 .session-badge.drifting {

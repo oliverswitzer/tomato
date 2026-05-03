@@ -124,7 +124,7 @@ export interface TomatoApi {
   startSession(intention: string, durationMin: number): void;
   togglePause(): void;
   endSession(): void;
-  timerResize(expanded: boolean): void;
+  timerResize(height: number): void;
   timerReady(): void;
   closeStart(): void;
   nudgeRefocus(): void;
@@ -160,6 +160,7 @@ export interface TomatoApi {
   onDriftDetected(callback: (data: { reason: string; confidence: number; level2Classification: string }) => void): () => void;
   onSessionEnded(callback: () => void): () => void;
   onTimelineUpdate(callback: (entries: TimelineEntryIpc[]) => void): () => void;
+  getLiquidGlassSupported(): Promise<boolean>;
 }
 
 declare global {

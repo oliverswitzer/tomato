@@ -10,6 +10,12 @@ import {
   desktopCapturer,
   systemPreferences,
 } from 'electron';
+let liquidGlass: { addView: (handle: Buffer, options?: { cornerRadius?: number; tintColor?: string; opaque?: boolean }) => number } | null = null;
+try {
+  liquidGlass = require('electron-liquid-glass');
+} catch {
+  // Not available on non-macOS (optional dependency)
+}
 import { spawn, execFileSync, ChildProcess } from 'child_process';
 import path from 'path';
 import os from 'os';
@@ -27,6 +33,13 @@ import type { SessionState } from '../shared/ipc';
 
 const APP_ROOT = path.join(__dirname, '..', '..');
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
+
+function isMacOS26OrNewer(): boolean {
+  if (process.platform !== 'darwin') return false;
+  const ver = process.getSystemVersion?.() ?? '';
+  const major = parseInt(ver.split('.')[0], 10);
+  return major >= 26;
+}
 
 function getLogPath(): string {
   try {
@@ -355,9 +368,11 @@ function showTimerWindow(): void {
 
   const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
 
+  const supportsLiquidGlass = isMacOS26OrNewer();
+
   timerWin = new BrowserWindow({
     width: 360,
-    height: 220,
+    height: 175,
     x: screenWidth - 380,
     y: 40,
     frame: false,
@@ -365,13 +380,27 @@ function showTimerWindow(): void {
     alwaysOnTop: true,
     resizable: false,
     skipTaskbar: true,
-    hasShadow: false,
+    hasShadow: !supportsLiquidGlass,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: getPreloadPath(),
     },
   });
+
+  if (supportsLiquidGlass && liquidGlass) {
+    timerWin.webContents.once('did-finish-load', () => {
+      if (!timerWin || !liquidGlass) return;
+      try {
+        liquidGlass.addView(timerWin.getNativeWindowHandle(), {
+          cornerRadius: 22,
+        });
+        log('Liquid Glass applied to timer window');
+      } catch (err) {
+        log(`Liquid Glass failed: ${(err as Error).message}`);
+      }
+    });
+  }
 
   loadRendererPage(timerWin, '/hud');
   timerWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
@@ -408,39 +437,7 @@ function showDebugWindow(): void {
   });
 }
 
-function showNudgeWindow(): void {
-  if (nudgeWin) {
-    nudgeWin.show();
-    return;
-  }
 
-  const { width: screenWidth, height: screenHeight } =
-    screen.getPrimaryDisplay().workAreaSize;
-
-  nudgeWin = new BrowserWindow({
-    width: 340,
-    height: 180,
-    x: Math.round((screenWidth - 340) / 2),
-    y: Math.round(screenHeight * 0.55),
-    frame: false,
-    transparent: true,
-    alwaysOnTop: true,
-    resizable: false,
-    skipTaskbar: true,
-    hasShadow: false,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: getPreloadPath(),
-    },
-  });
-
-  loadRendererPage(nudgeWin, '/nudge');
-  nudgeWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
-  nudgeWin.on('closed', () => {
-    nudgeWin = null;
-  });
-}
 
 // --- Session logic ---
 
@@ -500,7 +497,6 @@ function startSession(intention: string, durationMin: number): void {
 
     focusTracker.onDrift = (data) => {
       log(`Drift detected: ${data.reason} (confidence: ${data.confidence}, classification: ${data.level2Classification})`);
-      showNudgeWindow();
       if (timerWin) {
         timerWin.webContents.send('drift-detected', data);
       }
@@ -643,10 +639,10 @@ ipcMain.on('end-session', () => {
   endSession();
 });
 
-ipcMain.on('timer-resize', (_event, { expanded }: { expanded: boolean }) => {
+ipcMain.on('timer-resize', (_event, { height }: { height: number }) => {
   if (!timerWin) return;
   const [x, y] = timerWin.getPosition();
-  timerWin.setSize(360, expanded ? 800 : 220);
+  timerWin.setSize(360, Math.round(height));
   timerWin.setPosition(x, y);
 });
 
@@ -803,6 +799,8 @@ ipcMain.on('close-settings', () => {
     startWin.webContents.send('hide-settings');
   }
 });
+
+ipcMain.handle('get-liquid-glass-supported', () => isMacOS26OrNewer());
 
 ipcMain.handle('get-debug-pipeline-state', () => {
   return focusTracker?.getDebugState() ?? null;

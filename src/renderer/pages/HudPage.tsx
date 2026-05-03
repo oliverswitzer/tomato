@@ -1,7 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { formatTime, formatActivityTime } from '@shared/utils';
 import type { Activity, SessionStateWithActivities } from '@shared/ipc';
+import tomatoOutline from '../../../assets/tomato-outline-white.png';
 import './HudPage.css';
+
+type DriftLevel = 'on-track' | 'drifting' | 'off-track';
+
+function getDriftLevel(driftInfo: { confidence: number } | null): DriftLevel {
+  if (!driftInfo) return 'on-track';
+  if (driftInfo.confidence < 0.6) return 'drifting';
+  return 'off-track';
+}
 
 export function HudPage() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -9,6 +18,7 @@ export function HudPage() {
   const [driftInfo, setDriftInfo] = useState<{ reason: string; confidence: number; level2Classification: string } | null>(null);
   const [apiError, setApiError] = useState<{ type: 'auth' | 'model_deprecated'; message: string } | null>(null);
   const [sessionEnded, setSessionEnded] = useState(false);
+  const [liquidGlass, setLiquidGlass] = useState(false);
   const [state, setState] = useState<SessionStateWithActivities>({
     active: false,
     intention: '',
@@ -26,7 +36,7 @@ export function HudPage() {
   const toggleExpand = useCallback(() => {
     setIsExpanded((prev) => {
       const next = !prev;
-      window.tomato.timerResize(next);
+      window.tomato.timerResize(next ? 600 : 175);
       return next;
     });
   }, []);
@@ -59,6 +69,10 @@ export function HudPage() {
 
     window.tomato.timerReady();
 
+    window.tomato.getLiquidGlassSupported().then((supported) => {
+      setLiquidGlass(supported);
+    });
+
     return () => unsubs.forEach((fn) => fn());
   }, []);
 
@@ -68,24 +82,26 @@ export function HudPage() {
     ? 0
     : (state.remainingSec / (state.durationMin * 60)) * 100;
 
-
   const recentTimeline = activities.slice(-6).reverse();
 
+  const driftLevel = getDriftLevel(driftInfo);
+
+  let containerClass = '';
+  if (liquidGlass) {
+    containerClass = `lg-${driftLevel}`;
+  } else if (driftInfo) {
+    containerClass = 'glow-drift';
+  }
+
   return (
-    <div id="session-timer">
-      {/* Shared header: status badge + toggle */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div
-          className={`session-badge${driftInfo ? ' drifting' : ''}`}
-          style={driftInfo ? {
-            background: 'rgba(230, 160, 0, 0.12)',
-            color: '#B8860B',
-          } : {
-            background: 'rgba(46, 125, 50, 0.1)',
-            color: '#2E7D32',
-          }}
-        >
-          <span className="dot" style={{ background: driftInfo ? '#E6A000' : '#2E7D32' }} />
+    <div
+      id="session-timer"
+      className={containerClass || undefined}
+    >
+      {/* Status badge + expand toggle */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+        <div className={`session-badge${driftInfo ? ' drifting' : ''}`}>
+          <span className="dot" />
           <span>{driftInfo ? 'POSSIBLE DISTRACTION' : 'ON TRACK'} &bull; {state.durationMin} MIN</span>
         </div>
         <button className="expand-btn no-drag" onClick={toggleExpand}>
@@ -102,9 +118,13 @@ export function HudPage() {
         </button>
       </div>
 
-      {/* Shared timer row */}
+      {/* Timer row */}
       <div className="top-row">
-        <div className="tomato-avatar">🍅</div>
+        <div className="tomato-avatar">
+          {liquidGlass && driftLevel === 'on-track'
+            ? <img src={tomatoOutline} alt="" style={{ width: 44, height: 44 }} />
+            : '🍅'}
+        </div>
         <div className="text-col">
           <div className="timer-row">
             <span className="timer-time">{timeStr}</span>
@@ -113,7 +133,7 @@ export function HudPage() {
         </div>
       </div>
 
-      {/* Shared progress bar */}
+      {/* Progress bar */}
       <div className="progress-wrap">
         <div className="progress-bar" style={{ width: `${progress}%` }} />
       </div>
@@ -168,8 +188,8 @@ export function HudPage() {
           </div>
 
           {driftInfo && (
-            <div className="activity-section" style={{ background: '#FEE4E2', borderRadius: 12, padding: '10px 14px' }}>
-              <span className="activity-label" style={{ color: '#B42318' }}>OFF TRACK</span>
+            <div className="activity-section" style={{ background: driftLevel === 'off-track' ? '#FCE5E2' : '#FBE6B6', borderRadius: 12, padding: '10px 14px' }}>
+              <span className="activity-label" style={{ color: driftLevel === 'off-track' ? '#B42318' : '#8A6420' }}>OFF TRACK</span>
               <div style={{ fontSize: 13, color: '#2A2A2A', lineHeight: 1.4 }}>{driftInfo.reason}</div>
               <div style={{ fontSize: 11, color: '#8B8477', marginTop: 4 }}>
                 {driftInfo.level2Classification} &middot; {Math.round(driftInfo.confidence * 100)}% confidence
@@ -200,10 +220,7 @@ export function HudPage() {
                 recentTimeline.map((a) => (
                   <div className="timeline-entry" key={a.timestamp}>
                     <div className="entry-header">
-                      <span
-                        className="entry-dot"
-                        style={{ background: driftInfo ? '#E2574C' : '#7CB342' }}
-                      />
+                      <span className="entry-dot" />
                       <span className="entry-duration">
                         {formatActivityTime(a.timestamp)}
                       </span>
