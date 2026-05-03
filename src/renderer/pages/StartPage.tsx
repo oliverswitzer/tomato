@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { relativeDate } from '@shared/utils';
 import type { SavedSession } from '@shared/ipc';
+import { deriveRecentChips } from '@shared/chips';
 import './StartPage.css';
 
 const TIMER_OPTIONS = [
@@ -34,6 +35,8 @@ export function StartPage() {
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  const recentChips = useMemo(() => deriveRecentChips(recentSessions), [recentSessions]);
 
   function handleStart() {
     const text = intention.trim();
@@ -83,18 +86,30 @@ export function StartPage() {
             {intention.length}/{MAX_INTENTION_LENGTH}
           </span>
         </div>
-        <div className="chips-label">Or try one:</div>
+        <div className="chips-label">{recentChips.length > 0 ? 'Recent:' : 'Or try one:'}</div>
         <div className="chips-row">
-          {CHIPS.map((chip) => (
-            <div
-              key={chip.text}
-              className="chip"
-              onClick={() => setIntention(chip.text)}
-            >
-              <span className="dot" style={{ background: chip.color }} />
-              {chip.text}
-            </div>
-          ))}
+          {recentChips.length > 0
+            ? recentChips.map((text, i) => (
+                <div
+                  key={text}
+                  className="chip"
+                  onClick={() => setIntention(text)}
+                >
+                  <span className="dot" style={{ background: DOT_COLORS[i % DOT_COLORS.length] }} />
+                  {text}
+                </div>
+              ))
+            : CHIPS.map((chip) => (
+                <div
+                  key={chip.text}
+                  className="chip"
+                  onClick={() => setIntention(chip.text)}
+                >
+                  <span className="dot" style={{ background: chip.color }} />
+                  {chip.text}
+                </div>
+              ))
+          }
         </div>
       </div>
 
