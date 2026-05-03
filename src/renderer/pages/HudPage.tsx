@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { formatTime, formatActivityTime } from '@shared/utils';
 import type { Activity, SessionStateWithActivities } from '@shared/ipc';
+import tomatoOutline from '../../../assets/tomato-outline-white.png';
 import './HudPage.css';
 
 type DriftLevel = 'on-track' | 'drifting' | 'off-track';
@@ -35,7 +36,7 @@ export function HudPage() {
   const toggleExpand = useCallback(() => {
     setIsExpanded((prev) => {
       const next = !prev;
-      window.tomato.timerResize(next);
+      window.tomato.timerResize(next ? 600 : 175);
       return next;
     });
   }, []);
@@ -119,7 +120,11 @@ export function HudPage() {
 
       {/* Timer row */}
       <div className="top-row">
-        <div className="tomato-avatar">🍅</div>
+        <div className="tomato-avatar">
+          {liquidGlass && driftLevel === 'on-track'
+            ? <img src={tomatoOutline} alt="" style={{ width: 44, height: 44 }} />
+            : '🍅'}
+        </div>
         <div className="text-col">
           <div className="timer-row">
             <span className="timer-time">{timeStr}</span>

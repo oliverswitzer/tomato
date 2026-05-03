@@ -372,7 +372,7 @@ function showTimerWindow(): void {
 
   timerWin = new BrowserWindow({
     width: 360,
-    height: 220,
+    height: 175,
     x: screenWidth - 380,
     y: 40,
     frame: false,
@@ -639,10 +639,10 @@ ipcMain.on('end-session', () => {
   endSession();
 });
 
-ipcMain.on('timer-resize', (_event, { expanded }: { expanded: boolean }) => {
+ipcMain.on('timer-resize', (_event, { height }: { height: number }) => {
   if (!timerWin) return;
   const [x, y] = timerWin.getPosition();
-  timerWin.setSize(360, expanded ? 800 : 220);
+  timerWin.setSize(360, Math.round(height));
   timerWin.setPosition(x, y);
 });
 

@@ -6,7 +6,7 @@ const api: TomatoApi = {
     ipcRenderer.send('start-session', { intention, durationMin }),
   togglePause: () => ipcRenderer.send('toggle-pause'),
   endSession: () => ipcRenderer.send('end-session'),
-  timerResize: (expanded) => ipcRenderer.send('timer-resize', { expanded }),
+  timerResize: (height) => ipcRenderer.send('timer-resize', { height }),
   timerReady: () => ipcRenderer.send('timer-ready'),
   closeStart: () => ipcRenderer.send('close-start'),
   nudgeRefocus: () => ipcRenderer.send('nudge-refocus'),

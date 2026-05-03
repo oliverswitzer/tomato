@@ -124,7 +124,7 @@ export interface TomatoApi {
   startSession(intention: string, durationMin: number): void;
   togglePause(): void;
   endSession(): void;
-  timerResize(expanded: boolean): void;
+  timerResize(height: number): void;
   timerReady(): void;
   closeStart(): void;
   nudgeRefocus(): void;

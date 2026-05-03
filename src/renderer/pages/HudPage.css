@@ -5,7 +5,7 @@
   flex-direction: column;
   gap: 14px;
   -webkit-app-region: drag;
-  max-height: 100vh;
+  height: 100vh;
   overflow: hidden;
 
   /* Default: solid white (non-liquid-glass) */
@@ -24,8 +24,8 @@
 
 /* ===== LIQUID GLASS: ON TRACK (ghost mode) ===== */
 #session-timer.lg-on-track {
-  background: rgba(255, 255, 255, 0.25);
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
   box-shadow: none;
 }
 #session-timer.lg-on-track .timer-time {
