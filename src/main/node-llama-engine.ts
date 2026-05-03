@@ -70,8 +70,8 @@ export class NodeLlamaEngine implements LlamaEngine {
       const model = await llama.loadModel({ modelPath: this.modelPath });
       log('Model loaded into memory');
 
-      const context = await model.createContext();
-      log('Context created');
+      const context = await model.createContext({ contextSize: 2048 });
+      log('Context created (2048 tokens)');
 
       this.session = new LlamaChatSession({ contextSequence: context.getSequence() });
       log('Chat session ready');
