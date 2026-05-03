@@ -7,6 +7,7 @@ import type { LlmClient, BatchSummaryResult } from './llm-summarizer';
 import { LlmAuthError, LlmModelNotFoundError } from './llm-summarizer';
 import { DEFAULT_MODEL, getModelPricing } from '../config/model-pricing';
 import { TimelineBuilder, type TimelineEntry, type ActivityTimeline } from './timeline-builder';
+import type { ShadowEvaluator } from './shadow-eval';
 
 const DEFAULT_TICK_MS = 15_000;
 const DEFAULT_BATCH_MS = 60_000;
@@ -30,6 +31,7 @@ export interface FocusTrackerDeps {
   tickIntervalMs?: number;
   batchIntervalMs?: number;
   clock?: () => Date;
+  shadowEvaluator?: ShadowEvaluator;
 }
 
 export class FocusTracker {
@@ -70,6 +72,8 @@ export class FocusTracker {
     this.tick();
     this.tickTimer = setInterval(() => this.tick(), this.tickMs);
     this.batchTimer = setInterval(() => this.runBatch(), this.batchMs);
+
+    this.deps.shadowEvaluator?.start(intention, durationMin);
   }
 
   stop(): void {
@@ -82,6 +86,7 @@ export class FocusTracker {
       this.batchTimer = null;
     }
     this._paused = false;
+    this.deps.shadowEvaluator?.stop();
   }
 
   pause(): void {
@@ -182,6 +187,7 @@ export class FocusTracker {
     log(`batch: calling LLM with ${timeline.entries.length} entries, intention="${this.intention}"`);
 
     let result;
+    const batchStartMs = Date.now();
     try {
       const recentActivities = this.activities.slice(-10).map((a) => ({
         summary: a.summary,
@@ -225,6 +231,9 @@ export class FocusTracker {
     log(`batch: summary="${result.summary}", classification=${result.level2Classification}, drifting=${result.driftAssessment.isDrifting}`);
 
     this.lastBatchResult = result;
+
+    const batchLatencyMs = Date.now() - batchStartMs;
+    this.deps.shadowEvaluator?.logProductionBatch(result, this.batchMs, since, until, timeline.entries.length, batchLatencyMs);
 
     const pricing = getModelPricing(this.deps.llm.getModel());
     const costUsd = pricing

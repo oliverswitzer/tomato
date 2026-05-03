@@ -5,6 +5,7 @@ import type { ScreenpipeDb } from '../screenpipe-db';
 import type { LlmClient, BatchSummaryResult } from '../llm-summarizer';
 import type { Activity, PollState } from '../../shared/ipc';
 import type { TimelineEntry } from '../timeline-builder';
+import type { ShadowEvaluator } from '../shadow-eval';
 
 function mockDb(): ScreenpipeDb {
   return {
@@ -462,6 +463,83 @@ describe('FocusTracker', () => {
       const thirdCall = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls[2];
       const previousActivities = thirdCall[3];
       expect(previousActivities).toHaveLength(2);
+
+      tracker.stop();
+    });
+  });
+
+  describe('shadow evaluation integration', () => {
+    function mockShadowEvaluator(): ShadowEvaluator {
+      return {
+        start: vi.fn(),
+        stop: vi.fn(),
+        logProductionBatch: vi.fn(),
+        logEntry: vi.fn(),
+        getLogFilePath: vi.fn().mockReturnValue('/tmp/shadow-eval.jsonl'),
+      } as unknown as ShadowEvaluator;
+    }
+
+    it('starts shadow evaluator when session starts', () => {
+      const shadow = mockShadowEvaluator();
+      const tracker = new FocusTracker({ db: mockDb(), llm: mockLlm(), shadowEvaluator: shadow });
+
+      tracker.start('Build feature', 25);
+      expect(shadow.start).toHaveBeenCalledWith('Build feature', 25);
+
+      tracker.stop();
+    });
+
+    it('stops shadow evaluator when session stops', () => {
+      const shadow = mockShadowEvaluator();
+      const tracker = new FocusTracker({ db: mockDb(), llm: mockLlm(), shadowEvaluator: shadow });
+
+      tracker.start('Build feature', 25);
+      tracker.stop();
+      expect(shadow.stop).toHaveBeenCalled();
+    });
+
+    it('logs production batch result to shadow evaluator', async () => {
+      const shadow = mockShadowEvaluator();
+      const tracker = new FocusTracker({
+        db: mockDb(),
+        llm: mockLlm(),
+        batchIntervalMs: 10000,
+        tickIntervalMs: 5000,
+        shadowEvaluator: shadow,
+      });
+
+      tracker.start('Build feature', 25);
+      await vi.advanceTimersByTimeAsync(10000);
+
+      expect(shadow.logProductionBatch).toHaveBeenCalledOnce();
+      const [result, batchMs, since, until, entryCount, latencyMs] =
+        (shadow.logProductionBatch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(result.summary).toBe('Editing code in Cursor.');
+      expect(batchMs).toBe(10000);
+      expect(typeof since).toBe('string');
+      expect(typeof until).toBe('string');
+      expect(entryCount).toBeGreaterThan(0);
+      expect(typeof latencyMs).toBe('number');
+
+      tracker.stop();
+    });
+
+    it('does not log to shadow evaluator when LLM returns null', async () => {
+      const llm = mockLlm();
+      (llm.batchSummarize as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      const shadow = mockShadowEvaluator();
+      const tracker = new FocusTracker({
+        db: mockDb(),
+        llm,
+        batchIntervalMs: 10000,
+        tickIntervalMs: 5000,
+        shadowEvaluator: shadow,
+      });
+
+      tracker.start('Build feature', 25);
+      await vi.advanceTimersByTimeAsync(10000);
+
+      expect(shadow.logProductionBatch).not.toHaveBeenCalled();
 
       tracker.stop();
     });
