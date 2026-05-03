@@ -22,6 +22,7 @@ const ALL_MODEL_PRICING: ModelPricing[] = [
   { id: 'claude-3-5-sonnet-20240620', inputPer1M: 3.00, outputPer1M: 15.00 },
   { id: 'claude-opus-4-7-20260414',   inputPer1M: 15.00, outputPer1M: 75.00 },
   { id: 'claude-opus-4-5-20250220',   inputPer1M: 15.00, outputPer1M: 75.00 },
+  { id: 'llama3.2:3b', inputPer1M: 0, outputPer1M: 0 },
 ];
 
 export function getModelPricing(modelId: string): ModelPricing | null {

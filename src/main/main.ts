@@ -19,6 +19,8 @@ import { FocusTracker } from './focus-tracker';
 import Database from 'better-sqlite3';
 import { SqliteScreenpipeDb } from './screenpipe-db';
 import { AnthropicLlmClient } from './llm-summarizer';
+import type { LlmClient } from './llm-summarizer';
+import { LocalLlmClient } from './local-llm-client';
 import { saveSession, getRecentSessions } from './session-store';
 import { ElectronKeychainStore } from './keychain';
 import { validateApiKey } from './api-key-validator';
@@ -469,15 +471,25 @@ function startSession(intention: string, durationMin: number): void {
 
   const dbPath = path.join(os.homedir(), '.screenpipe', 'db.sqlite');
 
-  const apiKey = keychain?.getApiKey() ?? process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    log('No API key available — AI features disabled for this session');
+  const useLocalLlm = process.env.TOMATO_LLM === 'local';
+  let llm: LlmClient;
+
+  if (useLocalLlm) {
+    const localModel = process.env.TOMATO_LOCAL_MODEL ?? 'llama3.2:3b';
+    const localUrl = process.env.TOMATO_LOCAL_URL ?? 'http://localhost:11434';
+    log(`Using local LLM: ${localModel} at ${localUrl}`);
+    llm = new LocalLlmClient({ baseUrl: localUrl, model: localModel });
+  } else {
+    const apiKey = keychain?.getApiKey() ?? process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      log('No API key available — AI features disabled for this session');
+    }
+    const selectedModel = keychain?.getSelectedModel() ?? DEFAULT_MODEL;
+    llm = new AnthropicLlmClient(
+      new Anthropic({ apiKey: apiKey || undefined, dangerouslyAllowBrowser: true }),
+      selectedModel,
+    );
   }
-  const selectedModel = keychain?.getSelectedModel() ?? DEFAULT_MODEL;
-  const llm = new AnthropicLlmClient(
-    new Anthropic({ apiKey: apiKey || undefined, dangerouslyAllowBrowser: true }),
-    selectedModel,
-  );
   const batchMs = process.env.TOMATO_BATCH_MS ? parseInt(process.env.TOMATO_BATCH_MS) : undefined;
 
   function tryOpenDbAndStart(): void {
