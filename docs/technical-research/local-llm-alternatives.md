@@ -1,12 +1,16 @@
 # Local LLM Alternatives to Anthropic API
 
 **Date:** 2026-05-02
-**Status:** Research complete — go/no-go recommendation at bottom
+**Status:** Desk research complete — **no empirical benchmarks yet**
 **Linear:** IDE-143
+
+> **Important:** All performance numbers, latency estimates, and quality assessments in this document are sourced from community benchmarks, vendor documentation, and published reports — **not measured on our hardware with our prompts and data.** The next step before any go/no-go decision is to run actual benchmarks with real screenpipe batch data. See [Next Steps](#next-steps).
 
 ## Executive Summary
 
-We evaluated three local inference options — Apple Foundation Models, MLX Swift, and llama.cpp — as replacements for the Anthropic API (Claude Haiku) that powers Tomato's focus summarization and drift detection. All three are technically viable. Our recommendation is a **phased approach**: ship with **llama.cpp via llama-server** (broadest compatibility, simplest integration), then add **Apple Foundation Models** as a zero-download fast path on macOS 26+.
+We evaluated three local inference options — Apple Foundation Models, MLX Swift, and llama.cpp — as replacements for the Anthropic API (Claude Haiku) that powers Tomato's focus summarization and drift detection. All three appear technically viable based on published specs. Our tentative recommendation is a **phased approach**: ship with **llama.cpp via llama-server** (broadest compatibility, simplest integration), then add **Apple Foundation Models** as a zero-download fast path on macOS 26+.
+
+**This recommendation is contingent on empirical validation** — see blocking conditions at bottom.
 
 ---
 
@@ -131,14 +135,14 @@ Electron Main Process
               └── writes JSON to stdout
 ```
 
-### Performance Analysis
+### Performance Estimates (from published benchmarks — not measured)
 
-For our use case (300 max output tokens, ~1000 input tokens):
+Extrapolating from community benchmarks for our use case (300 max output tokens, ~1000 input tokens):
 - **M1 base:** ~1–2s prompt processing + ~6–7s generation = **~8–9s total**
 - **M1 Pro/Max:** ~0.5–1s prompt processing + ~2–4s generation = **~3–5s total**
 - **M3 Pro:** ~1s prompt processing + ~4–5s generation = **~5–6s total**
 
-All well within our 60-second batch window.
+These estimates assume ideal conditions. Actual performance with Electron + screenpipe competing for memory/GPU has not been measured.
 
 ### Model Management
 
@@ -215,13 +219,13 @@ const response = await fetch('http://localhost:8081/v1/chat/completions', {
 
 **New `LlmClient` implementation** would be ~50 lines — just HTTP calls to localhost with JSON parsing.
 
-### Performance Analysis
+### Performance Estimates (from published benchmarks — not measured)
 
-For our use case (300 max output tokens, ~1000 input tokens):
+Extrapolating from community benchmarks for our use case (300 max output tokens, ~1000 input tokens):
 - **M1 base:** ~2–3s prompt processing + ~5–7s generation = **~7–10s total**
 - **M1 Pro/Max:** ~1–2s prompt processing + ~4–5s generation = **~5–7s total**
 
-Well within the 60-second batch window. Users would experience a brief pause before each summary appears.
+These estimates have not been validated with our actual prompts, data, or under real workload (Electron + screenpipe running concurrently).
 
 ### Alternative: node-llama-cpp (In-Process)
 
@@ -279,13 +283,17 @@ The [node-llama-cpp](https://node-llama-cpp.withcat.ai/) package provides direct
 
 ### 1. Quality: Can a 3B model produce usable summaries and classifications?
 
-**Likely yes, with caveats.** Our prompts are well-structured extraction tasks (summarize activity, classify into 7 categories, assess drift). These are the sweet spot for small models — especially with JSON schema enforcement (available in llama.cpp via grammar constraints). The nuanced parts (drift confidence calibration, distinguishing "research for the task" from "browsing") will be lower quality than Haiku, but should be actionable.
+**Unknown — this is the riskiest assumption and has not been tested.** Our prompts are well-structured extraction tasks (summarize activity, classify into 7 categories, assess drift), which should be in the sweet spot for small models based on published capability profiles. But we have zero empirical data on how a 3B model handles our specific prompts with real screenpipe data.
 
-**Mitigation:** Use conservative drift thresholds (raise confidence threshold from 0.6 to 0.75 for local models), simplify prompts, and enforce JSON output via grammar.
+**Concerns:** The nuanced parts (drift confidence calibration, distinguishing "research for the task" from "browsing") are exactly where small models tend to fail. JSON output reliability without grammar enforcement is also uncertain.
 
-**Validation needed:** Run the actual prompts against Llama-3.2-3B-Instruct with real screenpipe data and compare outputs side-by-side with Haiku. This is the critical next step before committing to implementation.
+**Mitigation ideas (untested):** Conservative drift thresholds (raise from 0.6 to 0.75), simplified prompts, JSON output via grammar constraints.
+
+**Critical next step:** Run 20+ actual batch prompts (with real screenpipe timeline data) through Llama-3.2-3B-Instruct and compare outputs side-by-side with Haiku. This must happen before any go/no-go decision.
 
 ### 2. Latency: Wall-clock time for a 3-minute batch summarization?
+
+**Estimates extrapolated from published benchmarks — not measured on our hardware or prompts:**
 
 | Machine | llama.cpp (est.) | MLX Swift (est.) | Apple FM (est.) |
 |---|---|---|---|
@@ -293,7 +301,7 @@ The [node-llama-cpp](https://node-llama-cpp.withcat.ai/) package provides direct
 | M1 Pro (16 GB) | 5–7s | 3–5s | 2–3s |
 | M3 Pro (18 GB) | 5–7s | 5–6s | 2–3s |
 
-All are well within the 60-second batch window. Users will notice a brief processing delay but it won't block the workflow.
+If accurate, all are within the 60-second batch window. **Needs empirical validation** — especially on 8 GB machines under real workload.
 
 ### 3. Resource usage: RAM/GPU alongside screenpipe + Electron?
 
@@ -381,22 +389,22 @@ LlmClient selection:
 
 ## Go / No-Go Recommendation
 
-### Go — with staged rollout
+### Tentative Go — pending empirical validation
 
-Local inference should replace the Anthropic API as the **default** path. The strategic case is compelling:
+Based on desk research, local inference *could* replace the Anthropic API as the default path. The strategic case is compelling:
 
 1. **Eliminates API key friction** — the #1 barrier to first-time value
 2. **Zero marginal cost** — no per-query charges, ever
 3. **Privacy-first** — no data leaves the device, reinforces brand
 4. **Offline capable** — works without internet after model download
 
-### Conditions for Go
+### Blocking conditions (none of these have been validated yet)
 
-1. **Quality validation (blocking):** Run real screenpipe batch data through Llama-3.2-3B-Instruct and compare outputs with Haiku side-by-side. If classification accuracy drops below ~80% or summaries are unusably vague, consider the 8B model (larger download, more RAM) or keep cloud as default.
+1. **Quality validation:** Run 20+ real screenpipe batch prompts through Llama-3.2-3B-Instruct and compare outputs with Haiku side-by-side. Measure: classification accuracy, summary coherence, drift detection precision/recall. If quality is unacceptable, evaluate the 8B model or keep cloud as default.
 
-2. **8 GB Mac testing (blocking):** Verify that Electron + screenpipe + llama-server + 3B model runs without swap pressure on an 8 GB M1. If it doesn't, default to the 1B model on low-memory machines.
+2. **Latency + resource measurement:** Profile Electron + screenpipe + llama-server + 3B model running concurrently on an 8 GB M1. Measure: wall-clock inference time, RSS memory, swap usage, GPU utilization. Published benchmarks are for isolated inference — real-world numbers could be worse.
 
-3. **First-run download UX:** Design a smooth model download experience. A 2 GB download on first launch needs clear progress indication and the ability to cancel/retry.
+3. **First-run download UX:** A 2 GB download on first launch needs clear progress indication and the ability to cancel/retry. This is a UX design task, not a research question.
 
 ### What we'd keep the Anthropic API for
 
