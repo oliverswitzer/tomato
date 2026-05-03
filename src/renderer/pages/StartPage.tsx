@@ -28,19 +28,12 @@ export function StartPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    const refresh = () => {
-      window.tomato.getRecentSessions().then(setRecentSessions);
-      window.tomato.getScreenPermission().then(setHasScreenPermission);
-    };
-    refresh();
-    window.addEventListener('focus', refresh);
+    window.tomato.getRecentSessions().then(setRecentSessions);
+    window.tomato.getScreenPermission().then(setHasScreenPermission);
     const interval = setInterval(() => {
       window.tomato.getScreenPermission().then(setHasScreenPermission);
     }, 3000);
-    return () => {
-      window.removeEventListener('focus', refresh);
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   const recentChips = useMemo(() => deriveRecentChips(recentSessions), [recentSessions]);
