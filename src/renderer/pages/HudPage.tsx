@@ -36,7 +36,7 @@ export function HudPage() {
   const toggleExpand = useCallback(() => {
     setIsExpanded((prev) => {
       const next = !prev;
-      window.tomato.timerResize(next ? 600 : 175);
+      window.tomato.timerResize(next ? 700 : 175);
       return next;
     });
   }, []);
@@ -191,7 +191,18 @@ export function HudPage() {
             {driftInfo && (
               <div className="activity-section" style={{ background: driftLevel === 'off-track' ? '#FCE5E2' : '#FBE6B6', borderRadius: 12, padding: '10px 14px' }}>
                 <span className="activity-label" style={{ color: driftLevel === 'off-track' ? '#B42318' : '#8A6420' }}>OFF TRACK</span>
-                <div style={{ fontSize: 13, color: '#2A2A2A', lineHeight: 1.4 }}>{driftInfo.reason}</div>
+                <div
+                title={driftInfo.reason}
+                style={{
+                  fontSize: 13,
+                  color: '#2A2A2A',
+                  lineHeight: 1.4,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >{driftInfo.reason}</div>
                 <div style={{ fontSize: 11, color: '#8B8477', marginTop: 4 }}>
                   {driftInfo.level2Classification} &middot; {Math.round(driftInfo.confidence * 100)}% confidence
                 </div>
@@ -207,7 +218,7 @@ export function HudPage() {
                   {activities.length} ACTIVIT{activities.length === 1 ? 'Y' : 'IES'}
                 </span>
               </div>
-              <div>
+              <div className="timeline-entries">
                 {recentTimeline.length === 0 ? (
                   <div className="timeline-entry">
                     <div className="entry-header">
