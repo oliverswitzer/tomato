@@ -457,6 +457,7 @@
   font-weight: 700;
   color: #E2574C;
   letter-spacing: 1.2px;
+  white-space: nowrap;
 }
 
 .session-badge.drifting {

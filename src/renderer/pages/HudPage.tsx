@@ -99,7 +99,7 @@ export function HudPage() {
       className={containerClass || undefined}
     >
       {/* Status badge + expand toggle */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
         <div className={`session-badge${driftInfo ? ' drifting' : ''}`}>
           <span className="dot" />
           <span>{driftInfo ? 'POSSIBLE DISTRACTION' : 'ON TRACK'} &bull; {state.durationMin} MIN</span>
