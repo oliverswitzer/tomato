@@ -835,6 +835,46 @@ app.setPath('userData', path.join(app.getPath('appData'), 'tomato'));
 app.whenReady().then(async () => {
   app.dock?.setIcon(path.join(APP_ROOT, 'assets', 'app-icon.png'));
 
+  // Set application menu so macOS menu bar shows "Tomato" instead of "Electron"
+  const appMenu = Menu.buildFromTemplate([
+    {
+      label: 'Tomato',
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'services' },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' },
+      ],
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' },
+      ],
+    },
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'zoom' },
+        { type: 'separator' },
+        { role: 'front' },
+      ],
+    },
+  ]);
+  Menu.setApplicationMenu(appMenu);
+
   keychain = new ElectronKeychainStore(app.getPath('userData'));
 
   const screenOk = systemPreferences.getMediaAccessStatus('screen') === 'granted';
