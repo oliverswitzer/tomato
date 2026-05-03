@@ -66,4 +66,18 @@ describe('deriveRecentChips', () => {
       'Write tests',
     ]);
   });
+
+  it('preserves most-recent-first order from input', () => {
+    const sessions = [
+      session('Deploy to staging'),
+      session('Write tests'),
+      session('Deploy to staging'),
+      session('Finish landing page'),
+    ];
+    expect(deriveRecentChips(sessions)).toEqual([
+      'Deploy to staging',
+      'Write tests',
+      'Finish landing page',
+    ]);
+  });
 });
