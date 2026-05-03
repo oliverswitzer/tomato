@@ -479,7 +479,7 @@ function startSession(intention: string, durationMin: number): void {
     const isPackaged = app.isPackaged;
     const modelDir = isPackaged
       ? path.join(process.resourcesPath, 'models')
-      : path.join(app.getAppPath(), 'bin', 'models');
+      : path.join(__dirname, '..', '..', 'bin', 'models');
     const modelPath = process.env.TOMATO_MODEL_PATH
       ?? path.join(modelDir, 'hf_bartowski_Llama-3.2-3B-Instruct-Q4_K_M.gguf');
     log(`Using local LLM: node-llama-cpp with model at ${modelPath}`);
