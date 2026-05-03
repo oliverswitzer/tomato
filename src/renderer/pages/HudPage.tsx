@@ -3,6 +3,14 @@ import { formatTime, formatActivityTime } from '@shared/utils';
 import type { Activity, SessionStateWithActivities } from '@shared/ipc';
 import './HudPage.css';
 
+type DriftLevel = 'on-track' | 'drifting' | 'off-track';
+
+function getDriftLevel(driftInfo: { confidence: number } | null): DriftLevel {
+  if (!driftInfo) return 'on-track';
+  if (driftInfo.confidence < 0.6) return 'drifting';
+  return 'off-track';
+}
+
 export function HudPage() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -73,42 +81,26 @@ export function HudPage() {
     ? 0
     : (state.remainingSec / (state.durationMin * 60)) * 100;
 
-
   const recentTimeline = activities.slice(-6).reverse();
 
-  let hudOpacity = 1;
+  const driftLevel = getDriftLevel(driftInfo);
+
+  let containerClass = '';
   if (liquidGlass) {
-    if (!driftInfo) {
-      hudOpacity = 0.35;
-    } else if (driftInfo.confidence < 0.6) {
-      hudOpacity = 0.65;
-    } else {
-      hudOpacity = 1;
-    }
+    containerClass = `lg-${driftLevel}`;
+  } else if (driftInfo) {
+    containerClass = 'glow-drift';
   }
 
   return (
     <div
       id="session-timer"
-      className={[
-        liquidGlass ? 'liquid-glass' : '',
-        !liquidGlass && driftInfo ? 'glow-drift' : '',
-      ].join(' ').trim() || undefined}
-      style={liquidGlass ? { opacity: hudOpacity } : undefined}
+      className={containerClass || undefined}
     >
-      {/* Shared header: status badge + toggle */}
+      {/* Status badge + expand toggle */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div
-          className={`session-badge${driftInfo ? ' drifting' : ''}`}
-          style={driftInfo ? {
-            background: 'rgba(230, 160, 0, 0.12)',
-            color: '#B8860B',
-          } : {
-            background: 'rgba(46, 125, 50, 0.1)',
-            color: '#2E7D32',
-          }}
-        >
-          <span className="dot" style={{ background: driftInfo ? '#E6A000' : '#2E7D32' }} />
+        <div className={`session-badge${driftInfo ? ' drifting' : ''}`}>
+          <span className="dot" />
           <span>{driftInfo ? 'POSSIBLE DISTRACTION' : 'ON TRACK'} &bull; {state.durationMin} MIN</span>
         </div>
         <button className="expand-btn no-drag" onClick={toggleExpand}>
@@ -125,7 +117,7 @@ export function HudPage() {
         </button>
       </div>
 
-      {/* Shared timer row */}
+      {/* Timer row */}
       <div className="top-row">
         <div className="tomato-avatar">🍅</div>
         <div className="text-col">
@@ -136,7 +128,7 @@ export function HudPage() {
         </div>
       </div>
 
-      {/* Shared progress bar */}
+      {/* Progress bar */}
       <div className="progress-wrap">
         <div className="progress-bar" style={{ width: `${progress}%` }} />
       </div>
@@ -147,9 +139,7 @@ export function HudPage() {
               display: 'flex',
               alignItems: 'center',
               gap: 10,
-              background: liquidGlass
-                ? (apiError.type === 'auth' ? 'rgba(226, 87, 76, 0.15)' : 'rgba(255, 152, 0, 0.15)')
-                : (apiError.type === 'auth' ? '#FEE4E2' : '#FFF3E0'),
+              background: apiError.type === 'auth' ? '#FEE4E2' : '#FFF3E0',
               borderRadius: 10,
               padding: '8px 12px',
               margin: '0 2px',
@@ -193,8 +183,8 @@ export function HudPage() {
           </div>
 
           {driftInfo && (
-            <div className="activity-section" style={{ background: liquidGlass ? 'rgba(226, 87, 76, 0.15)' : '#FEE4E2', borderRadius: 12, padding: '10px 14px' }}>
-              <span className="activity-label" style={{ color: '#B42318' }}>OFF TRACK</span>
+            <div className="activity-section" style={{ background: driftLevel === 'off-track' ? '#FCE5E2' : '#FBE6B6', borderRadius: 12, padding: '10px 14px' }}>
+              <span className="activity-label" style={{ color: driftLevel === 'off-track' ? '#B42318' : '#8A6420' }}>OFF TRACK</span>
               <div style={{ fontSize: 13, color: '#2A2A2A', lineHeight: 1.4 }}>{driftInfo.reason}</div>
               <div style={{ fontSize: 11, color: '#8B8477', marginTop: 4 }}>
                 {driftInfo.level2Classification} &middot; {Math.round(driftInfo.confidence * 100)}% confidence
@@ -225,10 +215,7 @@ export function HudPage() {
                 recentTimeline.map((a) => (
                   <div className="timeline-entry" key={a.timestamp}>
                     <div className="entry-header">
-                      <span
-                        className="entry-dot"
-                        style={{ background: driftInfo ? '#E2574C' : '#7CB342' }}
-                      />
+                      <span className="entry-dot" />
                       <span className="entry-duration">
                         {formatActivityTime(a.timestamp)}
                       </span>
