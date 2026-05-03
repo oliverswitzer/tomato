@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { FocusTracker } from '../focus-tracker';
+import { FocusTracker, truncateToWords } from '../focus-tracker';
 import { LlmAuthError, LlmModelNotFoundError } from '../llm-summarizer';
 import type { ScreenpipeDb } from '../screenpipe-db';
 import type { LlmClient, BatchSummaryResult } from '../llm-summarizer';
@@ -369,5 +369,118 @@ describe('FocusTracker', () => {
     expect(activities).toHaveLength(1);
 
     tracker.stop();
+  });
+
+  describe('rolling context', () => {
+    it('activity summaries are truncated to 25 words', async () => {
+      const db = mockDb();
+      const longSummary = Array(30).fill('word').join(' ');
+      const llm = mockLlm({
+        summary: longSummary,
+        level2Classification: 'Building',
+        driftAssessment: { isDrifting: false, confidence: 0.9, reason: 'On task.' },
+        usage: { inputTokens: 400, outputTokens: 90 },
+      });
+      const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+
+      tracker.start('test');
+      await vi.advanceTimersByTimeAsync(10000);
+
+      const activities = tracker.getActivities();
+      expect(activities).toHaveLength(1);
+      expect(activities[0].summary.split(/\s+/).length).toBeLessThanOrEqual(25);
+
+      tracker.stop();
+    });
+
+    it('activities store isDrifting and confidence from drift assessment', async () => {
+      const db = mockDb();
+      const llm = mockLlm({
+        summary: 'Browsing social media.',
+        level2Classification: 'Off-task',
+        driftAssessment: { isDrifting: true, confidence: 0.8, reason: 'User is off task.' },
+        usage: { inputTokens: 400, outputTokens: 90 },
+      });
+      const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+
+      tracker.start('Build focus tracker');
+      await vi.advanceTimersByTimeAsync(10000);
+
+      const activities = tracker.getActivities();
+      expect(activities[0].isDrifting).toBe(true);
+      expect(activities[0].confidence).toBe(0.8);
+
+      tracker.stop();
+    });
+
+    it('passes last 10 activities to batchSummarize after accumulation', async () => {
+      const db = mockDb();
+      const llm = mockLlm();
+      const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 1000 });
+
+      tracker.start('test');
+
+      for (let i = 0; i < 12; i++) {
+        await vi.advanceTimersByTimeAsync(1000);
+      }
+
+      const lastCall = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls.at(-1)!;
+      const previousActivities = lastCall[3];
+      expect(previousActivities).toHaveLength(10);
+      expect(previousActivities[0]).toHaveProperty('summary');
+      expect(previousActivities[0]).toHaveProperty('isDrifting');
+      expect(previousActivities[0]).toHaveProperty('confidence');
+
+      tracker.stop();
+    });
+
+    it('passes empty array on first batch (no previous activities)', async () => {
+      const db = mockDb();
+      const llm = mockLlm();
+      const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+
+      tracker.start('test');
+      await vi.advanceTimersByTimeAsync(10000);
+
+      const firstCall = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls[0];
+      const previousActivities = firstCall[3];
+      expect(previousActivities).toHaveLength(0);
+
+      tracker.stop();
+    });
+
+    it('passes fewer than 10 when fewer exist', async () => {
+      const db = mockDb();
+      const llm = mockLlm();
+      const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 1000 });
+
+      tracker.start('test');
+      for (let i = 0; i < 3; i++) {
+        await vi.advanceTimersByTimeAsync(1000);
+      }
+
+      const thirdCall = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls[2];
+      const previousActivities = thirdCall[3];
+      expect(previousActivities).toHaveLength(2);
+
+      tracker.stop();
+    });
+  });
+
+  describe('truncateToWords', () => {
+    it('returns text unchanged when under limit', () => {
+      expect(truncateToWords('hello world', 25)).toBe('hello world');
+    });
+
+    it('truncates text exceeding word limit', () => {
+      const text = Array(30).fill('word').join(' ');
+      const result = truncateToWords(text, 25);
+      expect(result.split(/\s+/).length).toBe(25);
+    });
+
+    it('returns exact limit when at boundary', () => {
+      const text = Array(25).fill('word').join(' ');
+      expect(truncateToWords(text, 25)).toBe(text);
+    });
   });
 });
