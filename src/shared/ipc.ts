@@ -10,6 +10,8 @@ export interface Activity {
   summary: string;
   timestamp: string;
   apps: string[];
+  isDrifting: boolean;
+  confidence: number;
 }
 
 export interface SessionStateWithActivities extends SessionState {

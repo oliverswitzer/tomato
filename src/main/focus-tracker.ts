@@ -18,6 +18,12 @@ function log(msg: string): void {
   } catch {}
 }
 
+export function truncateToWords(text: string, maxWords: number): string {
+  const words = text.split(/\s+/);
+  if (words.length <= maxWords) return text;
+  return words.slice(0, maxWords).join(' ');
+}
+
 export interface FocusTrackerDeps {
   db: ScreenpipeDb;
   llm: LlmClient;
@@ -177,10 +183,18 @@ export class FocusTracker {
 
     let result;
     try {
-      result = await this.deps.llm.batchSummarize(timeline, this.intention, {
-        durationMin: this.durationMin,
-        batchWindowSec: Math.round(this.batchMs / 1000),
-      });
+      const recentActivities = this.activities.slice(-10).map((a) => ({
+        summary: a.summary,
+        timestamp: a.timestamp,
+        isDrifting: a.isDrifting,
+        confidence: a.confidence,
+      }));
+      result = await this.deps.llm.batchSummarize(
+        timeline,
+        this.intention,
+        { durationMin: this.durationMin, batchWindowSec: Math.round(this.batchMs / 1000) },
+        recentActivities,
+      );
     } catch (err) {
       this.pendingLlmCall = false;
       if (err instanceof LlmAuthError) {
@@ -233,9 +247,11 @@ export class FocusTracker {
     if (this.batchHistory.length > 50) this.batchHistory.shift();
 
     const activity: Activity = {
-      summary: result.summary,
+      summary: truncateToWords(result.summary, 25),
       timestamp: until,
       apps: timeline.uniqueApps,
+      isDrifting: result.driftAssessment.isDrifting,
+      confidence: result.driftAssessment.confidence,
     };
     this.activities.push(activity);
     if (this.activities.length > 100) this.activities.shift();

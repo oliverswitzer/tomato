@@ -547,4 +547,105 @@ describe('AnthropicLlmClient', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('rolling context in prompt', () => {
+    it('includes previous activities section when activities are provided', async () => {
+      const anthropic = makeMockAnthropic(validResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      const previousActivities = [
+        { summary: 'Edited llm-summarizer.ts adding prompt context', timestamp: '2026-04-25T09:31:00Z', isDrifting: false, confidence: 0.91 },
+        { summary: 'Googled test-driven development patterns in Chrome', timestamp: '2026-04-25T09:32:00Z', isDrifting: false, confidence: 0.91 },
+      ];
+
+      await client.batchSummarize(sampleTimeline(), 'Build focus tracker', undefined, previousActivities);
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).toContain('Previous activity in this session');
+      expect(prompt).toContain('Edited llm-summarizer.ts adding prompt context');
+      expect(prompt).toContain('on-track, 91%');
+      expect(prompt).toContain('Consider this trajectory');
+    });
+
+    it('omits previous activities section when no activities provided', async () => {
+      const anthropic = makeMockAnthropic(validResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      await client.batchSummarize(sampleTimeline(), 'Build focus tracker', undefined, []);
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).not.toContain('Previous activity in this session');
+    });
+
+    it('omits previous activities section when undefined', async () => {
+      const anthropic = makeMockAnthropic(validResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      await client.batchSummarize(sampleTimeline(), 'Build focus tracker');
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).not.toContain('Previous activity in this session');
+    });
+
+    it('caps rolling context at 10 entries (most recent)', async () => {
+      const anthropic = makeMockAnthropic(validResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      const previousActivities = Array.from({ length: 15 }, (_, i) => ({
+        summary: `Activity ${i}`,
+        timestamp: `2026-04-25T09:${String(i).padStart(2, '0')}:00Z`,
+        isDrifting: false,
+        confidence: 0.9,
+      }));
+
+      await client.batchSummarize(sampleTimeline(), 'test', undefined, previousActivities);
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).not.toContain('Activity 0');
+      expect(prompt).not.toContain('Activity 4');
+      expect(prompt).toContain('Activity 5');
+      expect(prompt).toContain('Activity 14');
+    });
+
+    it('shows most recent first in rolling context', async () => {
+      const anthropic = makeMockAnthropic(validResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      const previousActivities = [
+        { summary: 'First activity', timestamp: '2026-04-25T09:30:00Z', isDrifting: false, confidence: 0.9 },
+        { summary: 'Second activity', timestamp: '2026-04-25T09:31:00Z', isDrifting: false, confidence: 0.85 },
+      ];
+
+      await client.batchSummarize(sampleTimeline(), 'test', undefined, previousActivities);
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      const firstIdx = prompt.indexOf('Second activity');
+      const secondIdx = prompt.indexOf('First activity');
+      expect(firstIdx).toBeLessThan(secondIdx);
+    });
+
+    it('shows off-track status for drifting activities', async () => {
+      const anthropic = makeMockAnthropic(validResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      const previousActivities = [
+        { summary: 'Browsing social media', timestamp: '2026-04-25T09:30:00Z', isDrifting: true, confidence: 0.8 },
+      ];
+
+      await client.batchSummarize(sampleTimeline(), 'test', undefined, previousActivities);
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).toContain('off-track, 80%');
+    });
+
+    it('prompt requests max 25-word summary', async () => {
+      const anthropic = makeMockAnthropic(validResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      await client.batchSummarize(sampleTimeline(), 'test');
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).toContain('max 25 words');
+    });
+  });
 });

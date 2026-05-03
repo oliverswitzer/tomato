@@ -36,11 +36,19 @@ export interface SessionSummaryResult {
   focusScore: number;
 }
 
+export interface RollingActivity {
+  summary: string;
+  timestamp: string;
+  isDrifting: boolean;
+  confidence: number;
+}
+
 export interface LlmClient {
   batchSummarize(
     timeline: ActivityTimeline,
     intention: string,
     sessionContext?: { durationMin: number; batchWindowSec: number },
+    previousActivities?: RollingActivity[],
   ): Promise<BatchSummaryResult | null>;
   summarizeSession(
     intention: string,
@@ -65,8 +73,9 @@ export class AnthropicLlmClient implements LlmClient {
     timeline: ActivityTimeline,
     intention: string,
     sessionContext?: { durationMin: number; batchWindowSec: number },
+    previousActivities?: RollingActivity[],
   ): Promise<BatchSummaryResult | null> {
-    const prompt = this.buildPrompt(timeline, intention, sessionContext);
+    const prompt = this.buildPrompt(timeline, intention, sessionContext, previousActivities);
     this.lastPrompt = prompt;
 
     try {
@@ -101,7 +110,7 @@ export class AnthropicLlmClient implements LlmClient {
     return this.model;
   }
 
-  private buildPrompt(timeline: ActivityTimeline, intention: string, sessionContext?: { durationMin: number; batchWindowSec: number }): string {
+  private buildPrompt(timeline: ActivityTimeline, intention: string, sessionContext?: { durationMin: number; batchWindowSec: number }, previousActivities?: RollingActivity[]): string {
     const timelineText =
       timeline.entries.length > 0
         ? timeline.entries
@@ -126,6 +135,8 @@ export class AnthropicLlmClient implements LlmClient {
       ? `\n\nIMPORTANT: This is a ${sessionContext.batchWindowSec}-second snapshot within a ${sessionContext.durationMin}-minute pomodoro session. You are summarizing ONLY this short window, not the entire session. A brief distraction in a ${sessionContext.batchWindowSec}-second window does not mean the user failed — they may have been focused for the other ${sessionContext.durationMin - 1} minutes. Be proportionate in your assessment.`
       : '';
 
+    const rollingContextSection = this.buildRollingContextSection(previousActivities);
+
     return `You are a focus-tracking assistant for a pomodoro session.
 
 ## Important context about the data
@@ -147,7 +158,7 @@ Drift means the user shifted to activity UNRELATED to their intention. Use these
 
 ## Session intention
 "${intention}"
-
+${rollingContextSection}
 ## Activity timeline (${timeline.startTime} to ${timeline.endTime})
 Apps used: ${timeline.uniqueApps.join(', ') || 'none'}
 Most active: ${timeline.dominantApp || 'none'}
@@ -160,7 +171,7 @@ Only describe content that is directly present in the provided context. Do not i
 ## Instructions
 Analyze the activity in this window and respond with EXACTLY this JSON (no other text):
 {
-  "summary": "1-2 sentence summary of what the user did in this window",
+  "summary": "1 sentence, max 25 words, of what the user did in this window",
   "level2Classification": "one of: Building | Research | Marketing | User Validation | Admin | Communication | Off-task",
   "driftAssessment": {
     "isDrifting": true or false,
@@ -168,6 +179,27 @@ Analyze the activity in this window and respond with EXACTLY this JSON (no other
     "reason": "brief explanation"
   }
 }`;
+  }
+
+  private buildRollingContextSection(previousActivities?: RollingActivity[]): string {
+    if (!previousActivities || previousActivities.length === 0) return '';
+
+    const lines = previousActivities
+      .slice(-10)
+      .reverse()
+      .map((a) => {
+        const time = a.timestamp.slice(11, 16);
+        const status = a.isDrifting ? 'off-track' : 'on-track';
+        const pct = Math.round(a.confidence * 100);
+        return `${time} — ${a.summary} (${status}, ${pct}%)`;
+      });
+
+    return `
+## Previous activity in this session (most recent first)
+${lines.join('\n')}
+
+Consider this trajectory when assessing drift. A user who has been on-track and briefly switches apps may be pivoting tactically, not drifting.
+`;
   }
 
   private buildPassiveContextSection(timeline: ActivityTimeline): string {
