@@ -182,7 +182,7 @@ export function HudPage() {
       {isExpanded && (
         <div id="expanded" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
 
-          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="expanded-scroll no-drag">
             <div className="activity-section">
               <span className="activity-label">CURRENT ACTIVITY</span>
               <div className="activity-text">{displaySummary}</div>
@@ -192,17 +192,17 @@ export function HudPage() {
               <div className="activity-section" style={{ background: driftLevel === 'off-track' ? '#FCE5E2' : '#FBE6B6', borderRadius: 12, padding: '10px 14px' }}>
                 <span className="activity-label" style={{ color: driftLevel === 'off-track' ? '#B42318' : '#8A6420' }}>OFF TRACK</span>
                 <div
-                title={driftInfo.reason}
-                style={{
-                  fontSize: 13,
-                  color: '#2A2A2A',
-                  lineHeight: 1.4,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 3,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }}
-              >{driftInfo.reason}</div>
+                  title={driftInfo.reason}
+                  style={{
+                    fontSize: 13,
+                    color: '#2A2A2A',
+                    lineHeight: 1.4,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}
+                >{driftInfo.reason}</div>
                 <div style={{ fontSize: 11, color: '#8B8477', marginTop: 4 }}>
                   {driftInfo.level2Classification} &middot; {Math.round(driftInfo.confidence * 100)}% confidence
                 </div>
