@@ -49,6 +49,7 @@ export function StartPage() {
 
   return (
     <div className="start-window">
+      <div className="drag-handle" />
       <button
         className="close-btn no-drag"
         onClick={() => window.tomato.closeStart()}

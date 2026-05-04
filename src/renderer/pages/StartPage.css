@@ -8,10 +8,21 @@
   gap: 22px;
   height: 100vh;
   overflow-y: auto;
-  -webkit-app-region: drag;
 }
 
 .start-window::-webkit-scrollbar { width: 0; }
+
+.drag-handle {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  -webkit-app-region: drag;
+  background: linear-gradient(to bottom, rgba(226, 87, 76, 0.25), transparent);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+}
 
 .no-drag { -webkit-app-region: no-drag; }
 
