@@ -151,6 +151,41 @@ function BatchHistoryRow({ entry }: { entry: BatchHistoryEntry }) {
   );
 }
 
+function PromptModal({ prompt, title, onClose }: { prompt: string; title: string; onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-8"
+      style={{ background: 'rgba(0,0,0,0.5)' }}
+      onClick={onClose}
+    >
+      <div
+        className="rounded-2xl p-5 w-full max-w-3xl max-h-[80vh] flex flex-col"
+        style={{ background: '#FFFFFF', border: '1px solid #E0D8CC', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider m-0" style={{ color: '#BAA898' }}>
+            {title}
+          </h3>
+          <button
+            onClick={onClose}
+            className="bg-transparent border-none cursor-pointer text-lg leading-none p-1"
+            style={{ color: '#8B8477' }}
+          >
+            &times;
+          </button>
+        </div>
+        <pre
+          className="font-mono text-[11px] rounded-lg p-4 whitespace-pre-wrap break-words overflow-y-auto flex-1"
+          style={{ color: '#6B6259', background: '#FBF7F1', border: '1px solid #EFE8DD' }}
+        >
+          {prompt}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
 const INTERVAL_COLUMNS = [15, 30, 60, 90, 180];
 
 function getDriftBg(entry: ShadowEvalEntry): string {
@@ -204,24 +239,23 @@ function ShadowEvalEntryRow({ entry }: { entry: ShadowEvalEntry }) {
           {entry.prompt && (
             <div className="mt-1.5">
               <button
-                onClick={() => setShowPrompt(!showPrompt)}
+                onClick={() => setShowPrompt(true)}
                 className="bg-transparent border-none p-0 cursor-pointer font-mono text-[10px] font-semibold hover:underline"
                 style={{ color: '#E2574C' }}
               >
-                {showPrompt ? 'Hide' : 'Show'} full prompt
+                View full prompt
               </button>
-              {showPrompt && (
-                <pre
-                  className="font-mono text-[10px] rounded-lg p-2 whitespace-pre-wrap break-words max-h-[300px] overflow-y-auto mt-1"
-                  style={{ color: '#6B6259', background: '#FBF7F1', border: '1px solid #EFE8DD' }}
-                >
-                  {entry.prompt}
-                </pre>
-              )}
             </div>
           )}
         </div>
       </Expandable>
+      {showPrompt && entry.prompt && (
+        <PromptModal
+          prompt={entry.prompt}
+          title={`${entry.interval}s batch — ${formatTime(entry.timestamp)}`}
+          onClose={() => setShowPrompt(false)}
+        />
+      )}
     </div>
   );
 }
