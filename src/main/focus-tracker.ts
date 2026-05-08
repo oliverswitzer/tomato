@@ -187,7 +187,7 @@ export class FocusTracker {
     this.pendingLlmCall = true;
     log(`batch: calling LLM with ${timeline.entries.length} entries, intention="${this.intention}"`);
 
-    let result;
+    let response;
     const batchStartMs = Date.now();
     try {
       const recentActivities = this.activities.slice(-10).map((a) => ({
@@ -196,7 +196,7 @@ export class FocusTracker {
         isDrifting: a.isDrifting,
         confidence: a.confidence,
       }));
-      result = await this.deps.llm.batchSummarize(
+      response = await this.deps.llm.batchSummarize(
         timeline,
         this.intention,
         { durationMin: this.durationMin, batchWindowSec: Math.round(this.batchMs / 1000) },
@@ -224,17 +224,19 @@ export class FocusTracker {
     }
     this.pendingLlmCall = false;
 
-    if (!result) {
+    if (!response) {
       log('batch: LLM returned null');
       return;
     }
+
+    const { result, prompt: batchPrompt } = response;
 
     log(`batch: summary="${result.summary}", classification=${result.level2Classification}, drifting=${result.driftAssessment.isDrifting}`);
 
     this.lastBatchResult = result;
 
     const batchLatencyMs = Date.now() - batchStartMs;
-    this.deps.shadowEvaluator?.logProductionBatch(result, this.batchMs, since, until, timeline.entries.length, batchLatencyMs, this.deps.llm.getLastPrompt() ?? undefined);
+    this.deps.shadowEvaluator?.logProductionBatch(result, this.batchMs, since, until, timeline.entries.length, batchLatencyMs, batchPrompt);
 
     const pricing = getModelPricing(this.deps.llm.getModel());
     const costUsd = pricing
@@ -244,7 +246,7 @@ export class FocusTracker {
 
     this.batchHistory.push({
       timestamp: until,
-      prompt: this.deps.llm.getLastPrompt() ?? '',
+      prompt: batchPrompt,
       summary: result.summary,
       level2Classification: result.level2Classification,
       isDrifting: result.driftAssessment.isDrifting,

@@ -42,7 +42,7 @@ const defaultResult: BatchSummaryResult = {
 
 function mockLlm(result?: BatchSummaryResult): LlmClient {
   return {
-    batchSummarize: vi.fn().mockResolvedValue(result ?? defaultResult),
+    batchSummarize: vi.fn().mockResolvedValue({ result: result ?? defaultResult, prompt: 'mock prompt' }),
     summarizeSession: vi.fn().mockResolvedValue({ summary: 'Session.', focusScore: 85 }),
     getLastPrompt: vi.fn().mockReturnValue('mock prompt'),
     getModel: vi.fn().mockReturnValue('claude-haiku-4-5-20251001'),

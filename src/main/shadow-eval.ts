@@ -144,9 +144,9 @@ export class ShadowEvaluator {
     const recentActivities = rollingActivities.slice(-10);
 
     const startMs = Date.now();
-    let result: BatchSummaryResult | null;
+    let response;
     try {
-      result = await this.llm.batchSummarize(
+      response = await this.llm.batchSummarize(
         timeline,
         this.intention,
         { durationMin: this.durationMin, batchWindowSec: Math.round(intervalMs / 1000) },
@@ -158,10 +158,12 @@ export class ShadowEvaluator {
     }
     const latencyMs = Date.now() - startMs;
 
-    if (!result) {
+    if (!response) {
       log(`shadow ${intervalSec}s: LLM returned null`);
       return;
     }
+
+    const { result, prompt: batchPrompt } = response;
 
     const activity: RollingActivity = {
       summary: result.summary,
@@ -189,7 +191,7 @@ export class ShadowEvaluator {
       tokenUsage: { input: result.usage.inputTokens, output: result.usage.outputTokens },
       latencyMs,
       costUsd,
-      prompt: this.llm.getLastPrompt() ?? undefined,
+      prompt: batchPrompt,
     };
 
     this.logEntry(entry);

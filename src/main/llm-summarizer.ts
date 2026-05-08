@@ -43,13 +43,18 @@ export interface RollingActivity {
   confidence: number;
 }
 
+export interface BatchSummarizeResponse {
+  result: BatchSummaryResult;
+  prompt: string;
+}
+
 export interface LlmClient {
   batchSummarize(
     timeline: ActivityTimeline,
     intention: string,
     sessionContext?: { durationMin: number; batchWindowSec: number },
     previousActivities?: RollingActivity[],
-  ): Promise<BatchSummaryResult | null>;
+  ): Promise<BatchSummarizeResponse | null>;
   summarizeSession(
     intention: string,
     activities: { summary: string; timestamp: string; apps: string[] }[],
@@ -74,7 +79,7 @@ export class AnthropicLlmClient implements LlmClient {
     intention: string,
     sessionContext?: { durationMin: number; batchWindowSec: number },
     previousActivities?: RollingActivity[],
-  ): Promise<BatchSummaryResult | null> {
+  ): Promise<BatchSummarizeResponse | null> {
     const prompt = this.buildPrompt(timeline, intention, sessionContext, previousActivities);
     this.lastPrompt = prompt;
 
@@ -93,7 +98,9 @@ export class AnthropicLlmClient implements LlmClient {
         outputTokens: res.usage?.output_tokens ?? 0,
       };
 
-      return this.parseResponse(block.text, usage);
+      const result = this.parseResponse(block.text, usage);
+      if (!result) return null;
+      return { result, prompt };
     } catch (err: any) {
       const status = err?.status ?? err?.statusCode;
       if (status === 401 || status === 403) throw new LlmAuthError(err.message);
