@@ -126,6 +126,7 @@ export class FocusTracker {
         : null,
       batchHistory: this.batchHistory,
       sessionCostUsd: this.sessionCostUsd,
+      shadowEvalEntries: this.deps.shadowEvaluator?.getEntries(),
     };
   }
 

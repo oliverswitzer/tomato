@@ -5,22 +5,12 @@ import type { ScreenpipeDb } from './screenpipe-db';
 import type { LlmClient, BatchSummaryResult, RollingActivity } from './llm-summarizer';
 import { TimelineBuilder } from './timeline-builder';
 import { getModelPricing } from '../config/model-pricing';
+import type { ShadowEvalEntry } from '../shared/ipc';
 
-export interface ShadowEvalEntry {
-  interval: number;
-  timestamp: string;
-  summary: string;
-  classification: string;
-  isDrifting: boolean;
-  confidence: number;
-  reason: string;
-  rawActivityWindow: { since: string; until: string; entryCount: number };
-  tokenUsage: { input: number; output: number };
-  latencyMs: number;
-  costUsd: number;
-}
+export type { ShadowEvalEntry };
 
-const SHADOW_INTERVALS = [30_000, 90_000, 180_000];
+const SHADOW_INTERVALS = [15_000, 30_000, 90_000, 180_000];
+const MAX_ENTRIES_PER_INTERVAL = 50;
 
 function log(msg: string): void {
   try {
@@ -33,6 +23,7 @@ export class ShadowEvaluator {
   private timers: ReturnType<typeof setInterval>[] = [];
   private timelineBuilder = new TimelineBuilder();
   private activitiesPerInterval = new Map<number, RollingActivity[]>();
+  private entriesPerInterval = new Map<number, ShadowEvalEntry[]>();
   private logFilePath: string;
   private intention = '';
   private durationMin = 25;
@@ -49,11 +40,20 @@ export class ShadowEvaluator {
 
     for (const interval of SHADOW_INTERVALS) {
       this.activitiesPerInterval.set(interval, []);
+      this.entriesPerInterval.set(interval, []);
     }
   }
 
   getLogFilePath(): string {
     return this.logFilePath;
+  }
+
+  getEntries(): ShadowEvalEntry[] {
+    const all: ShadowEvalEntry[] = [];
+    for (const entries of this.entriesPerInterval.values()) {
+      all.push(...entries);
+    }
+    return all;
   }
 
   start(intention: string, durationMin: number): void {
@@ -62,6 +62,7 @@ export class ShadowEvaluator {
 
     for (const interval of SHADOW_INTERVALS) {
       this.activitiesPerInterval.set(interval, []);
+      this.entriesPerInterval.set(interval, []);
     }
 
     log(`starting shadow evaluation, intervals=${SHADOW_INTERVALS.map((i) => i / 1000 + 's').join(',')}, log=${this.logFilePath}`);
@@ -81,6 +82,15 @@ export class ShadowEvaluator {
   }
 
   logEntry(entry: ShadowEvalEntry): void {
+    const intervalMs = entry.interval * 1000;
+    let bucket = this.entriesPerInterval.get(intervalMs);
+    if (!bucket) {
+      bucket = [];
+      this.entriesPerInterval.set(intervalMs, bucket);
+    }
+    bucket.push(entry);
+    if (bucket.length > MAX_ENTRIES_PER_INTERVAL) bucket.shift();
+
     try {
       fs.appendFileSync(this.logFilePath, JSON.stringify(entry) + '\n');
     } catch (err) {

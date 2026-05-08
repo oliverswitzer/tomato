@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { DebugPipelineState, TimelineEntryIpc, BatchHistoryEntry } from '@shared/ipc';
+import type { DebugPipelineState, TimelineEntryIpc, BatchHistoryEntry, ShadowEvalEntry } from '@shared/ipc';
 
 function Badge({ label, bg, color }: { label: string; bg: string; color: string }) {
   return (
@@ -151,6 +151,99 @@ function BatchHistoryRow({ entry }: { entry: BatchHistoryEntry }) {
   );
 }
 
+const INTERVAL_COLUMNS = [15, 30, 60, 90, 180];
+
+function getDriftBg(entry: ShadowEvalEntry): string {
+  if (!entry.isDrifting) return '#E8F5E9';
+  return entry.confidence >= 0.6 ? '#FFEBEE' : '#FFF8E1';
+}
+
+function ShadowEvalEntryRow({ entry }: { entry: ShadowEvalEntry }) {
+  const label = (
+    <span className="flex flex-col gap-0.5 min-w-0">
+      <span className="flex items-center gap-1">
+        <span className="font-mono text-[10px] shrink-0" style={{ color: '#BAA898' }}>
+          {formatTime(entry.timestamp)}
+        </span>
+        <Badge label={entry.classification} bg="#E8EAF6" color="#5C6BC0" />
+        <span className="font-mono text-[10px]" style={{ color: '#BAA898' }}>
+          {Math.round(entry.confidence * 100)}%
+        </span>
+      </span>
+      <span className="text-[10px] leading-tight" style={{ color: '#2A2A2A' }}>
+        {entry.summary}
+      </span>
+    </span>
+  );
+
+  return (
+    <div className="rounded-lg p-1.5 mb-1" style={{ background: getDriftBg(entry) }}>
+      <Expandable label={label}>
+        <div className="font-mono text-[10px] mt-1 space-y-0.5">
+          <div>
+            <span style={{ color: '#BAA898' }}>reason: </span>
+            <span style={{ color: '#2A2A2A' }}>{entry.reason}</span>
+          </div>
+          <div>
+            <span style={{ color: '#BAA898' }}>tokens: </span>
+            <span style={{ color: '#2A2A2A' }}>{entry.tokenUsage.input} in / {entry.tokenUsage.output} out</span>
+          </div>
+          <div>
+            <span style={{ color: '#BAA898' }}>latency: </span>
+            <span style={{ color: '#2A2A2A' }}>{entry.latencyMs}ms</span>
+          </div>
+          <div>
+            <span style={{ color: '#BAA898' }}>cost: </span>
+            <span style={{ color: '#D97706' }}>${entry.costUsd.toFixed(4)}</span>
+          </div>
+        </div>
+      </Expandable>
+    </div>
+  );
+}
+
+function IntervalComparisonPanel({ entries }: { entries: ShadowEvalEntry[] }) {
+  const grouped = new Map<number, ShadowEvalEntry[]>();
+  for (const interval of INTERVAL_COLUMNS) {
+    grouped.set(interval, []);
+  }
+  for (const entry of entries) {
+    const bucket = grouped.get(entry.interval);
+    if (bucket) bucket.push(entry);
+  }
+
+  return (
+    <Panel title="Interval Comparison">
+      <div className="grid grid-cols-5 gap-2">
+        {INTERVAL_COLUMNS.map((interval) => {
+          const column = grouped.get(interval) ?? [];
+          return (
+            <div key={interval} className="min-w-0">
+              <div
+                className="text-center text-[10px] font-bold tracking-wider uppercase mb-2 pb-1"
+                style={{ color: '#BAA898', borderBottom: '2px solid #E0D8CC' }}
+              >
+                {interval}s{interval === 60 ? ' (prod)' : ''}
+              </div>
+              <div className="max-h-[400px] overflow-y-auto">
+                {column.length > 0 ? (
+                  [...column].reverse().map((entry, i) => (
+                    <ShadowEvalEntryRow key={i} entry={entry} />
+                  ))
+                ) : (
+                  <div className="text-[10px] text-center py-4" style={{ color: '#BAA898' }}>
+                    No entries
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Panel>
+  );
+}
+
 export function DebugDashboard() {
   const [pipelineState, setPipelineState] = useState<DebugPipelineState | null>(null);
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntryIpc[]>([]);
@@ -175,13 +268,14 @@ export function DebugDashboard() {
 
   const batchHistory = pipelineState?.batchHistory ?? [];
   const sessionCost = pipelineState?.sessionCostUsd ?? 0;
+  const shadowEntries = pipelineState?.shadowEvalEntries;
 
   return (
     <div
       className="min-h-screen p-6 overflow-auto"
       style={{ background: '#FBF7F1', userSelect: 'text', WebkitUserSelect: 'text' }}
     >
-      <div className="max-w-2xl mx-auto">
+      <div className={shadowEntries && shadowEntries.length > 0 ? 'max-w-6xl mx-auto' : 'max-w-2xl mx-auto'}>
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-semibold tracking-tight m-0" style={{ color: '#2A2A2A' }}>
             Debug Dashboard
@@ -200,6 +294,10 @@ export function DebugDashboard() {
             <div className="text-sm" style={{ color: '#8B8477' }}>No activity yet. Start a session.</div>
           )}
         </Panel>
+
+        {shadowEntries && shadowEntries.length > 0 && (
+          <IntervalComparisonPanel entries={shadowEntries} />
+        )}
 
         <Panel
           title={`Batch History (${batchHistory.length} summaries)`}
