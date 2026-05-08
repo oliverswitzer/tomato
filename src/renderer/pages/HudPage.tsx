@@ -19,6 +19,8 @@ export function HudPage() {
   const [apiError, setApiError] = useState<{ type: 'auth' | 'model_deprecated'; message: string } | null>(null);
   const [sessionEnded, setSessionEnded] = useState(false);
   const [liquidGlass, setLiquidGlass] = useState(false);
+  const [savingIdea, setSavingIdea] = useState(false);
+  const [savedIdea, setSavedIdea] = useState(false);
   const [state, setState] = useState<SessionStateWithActivities>({
     active: false,
     intention: '',
@@ -40,6 +42,11 @@ export function HudPage() {
       return next;
     });
   }, []);
+
+  useEffect(() => {
+    setSavedIdea(false);
+    setSavingIdea(false);
+  }, [driftInfo]);
 
   useEffect(() => {
     const unsubs = [
@@ -206,6 +213,37 @@ export function HudPage() {
                 <div style={{ fontSize: 11, color: '#8B8477', marginTop: 4 }}>
                   {driftInfo.level2Classification} &middot; {Math.round(driftInfo.confidence * 100)}% confidence
                 </div>
+                <button
+                  className="no-drag"
+                  disabled={savingIdea || savedIdea}
+                  onClick={async () => {
+                    setSavingIdea(true);
+                    try {
+                      const result = await window.tomato.saveToVault();
+                      if (result.success) {
+                        setSavedIdea(true);
+                      }
+                    } finally {
+                      setSavingIdea(false);
+                    }
+                  }}
+                  style={{
+                    marginTop: 8,
+                    width: '100%',
+                    padding: '6px 12px',
+                    border: 'none',
+                    borderRadius: 8,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    fontFamily: 'Inter, sans-serif',
+                    cursor: savingIdea || savedIdea ? 'default' : 'pointer',
+                    background: savedIdea ? '#D1FAE5' : '#FFFFFF',
+                    color: savedIdea ? '#065F46' : '#2A2A2A',
+                    opacity: savingIdea ? 0.7 : 1,
+                  }}
+                >
+                  {savedIdea ? 'Saved to Vault' : savingIdea ? 'Saving...' : 'Save Idea'}
+                </button>
               </div>
             )}
 

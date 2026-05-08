@@ -468,6 +468,53 @@ describe('FocusTracker', () => {
     });
   });
 
+  describe('getDriftContext', () => {
+    it('returns null when no batch result exists', () => {
+      const tracker = new FocusTracker({ db: mockDb(), llm: mockLlm() });
+      expect(tracker.getDriftContext()).toBeNull();
+    });
+
+    it('returns null when last batch was not drifting', async () => {
+      const db = mockDb();
+      const llm = mockLlm({
+        summary: 'On task.',
+        level2Classification: 'Building',
+        driftAssessment: { isDrifting: false, confidence: 0.9, reason: 'On task.' },
+        usage: { inputTokens: 400, outputTokens: 90 },
+      });
+      const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+
+      tracker.start('Build feature');
+      await vi.advanceTimersByTimeAsync(10000);
+
+      expect(tracker.getDriftContext()).toBeNull();
+      tracker.stop();
+    });
+
+    it('returns drift context when drifting', async () => {
+      const db = mockDb();
+      const llm = mockLlm({
+        summary: 'Browsing social media.',
+        level2Classification: 'Off-task',
+        driftAssessment: { isDrifting: true, confidence: 0.8, reason: 'Switched to LinkedIn.' },
+        usage: { inputTokens: 400, outputTokens: 90 },
+      });
+      const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+
+      tracker.start('Build focus tracker', 25);
+      await vi.advanceTimersByTimeAsync(10000);
+
+      const ctx = tracker.getDriftContext();
+      expect(ctx).not.toBeNull();
+      expect(ctx!.intention).toBe('Build focus tracker');
+      expect(ctx!.batchResult.driftAssessment.isDrifting).toBe(true);
+      expect(ctx!.batchResult.summary).toBe('Browsing social media.');
+      expect(ctx!.timeline.entries.length).toBeGreaterThan(0);
+
+      tracker.stop();
+    });
+  });
+
   describe('shadow evaluation integration', () => {
     function mockShadowEvaluator(): ShadowEvaluator {
       return {

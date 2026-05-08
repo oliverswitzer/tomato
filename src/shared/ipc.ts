@@ -122,6 +122,20 @@ export interface ApiErrorEvent {
   message: string;
 }
 
+export interface VaultItem {
+  id: string;
+  savedAt: string;
+  sessionIntention: string;
+  ideaSummary: string;
+  driftReason: string;
+  classification: string;
+  apps: string[];
+  urls: string[];
+  windowTitles: string[];
+  screenText: string | null;
+  rawBatchSummary: string;
+}
+
 export interface TomatoApi {
   startSession(intention: string, durationMin: number): void;
   togglePause(): void;
@@ -163,6 +177,10 @@ export interface TomatoApi {
   onSessionEnded(callback: () => void): () => void;
   onTimelineUpdate(callback: (entries: TimelineEntryIpc[]) => void): () => void;
   getLiquidGlassSupported(): Promise<boolean>;
+
+  saveToVault(): Promise<{ success: boolean; error?: string }>;
+  getVaultItems(): Promise<VaultItem[]>;
+  deleteVaultItem(id: string): Promise<void>;
 }
 
 declare global {

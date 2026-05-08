@@ -71,6 +71,10 @@ const api: TomatoApi = {
     return () => { ipcRenderer.removeListener('timeline-update', handler); };
   },
   getLiquidGlassSupported: () => ipcRenderer.invoke('get-liquid-glass-supported'),
+
+  saveToVault: () => ipcRenderer.invoke('save-to-vault'),
+  getVaultItems: () => ipcRenderer.invoke('get-vault-items'),
+  deleteVaultItem: (id: string) => ipcRenderer.invoke('delete-vault-item', id),
 };
 
 contextBridge.exposeInMainWorld('tomato', api);

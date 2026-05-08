@@ -27,6 +27,7 @@ import { SqliteScreenpipeDb } from './screenpipe-db';
 import { AnthropicLlmClient } from './llm-summarizer';
 import { ShadowEvaluator } from './shadow-eval';
 import { saveSession, getRecentSessions } from './session-store';
+import { VaultStore } from './vault-store';
 import { ElectronKeychainStore } from './keychain';
 import { validateApiKey } from './api-key-validator';
 import { DEFAULT_MODEL, getPriceTier, getModelPricing } from '../config/model-pricing';
@@ -56,6 +57,7 @@ function log(msg: string): void {
 }
 
 let keychain: ElectronKeychainStore | null = null;
+let vaultStore: VaultStore | null = null;
 
 let tray: Tray | null = null;
 let startWin: BrowserWindow | null = null;
@@ -837,6 +839,76 @@ ipcMain.handle('capture', () => {
   }
 });
 
+ipcMain.handle('save-to-vault', async () => {
+  if (!focusTracker || !vaultStore) return { success: false, error: 'No active session' };
+
+  const driftCtx = focusTracker.getDriftContext();
+  if (!driftCtx) return { success: false, error: 'No drift context available' };
+
+  const { timeline, batchResult, intention } = driftCtx;
+
+  const apiKey = keychain?.getApiKey() ?? process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return { success: false, error: 'No API key configured' };
+
+  const selectedModel = keychain?.getSelectedModel() ?? DEFAULT_MODEL;
+  const llm = new AnthropicLlmClient(
+    new Anthropic({ apiKey, dangerouslyAllowBrowser: true }),
+    selectedModel,
+  );
+
+  try {
+    const ideaResult = await llm.summarizeIdea(timeline, intention, {
+      reason: batchResult.driftAssessment.reason,
+      classification: batchResult.level2Classification,
+      batchSummary: batchResult.summary,
+    });
+
+    if (!ideaResult) return { success: false, error: 'Failed to generate idea summary' };
+
+    const urls: string[] = [];
+    const windowTitles: string[] = [];
+    let longestScreenText: string | null = null;
+    for (const entry of timeline.entries) {
+      if (entry.browserUrl && !urls.includes(entry.browserUrl)) urls.push(entry.browserUrl);
+      if (!windowTitles.includes(entry.window)) windowTitles.push(entry.window);
+      if (entry.passiveContext?.screenText) {
+        if (!longestScreenText || entry.passiveContext.screenText.length > longestScreenText.length) {
+          longestScreenText = entry.passiveContext.screenText;
+        }
+      }
+    }
+
+    const item = {
+      id: crypto.randomUUID(),
+      savedAt: new Date().toISOString(),
+      sessionIntention: intention,
+      ideaSummary: ideaResult.ideaSummary,
+      driftReason: batchResult.driftAssessment.reason,
+      classification: batchResult.level2Classification,
+      apps: timeline.uniqueApps,
+      urls,
+      windowTitles,
+      screenText: longestScreenText,
+      rawBatchSummary: batchResult.summary,
+    };
+
+    vaultStore.save(item);
+    log(`Idea saved to vault: ${item.id}`);
+    return { success: true };
+  } catch (err) {
+    log(`Failed to save idea: ${(err as Error).message}`);
+    return { success: false, error: 'Failed to save idea' };
+  }
+});
+
+ipcMain.handle('get-vault-items', () => {
+  return vaultStore?.getItems() ?? [];
+});
+
+ipcMain.handle('delete-vault-item', (_event, id: string) => {
+  vaultStore?.delete(id);
+});
+
 // --- App lifecycle ---
 
 app.setPath('userData', path.join(app.getPath('appData'), 'tomato'));
@@ -885,6 +957,7 @@ app.whenReady().then(async () => {
   Menu.setApplicationMenu(appMenu);
 
   keychain = new ElectronKeychainStore(app.getPath('userData'));
+  vaultStore = new VaultStore(app.getPath('userData'));
 
   const screenOk = systemPreferences.getMediaAccessStatus('screen') === 'granted';
   const a11yOk = systemPreferences.isTrustedAccessibilityClient(false);
