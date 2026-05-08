@@ -25,6 +25,7 @@ import { FocusTracker } from './focus-tracker';
 import Database from 'better-sqlite3';
 import { SqliteScreenpipeDb } from './screenpipe-db';
 import { AnthropicLlmClient } from './llm-summarizer';
+import { ShadowEvaluator } from './shadow-eval';
 import { saveSession, getRecentSessions } from './session-store';
 import { ElectronKeychainStore } from './keychain';
 import { validateApiKey } from './api-key-validator';
@@ -488,7 +489,14 @@ function startSession(intention: string, durationMin: number): void {
       return;
     }
 
-    focusTracker = new FocusTracker({ db, llm, batchIntervalMs: batchMs });
+    const shadowEvaluator = process.env.TOMATO_SHADOW_EVAL
+      ? new ShadowEvaluator(db, llm)
+      : undefined;
+    if (shadowEvaluator) {
+      log(`Shadow evaluation enabled, log: ${shadowEvaluator.getLogFilePath()}`);
+    }
+
+    focusTracker = new FocusTracker({ db, llm, batchIntervalMs: batchMs, shadowEvaluator });
 
     focusTracker.onActivity = (activity) => {
       if (timerWin) {
