@@ -77,6 +77,7 @@ export interface ShadowEvalEntry {
   tokenUsage: { input: number; output: number };
   latencyMs: number;
   costUsd: number;
+  prompt?: string;
 }
 
 export interface BatchHistoryEntry {

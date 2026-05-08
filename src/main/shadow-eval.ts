@@ -98,7 +98,7 @@ export class ShadowEvaluator {
     }
   }
 
-  logProductionBatch(result: BatchSummaryResult, batchMs: number, since: string, until: string, entryCount: number, latencyMs: number): void {
+  logProductionBatch(result: BatchSummaryResult, batchMs: number, since: string, until: string, entryCount: number, latencyMs: number, prompt?: string): void {
     const pricing = getModelPricing(this.llm.getModel());
     const costUsd = pricing
       ? (result.usage.inputTokens * pricing.inputPer1M + result.usage.outputTokens * pricing.outputPer1M) / 1_000_000
@@ -116,6 +116,7 @@ export class ShadowEvaluator {
       tokenUsage: { input: result.usage.inputTokens, output: result.usage.outputTokens },
       latencyMs,
       costUsd,
+      prompt: prompt ?? undefined,
     };
     this.logEntry(entry);
   }
@@ -188,6 +189,7 @@ export class ShadowEvaluator {
       tokenUsage: { input: result.usage.inputTokens, output: result.usage.outputTokens },
       latencyMs,
       costUsd,
+      prompt: this.llm.getLastPrompt() ?? undefined,
     };
 
     this.logEntry(entry);

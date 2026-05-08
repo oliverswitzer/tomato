@@ -159,15 +159,20 @@ function getDriftBg(entry: ShadowEvalEntry): string {
 }
 
 function ShadowEvalEntryRow({ entry }: { entry: ShadowEvalEntry }) {
+  const [showPrompt, setShowPrompt] = useState(false);
+
   const label = (
     <span className="flex flex-col gap-0.5 min-w-0">
-      <span className="flex items-center gap-1">
+      <span className="flex items-center gap-1 flex-wrap">
         <span className="font-mono text-[10px] shrink-0" style={{ color: '#BAA898' }}>
           {formatTime(entry.timestamp)}
         </span>
         <Badge label={entry.classification} bg="#E8EAF6" color="#5C6BC0" />
         <span className="font-mono text-[10px]" style={{ color: '#BAA898' }}>
           {Math.round(entry.confidence * 100)}%
+        </span>
+        <span className="font-mono text-[10px] font-semibold" style={{ color: '#D97706' }}>
+          ${entry.costUsd.toFixed(4)}
         </span>
       </span>
       <span className="text-[10px] leading-tight" style={{ color: '#2A2A2A' }}>
@@ -196,6 +201,25 @@ function ShadowEvalEntryRow({ entry }: { entry: ShadowEvalEntry }) {
             <span style={{ color: '#BAA898' }}>cost: </span>
             <span style={{ color: '#D97706' }}>${entry.costUsd.toFixed(4)}</span>
           </div>
+          {entry.prompt && (
+            <div className="mt-1.5">
+              <button
+                onClick={() => setShowPrompt(!showPrompt)}
+                className="bg-transparent border-none p-0 cursor-pointer font-mono text-[10px] font-semibold hover:underline"
+                style={{ color: '#E2574C' }}
+              >
+                {showPrompt ? 'Hide' : 'Show'} full prompt
+              </button>
+              {showPrompt && (
+                <pre
+                  className="font-mono text-[10px] rounded-lg p-2 whitespace-pre-wrap break-words max-h-[300px] overflow-y-auto mt-1"
+                  style={{ color: '#6B6259', background: '#FBF7F1', border: '1px solid #EFE8DD' }}
+                >
+                  {entry.prompt}
+                </pre>
+              )}
+            </div>
+          )}
         </div>
       </Expandable>
     </div>
@@ -212,18 +236,34 @@ function IntervalComparisonPanel({ entries }: { entries: ShadowEvalEntry[] }) {
     if (bucket) bucket.push(entry);
   }
 
+  const totalCost = entries.reduce((sum, e) => sum + e.costUsd, 0);
+
   return (
-    <Panel title="Interval Comparison">
+    <Panel
+      title="Interval Comparison"
+      right={
+        <span className="text-[11px] font-mono font-semibold" style={{ color: '#D97706' }}>
+          Total: ${totalCost.toFixed(4)}
+        </span>
+      }
+    >
       <div className="grid grid-cols-5 gap-2">
         {INTERVAL_COLUMNS.map((interval) => {
           const column = grouped.get(interval) ?? [];
+          const columnCost = column.reduce((sum, e) => sum + e.costUsd, 0);
           return (
             <div key={interval} className="min-w-0">
               <div
-                className="text-center text-[10px] font-bold tracking-wider uppercase mb-2 pb-1"
+                className="text-center text-[10px] font-bold tracking-wider uppercase mb-1 pb-1"
                 style={{ color: '#BAA898', borderBottom: '2px solid #E0D8CC' }}
               >
                 {interval}s{interval === 60 ? ' (prod)' : ''}
+              </div>
+              <div
+                className="text-center font-mono text-[10px] font-semibold mb-2"
+                style={{ color: '#D97706' }}
+              >
+                ${columnCost.toFixed(4)}
               </div>
               <div className="max-h-[400px] overflow-y-auto">
                 {column.length > 0 ? (

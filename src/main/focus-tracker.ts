@@ -234,7 +234,7 @@ export class FocusTracker {
     this.lastBatchResult = result;
 
     const batchLatencyMs = Date.now() - batchStartMs;
-    this.deps.shadowEvaluator?.logProductionBatch(result, this.batchMs, since, until, timeline.entries.length, batchLatencyMs);
+    this.deps.shadowEvaluator?.logProductionBatch(result, this.batchMs, since, until, timeline.entries.length, batchLatencyMs, this.deps.llm.getLastPrompt() ?? undefined);
 
     const pricing = getModelPricing(this.deps.llm.getModel());
     const costUsd = pricing
