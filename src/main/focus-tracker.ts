@@ -73,7 +73,7 @@ export class FocusTracker {
     this.tickTimer = setInterval(() => this.tick(), this.tickMs);
     this.batchTimer = setInterval(() => this.runBatch(), this.batchMs);
 
-    this.deps.shadowEvaluator?.start(intention, durationMin);
+    this.deps.shadowEvaluator?.start(intention, durationMin, this.batchMs);
   }
 
   stop(): void {

@@ -490,7 +490,7 @@ describe('FocusTracker', () => {
       const tracker = new FocusTracker({ db: mockDb(), llm: mockLlm(), shadowEvaluator: shadow });
 
       tracker.start('Build feature', 25);
-      expect(shadow.start).toHaveBeenCalledWith('Build feature', 25);
+      expect(shadow.start).toHaveBeenCalledWith('Build feature', 25, 60000);
 
       tracker.stop();
     });

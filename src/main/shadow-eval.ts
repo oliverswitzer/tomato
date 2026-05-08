@@ -56,7 +56,7 @@ export class ShadowEvaluator {
     return all;
   }
 
-  start(intention: string, durationMin: number): void {
+  start(intention: string, durationMin: number, productionBatchMs?: number): void {
     this.intention = intention;
     this.durationMin = durationMin;
 
@@ -65,9 +65,10 @@ export class ShadowEvaluator {
       this.entriesPerInterval.set(interval, []);
     }
 
-    log(`starting shadow evaluation, intervals=${SHADOW_INTERVALS.map((i) => i / 1000 + 's').join(',')}, log=${this.logFilePath}`);
+    const shadowOnly = SHADOW_INTERVALS.filter((ms) => ms !== productionBatchMs);
+    log(`starting shadow evaluation, intervals=${shadowOnly.map((i) => i / 1000 + 's').join(',')}, production=${productionBatchMs ? productionBatchMs / 1000 + 's' : 'none'}, log=${this.logFilePath}`);
 
-    for (const intervalMs of SHADOW_INTERVALS) {
+    for (const intervalMs of shadowOnly) {
       const timer = setInterval(() => this.runShadowBatch(intervalMs), intervalMs);
       this.timers.push(timer);
     }
