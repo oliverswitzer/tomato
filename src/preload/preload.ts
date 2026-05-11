@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import type { TomatoApi, SessionStateWithActivities, Activity, TimelineEntryIpc, ApiErrorEvent } from '../shared/ipc';
+import type { TomatoApi, SessionStateWithActivities, Activity, TimelineEntryIpc, ApiErrorEvent, UpdateStatusEvent } from '../shared/ipc';
 
 const api: TomatoApi = {
   startSession: (intention, durationMin) =>
@@ -71,6 +71,16 @@ const api: TomatoApi = {
     return () => { ipcRenderer.removeListener('timeline-update', handler); };
   },
   getLiquidGlassSupported: () => ipcRenderer.invoke('get-liquid-glass-supported'),
+
+  checkForUpdates: () => ipcRenderer.send('check-for-updates'),
+  quitAndInstall: () => ipcRenderer.send('quit-and-install'),
+  getUpdateStatus: () => ipcRenderer.invoke('get-update-status'),
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  onUpdateStatus: (callback) => {
+    const handler = (_e: IpcRendererEvent, status: UpdateStatusEvent) => callback(status);
+    ipcRenderer.on('update-status', handler);
+    return () => { ipcRenderer.removeListener('update-status', handler); };
+  },
 };
 
 contextBridge.exposeInMainWorld('tomato', api);

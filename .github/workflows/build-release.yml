@@ -132,27 +132,37 @@ jobs:
       - name: Create ZIP archive
         run: cd release/mac-arm64 && zip -ry ../Tomato.zip Tomato.app
 
+      - name: Notarize ZIP
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          xcrun notarytool submit release/Tomato.zip \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+
       - name: Generate latest-mac.yml
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          DMG_SIZE=$(stat -f%z release/Tomato.dmg)
           ZIP_SIZE=$(stat -f%z release/Tomato.zip)
-          DMG_SHA512=$(shasum -a 512 release/Tomato.dmg | awk '{print $1}' | xxd -r -p | base64)
           ZIP_SHA512=$(shasum -a 512 release/Tomato.zip | awk '{print $1}' | xxd -r -p | base64)
+          RELEASE_DATE=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 
-          cat > release/latest-mac.yml <<EOF
+          cat > release/latest-mac.yml <<EOYML
           version: ${VERSION}
           files:
-            - url: Tomato-${VERSION}.dmg
-              sha512: ${DMG_SHA512}
-              size: ${DMG_SIZE}
             - url: Tomato-${VERSION}.zip
               sha512: ${ZIP_SHA512}
               size: ${ZIP_SIZE}
-          path: Tomato-${VERSION}.dmg
-          sha512: ${DMG_SHA512}
-          releaseDate: $(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
-          EOF
+          path: Tomato-${VERSION}.zip
+          sha512: ${ZIP_SHA512}
+          releaseDate: '${RELEASE_DATE}'
+          EOYML
+          # strip leading whitespace from heredoc
+          sed -i '' 's/^          //' release/latest-mac.yml
 
       - name: Upload artifacts to Cloudflare R2
         env:

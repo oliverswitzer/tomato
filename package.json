@@ -21,6 +21,7 @@
     "@anthropic-ai/sdk": "^0.90.0",
     "@types/better-sqlite3": "^7.6.13",
     "better-sqlite3": "^12.9.0",
+    "electron-updater": "^6.8.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "screenpipe": "^0.3.289"
@@ -74,8 +75,15 @@
         "to": "request-screen-access"
       }
     ],
+    "publish": {
+      "provider": "generic",
+      "url": "https://downloads.tomatoapp.dev"
+    },
     "mac": {
-      "target": "dmg",
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "category": "public.app-category.productivity",
       "icon": "assets/app-icon.png",
       "identity": null,
