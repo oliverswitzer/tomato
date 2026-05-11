@@ -65,6 +65,21 @@ export interface PollState {
   screenpipeStatus: 'ok' | 'error' | 'unavailable';
 }
 
+export interface ShadowEvalEntry {
+  interval: number;
+  timestamp: string;
+  summary: string;
+  classification: string;
+  isDrifting: boolean;
+  confidence: number;
+  reason: string;
+  rawActivityWindow: { since: string; until: string; entryCount: number };
+  tokenUsage: { input: number; output: number };
+  latencyMs: number;
+  costUsd: number;
+  prompt?: string;
+}
+
 export interface BatchHistoryEntry {
   timestamp: string;
   prompt: string;
@@ -90,6 +105,7 @@ export interface DebugPipelineState {
   } | null;
   batchHistory: BatchHistoryEntry[];
   sessionCostUsd: number;
+  shadowEvalEntries?: ShadowEvalEntry[];
 }
 
 export interface ApiKeyValidationResult {

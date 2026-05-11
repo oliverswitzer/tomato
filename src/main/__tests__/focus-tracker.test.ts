@@ -30,11 +30,14 @@ function mockDb(): ScreenpipeDb {
 
 function mockLlm(result?: BatchSummaryResult): LlmClient {
   return {
-    batchSummarize: vi.fn().mockResolvedValue(result ?? {
-      summary: 'Editing code in Cursor.',
-      level2Classification: 'Building',
-      driftAssessment: { isDrifting: false, confidence: 0.9, reason: 'On task.' },
-      usage: { inputTokens: 400, outputTokens: 90 },
+    batchSummarize: vi.fn().mockResolvedValue({
+      result: result ?? {
+        summary: 'Editing code in Cursor.',
+        level2Classification: 'Building',
+        driftAssessment: { isDrifting: false, confidence: 0.9, reason: 'On task.' },
+        usage: { inputTokens: 400, outputTokens: 90 },
+      },
+      prompt: 'mock prompt',
     }),
     summarizeSession: vi.fn().mockResolvedValue({
       summary: 'Worked on focus tracker.',
@@ -348,10 +351,13 @@ describe('FocusTracker', () => {
     (llm.batchSummarize as ReturnType<typeof vi.fn>)
       .mockRejectedValueOnce(new LlmModelNotFoundError('old-model'))
       .mockResolvedValue({
-        summary: 'Back to normal.',
-        level2Classification: 'Building',
-        driftAssessment: { isDrifting: false, confidence: 0.9, reason: 'On task.' },
-        usage: { inputTokens: 400, outputTokens: 90 },
+        result: {
+          summary: 'Back to normal.',
+          level2Classification: 'Building',
+          driftAssessment: { isDrifting: false, confidence: 0.9, reason: 'On task.' },
+          usage: { inputTokens: 400, outputTokens: 90 },
+        },
+        prompt: 'mock prompt',
       });
     const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
 
@@ -484,7 +490,7 @@ describe('FocusTracker', () => {
       const tracker = new FocusTracker({ db: mockDb(), llm: mockLlm(), shadowEvaluator: shadow });
 
       tracker.start('Build feature', 25);
-      expect(shadow.start).toHaveBeenCalledWith('Build feature', 25);
+      expect(shadow.start).toHaveBeenCalledWith('Build feature', 25, 60000);
 
       tracker.stop();
     });

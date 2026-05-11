@@ -5,22 +5,12 @@ import type { ScreenpipeDb } from './screenpipe-db';
 import type { LlmClient, BatchSummaryResult, RollingActivity } from './llm-summarizer';
 import { TimelineBuilder } from './timeline-builder';
 import { getModelPricing } from '../config/model-pricing';
+import type { ShadowEvalEntry } from '../shared/ipc';
 
-export interface ShadowEvalEntry {
-  interval: number;
-  timestamp: string;
-  summary: string;
-  classification: string;
-  isDrifting: boolean;
-  confidence: number;
-  reason: string;
-  rawActivityWindow: { since: string; until: string; entryCount: number };
-  tokenUsage: { input: number; output: number };
-  latencyMs: number;
-  costUsd: number;
-}
+export type { ShadowEvalEntry };
 
-const SHADOW_INTERVALS = [30_000, 90_000, 180_000];
+const SHADOW_INTERVALS = [15_000, 30_000, 90_000, 180_000];
+const MAX_ENTRIES_PER_INTERVAL = 50;
 
 function log(msg: string): void {
   try {
@@ -33,6 +23,7 @@ export class ShadowEvaluator {
   private timers: ReturnType<typeof setInterval>[] = [];
   private timelineBuilder = new TimelineBuilder();
   private activitiesPerInterval = new Map<number, RollingActivity[]>();
+  private entriesPerInterval = new Map<number, ShadowEvalEntry[]>();
   private logFilePath: string;
   private intention = '';
   private durationMin = 25;
@@ -49,6 +40,7 @@ export class ShadowEvaluator {
 
     for (const interval of SHADOW_INTERVALS) {
       this.activitiesPerInterval.set(interval, []);
+      this.entriesPerInterval.set(interval, []);
     }
   }
 
@@ -56,17 +48,27 @@ export class ShadowEvaluator {
     return this.logFilePath;
   }
 
-  start(intention: string, durationMin: number): void {
+  getEntries(): ShadowEvalEntry[] {
+    const all: ShadowEvalEntry[] = [];
+    for (const entries of this.entriesPerInterval.values()) {
+      all.push(...entries);
+    }
+    return all;
+  }
+
+  start(intention: string, durationMin: number, productionBatchMs?: number): void {
     this.intention = intention;
     this.durationMin = durationMin;
 
     for (const interval of SHADOW_INTERVALS) {
       this.activitiesPerInterval.set(interval, []);
+      this.entriesPerInterval.set(interval, []);
     }
 
-    log(`starting shadow evaluation, intervals=${SHADOW_INTERVALS.map((i) => i / 1000 + 's').join(',')}, log=${this.logFilePath}`);
+    const shadowOnly = SHADOW_INTERVALS.filter((ms) => ms !== productionBatchMs);
+    log(`starting shadow evaluation, intervals=${shadowOnly.map((i) => i / 1000 + 's').join(',')}, production=${productionBatchMs ? productionBatchMs / 1000 + 's' : 'none'}, log=${this.logFilePath}`);
 
-    for (const intervalMs of SHADOW_INTERVALS) {
+    for (const intervalMs of shadowOnly) {
       const timer = setInterval(() => this.runShadowBatch(intervalMs), intervalMs);
       this.timers.push(timer);
     }
@@ -81,6 +83,15 @@ export class ShadowEvaluator {
   }
 
   logEntry(entry: ShadowEvalEntry): void {
+    const intervalMs = entry.interval * 1000;
+    let bucket = this.entriesPerInterval.get(intervalMs);
+    if (!bucket) {
+      bucket = [];
+      this.entriesPerInterval.set(intervalMs, bucket);
+    }
+    bucket.push(entry);
+    if (bucket.length > MAX_ENTRIES_PER_INTERVAL) bucket.shift();
+
     try {
       fs.appendFileSync(this.logFilePath, JSON.stringify(entry) + '\n');
     } catch (err) {
@@ -88,7 +99,7 @@ export class ShadowEvaluator {
     }
   }
 
-  logProductionBatch(result: BatchSummaryResult, batchMs: number, since: string, until: string, entryCount: number, latencyMs: number): void {
+  logProductionBatch(result: BatchSummaryResult, batchMs: number, since: string, until: string, entryCount: number, latencyMs: number, prompt?: string): void {
     const pricing = getModelPricing(this.llm.getModel());
     const costUsd = pricing
       ? (result.usage.inputTokens * pricing.inputPer1M + result.usage.outputTokens * pricing.outputPer1M) / 1_000_000
@@ -106,6 +117,7 @@ export class ShadowEvaluator {
       tokenUsage: { input: result.usage.inputTokens, output: result.usage.outputTokens },
       latencyMs,
       costUsd,
+      prompt: prompt ?? undefined,
     };
     this.logEntry(entry);
   }
@@ -133,9 +145,9 @@ export class ShadowEvaluator {
     const recentActivities = rollingActivities.slice(-10);
 
     const startMs = Date.now();
-    let result: BatchSummaryResult | null;
+    let response;
     try {
-      result = await this.llm.batchSummarize(
+      response = await this.llm.batchSummarize(
         timeline,
         this.intention,
         { durationMin: this.durationMin, batchWindowSec: Math.round(intervalMs / 1000) },
@@ -147,10 +159,12 @@ export class ShadowEvaluator {
     }
     const latencyMs = Date.now() - startMs;
 
-    if (!result) {
+    if (!response) {
       log(`shadow ${intervalSec}s: LLM returned null`);
       return;
     }
+
+    const { result, prompt: batchPrompt } = response;
 
     const activity: RollingActivity = {
       summary: result.summary,
@@ -178,6 +192,7 @@ export class ShadowEvaluator {
       tokenUsage: { input: result.usage.inputTokens, output: result.usage.outputTokens },
       latencyMs,
       costUsd,
+      prompt: batchPrompt,
     };
 
     this.logEntry(entry);

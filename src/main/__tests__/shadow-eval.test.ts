@@ -42,7 +42,7 @@ const defaultResult: BatchSummaryResult = {
 
 function mockLlm(result?: BatchSummaryResult): LlmClient {
   return {
-    batchSummarize: vi.fn().mockResolvedValue(result ?? defaultResult),
+    batchSummarize: vi.fn().mockResolvedValue({ result: result ?? defaultResult, prompt: 'mock prompt' }),
     summarizeSession: vi.fn().mockResolvedValue({ summary: 'Session.', focusScore: 85 }),
     getLastPrompt: vi.fn().mockReturnValue('mock prompt'),
     getModel: vi.fn().mockReturnValue('claude-haiku-4-5-20251001'),
@@ -99,8 +99,9 @@ describe('ShadowEvaluator', () => {
 
     evaluator.start('Build feature', 25);
 
+    // At 30s: 15s fires twice (15s, 30s), 30s fires once = 3 calls
     await vi.advanceTimersByTimeAsync(30_000);
-    expect(llm.batchSummarize).toHaveBeenCalledTimes(1);
+    expect(llm.batchSummarize).toHaveBeenCalledTimes(3);
 
     evaluator.stop();
   });
@@ -111,16 +112,18 @@ describe('ShadowEvaluator', () => {
 
     evaluator.start('Build feature', 25);
 
+    // 15s fires at 15s, 30s, 45s, 60s, 75s, 90s (6 times)
     // 30s fires at 30s, 60s, 90s (3 times)
     // 90s fires at 90s (1 time)
     // 180s has not fired yet
     await vi.advanceTimersByTimeAsync(90_000);
 
     const lines = fs.readFileSync(evaluator.getLogFilePath(), 'utf-8').trim().split('\n');
-    expect(lines.length).toBe(4);
+    expect(lines.length).toBe(10);
 
     const entries: ShadowEvalEntry[] = lines.map((l) => JSON.parse(l));
     const intervals = entries.map((e) => e.interval);
+    expect(intervals.filter((i) => i === 15)).toHaveLength(6);
     expect(intervals.filter((i) => i === 30)).toHaveLength(3);
     expect(intervals.filter((i) => i === 90)).toHaveLength(1);
 
@@ -144,10 +147,11 @@ describe('ShadowEvaluator', () => {
 
     evaluator.start('Build feature', 25);
 
-    await vi.advanceTimersByTimeAsync(30_000);
+    // At 15s: only the 15s interval fires first
+    await vi.advanceTimersByTimeAsync(15_000);
 
     const call = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(call[2]).toEqual({ durationMin: 25, batchWindowSec: 30 });
+    expect(call[2]).toEqual({ durationMin: 25, batchWindowSec: 15 });
 
     evaluator.stop();
   });
@@ -158,20 +162,19 @@ describe('ShadowEvaluator', () => {
 
     evaluator.start('Build feature', 25);
 
-    // Fire 30s interval 3 times → 3 accumulated activities for 30s
-    await vi.advanceTimersByTimeAsync(90_000);
+    // At 15s: 15s interval fires once (1st call, 0 previous)
+    await vi.advanceTimersByTimeAsync(15_000);
+    const calls15 = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls;
+    expect(calls15[0][2]).toEqual({ durationMin: 25, batchWindowSec: 15 });
+    expect(calls15[0][3]).toHaveLength(0);
 
-    const calls = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls;
-
-    // 30s interval: 1st call has 0 previous, 2nd has 1, 3rd has 2
-    expect(calls[0][3]).toHaveLength(0);
-    expect(calls[1][3]).toHaveLength(1);
-    expect(calls[2][3]).toHaveLength(2);
-
-    // 90s interval fires once with 0 previous activities
-    const ninetySecCall = calls[3];
-    expect(ninetySecCall[2]).toEqual({ durationMin: 25, batchWindowSec: 90 });
-    expect(ninetySecCall[3]).toHaveLength(0);
+    // At 30s: 15s fires again (1 previous), 30s fires (0 previous)
+    await vi.advanceTimersByTimeAsync(15_000);
+    const callsAt30 = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls;
+    const fifteenSecond = callsAt30.filter((c: unknown[]) => (c[2] as { batchWindowSec: number }).batchWindowSec === 15);
+    expect(fifteenSecond[1][3]).toHaveLength(1);
+    const thirtySecFirst = callsAt30.filter((c: unknown[]) => (c[2] as { batchWindowSec: number }).batchWindowSec === 30);
+    expect(thirtySecFirst[0][3]).toHaveLength(0);
 
     evaluator.stop();
   });
@@ -216,6 +219,38 @@ describe('ShadowEvaluator', () => {
     expect(fs.existsSync(evaluator.getLogFilePath())).toBe(false);
 
     evaluator.stop();
+  });
+
+  it('getEntries returns in-memory entries across all intervals', async () => {
+    const llm = mockLlm();
+    const evaluator = new ShadowEvaluator(mockDb(), llm, () => new Date('2026-04-25T10:05:00Z'), tmpDir);
+
+    expect(evaluator.getEntries()).toHaveLength(0);
+
+    evaluator.start('Build feature', 25);
+    await vi.advanceTimersByTimeAsync(30_000);
+
+    // 15s fires twice, 30s fires once = 3 entries in memory
+    const entries = evaluator.getEntries();
+    expect(entries).toHaveLength(3);
+    expect(entries.filter((e) => e.interval === 15)).toHaveLength(2);
+    expect(entries.filter((e) => e.interval === 30)).toHaveLength(1);
+
+    evaluator.stop();
+  });
+
+  it('getEntries includes production batch entries', () => {
+    const evaluator = new ShadowEvaluator(mockDb(), mockLlm(), () => new Date(), tmpDir);
+
+    evaluator.logProductionBatch(
+      defaultResult, 60_000,
+      '2026-04-25T10:00:00Z', '2026-04-25T10:01:00Z',
+      5, 1200,
+    );
+
+    const entries = evaluator.getEntries();
+    expect(entries).toHaveLength(1);
+    expect(entries[0].interval).toBe(60);
   });
 
   it('computes cost based on model pricing', () => {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { DebugPipelineState, TimelineEntryIpc, BatchHistoryEntry } from '@shared/ipc';
+import type { DebugPipelineState, TimelineEntryIpc, BatchHistoryEntry, ShadowEvalEntry } from '@shared/ipc';
 
 function Badge({ label, bg, color }: { label: string; bg: string; color: string }) {
   return (
@@ -151,6 +151,173 @@ function BatchHistoryRow({ entry }: { entry: BatchHistoryEntry }) {
   );
 }
 
+function PromptModal({ prompt, title, onClose }: { prompt: string; title: string; onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-8"
+      style={{ background: 'rgba(0,0,0,0.5)' }}
+      onClick={onClose}
+    >
+      <div
+        className="rounded-2xl p-5 w-full max-w-3xl max-h-[80vh] flex flex-col"
+        style={{ background: '#FFFFFF', border: '1px solid #E0D8CC', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider m-0" style={{ color: '#BAA898' }}>
+            {title}
+          </h3>
+          <button
+            onClick={onClose}
+            className="bg-transparent border-none cursor-pointer text-lg leading-none p-1"
+            style={{ color: '#8B8477' }}
+          >
+            &times;
+          </button>
+        </div>
+        <pre
+          className="font-mono text-[11px] rounded-lg p-4 whitespace-pre-wrap break-words overflow-y-auto flex-1"
+          style={{ color: '#6B6259', background: '#FBF7F1', border: '1px solid #EFE8DD' }}
+        >
+          {prompt}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+const INTERVAL_COLUMNS = [15, 30, 60, 90, 180];
+
+function getDriftBg(entry: ShadowEvalEntry): string {
+  if (!entry.isDrifting) return '#E8F5E9';
+  return entry.confidence >= 0.6 ? '#FFEBEE' : '#FFF8E1';
+}
+
+function ShadowEvalEntryRow({ entry }: { entry: ShadowEvalEntry }) {
+  const [showPrompt, setShowPrompt] = useState(false);
+
+  const label = (
+    <span className="flex flex-col gap-0.5 min-w-0">
+      <span className="flex items-center gap-1 flex-wrap">
+        <span className="font-mono text-[10px] shrink-0" style={{ color: '#BAA898' }}>
+          {formatTime(entry.timestamp)}
+        </span>
+        <Badge label={entry.classification} bg="#E8EAF6" color="#5C6BC0" />
+        <span className="font-mono text-[10px]" style={{ color: '#BAA898' }}>
+          {Math.round(entry.confidence * 100)}%
+        </span>
+        <span className="font-mono text-[10px] font-semibold" style={{ color: '#D97706' }}>
+          ${entry.costUsd.toFixed(4)}
+        </span>
+      </span>
+      <span className="text-[10px] leading-tight" style={{ color: '#2A2A2A' }}>
+        {entry.summary}
+      </span>
+    </span>
+  );
+
+  return (
+    <div className="rounded-lg p-1.5 mb-1" style={{ background: getDriftBg(entry) }}>
+      <Expandable label={label}>
+        <div className="font-mono text-[10px] mt-1 space-y-0.5">
+          <div>
+            <span style={{ color: '#BAA898' }}>reason: </span>
+            <span style={{ color: '#2A2A2A' }}>{entry.reason}</span>
+          </div>
+          <div>
+            <span style={{ color: '#BAA898' }}>tokens: </span>
+            <span style={{ color: '#2A2A2A' }}>{entry.tokenUsage.input} in / {entry.tokenUsage.output} out</span>
+          </div>
+          <div>
+            <span style={{ color: '#BAA898' }}>latency: </span>
+            <span style={{ color: '#2A2A2A' }}>{entry.latencyMs}ms</span>
+          </div>
+          <div>
+            <span style={{ color: '#BAA898' }}>cost: </span>
+            <span style={{ color: '#D97706' }}>${entry.costUsd.toFixed(4)}</span>
+          </div>
+          {entry.prompt && (
+            <div className="mt-1.5">
+              <button
+                onClick={() => setShowPrompt(true)}
+                className="bg-transparent border-none p-0 cursor-pointer font-mono text-[10px] font-semibold hover:underline"
+                style={{ color: '#E2574C' }}
+              >
+                View full prompt
+              </button>
+            </div>
+          )}
+        </div>
+      </Expandable>
+      {showPrompt && entry.prompt && (
+        <PromptModal
+          prompt={entry.prompt}
+          title={`${entry.interval}s batch — ${formatTime(entry.timestamp)}`}
+          onClose={() => setShowPrompt(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function IntervalComparisonPanel({ entries }: { entries: ShadowEvalEntry[] }) {
+  const grouped = new Map<number, ShadowEvalEntry[]>();
+  for (const interval of INTERVAL_COLUMNS) {
+    grouped.set(interval, []);
+  }
+  for (const entry of entries) {
+    const bucket = grouped.get(entry.interval);
+    if (bucket) bucket.push(entry);
+  }
+
+  const totalCost = entries.reduce((sum, e) => sum + e.costUsd, 0);
+
+  return (
+    <Panel
+      title="Interval Comparison"
+      right={
+        <span className="text-[11px] font-mono font-semibold" style={{ color: '#D97706' }}>
+          Total: ${totalCost.toFixed(4)}
+        </span>
+      }
+    >
+      <div className="grid grid-cols-5 gap-2">
+        {INTERVAL_COLUMNS.map((interval) => {
+          const column = grouped.get(interval) ?? [];
+          const columnCost = column.reduce((sum, e) => sum + e.costUsd, 0);
+          return (
+            <div key={interval} className="min-w-0">
+              <div
+                className="text-center text-[10px] font-bold tracking-wider uppercase mb-1 pb-1"
+                style={{ color: '#BAA898', borderBottom: '2px solid #E0D8CC' }}
+              >
+                {interval}s{interval === 60 ? ' (prod)' : ''}
+              </div>
+              <div
+                className="text-center font-mono text-[10px] font-semibold mb-2"
+                style={{ color: '#D97706' }}
+              >
+                ${columnCost.toFixed(4)}
+              </div>
+              <div className="max-h-[400px] overflow-y-auto">
+                {column.length > 0 ? (
+                  [...column].reverse().map((entry, i) => (
+                    <ShadowEvalEntryRow key={i} entry={entry} />
+                  ))
+                ) : (
+                  <div className="text-[10px] text-center py-4" style={{ color: '#BAA898' }}>
+                    No entries
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Panel>
+  );
+}
+
 export function DebugDashboard() {
   const [pipelineState, setPipelineState] = useState<DebugPipelineState | null>(null);
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntryIpc[]>([]);
@@ -175,13 +342,14 @@ export function DebugDashboard() {
 
   const batchHistory = pipelineState?.batchHistory ?? [];
   const sessionCost = pipelineState?.sessionCostUsd ?? 0;
+  const shadowEntries = pipelineState?.shadowEvalEntries;
 
   return (
     <div
       className="min-h-screen p-6 overflow-auto"
       style={{ background: '#FBF7F1', userSelect: 'text', WebkitUserSelect: 'text' }}
     >
-      <div className="max-w-2xl mx-auto">
+      <div className={shadowEntries && shadowEntries.length > 0 ? 'max-w-6xl mx-auto' : 'max-w-2xl mx-auto'}>
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-semibold tracking-tight m-0" style={{ color: '#2A2A2A' }}>
             Debug Dashboard
@@ -200,6 +368,10 @@ export function DebugDashboard() {
             <div className="text-sm" style={{ color: '#8B8477' }}>No activity yet. Start a session.</div>
           )}
         </Panel>
+
+        {shadowEntries && shadowEntries.length > 0 && (
+          <IntervalComparisonPanel entries={shadowEntries} />
+        )}
 
         <Panel
           title={`Batch History (${batchHistory.length} summaries)`}

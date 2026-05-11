@@ -71,13 +71,14 @@ describe('AnthropicLlmClient', () => {
     it('parses valid JSON response into BatchSummaryResult', async () => {
       const client = new AnthropicLlmClient(makeMockAnthropic(validResponse));
 
-      const result = await client.batchSummarize(sampleTimeline(), 'Build it');
+      const response = await client.batchSummarize(sampleTimeline(), 'Build it');
 
-      expect(result).not.toBeNull();
-      expect(result!.summary).toBe('Edited TypeScript code in Cursor and reviewed a PR on GitHub.');
-      expect(result!.level2Classification).toBe('Building');
-      expect(result!.driftAssessment.isDrifting).toBe(false);
-      expect(result!.driftAssessment.confidence).toBe(0.9);
+      expect(response).not.toBeNull();
+      expect(response!.result.summary).toBe('Edited TypeScript code in Cursor and reviewed a PR on GitHub.');
+      expect(response!.result.level2Classification).toBe('Building');
+      expect(response!.result.driftAssessment.isDrifting).toBe(false);
+      expect(response!.result.driftAssessment.confidence).toBe(0.9);
+      expect(response!.prompt).toContain('Build it');
     });
 
     it('returns null on LLM API failure', async () => {
@@ -176,9 +177,9 @@ describe('AnthropicLlmClient', () => {
         dominantApp: 'Cursor',
       });
 
-      const result = await client.batchSummarize(timeline, 'Fix the auth bug');
-      expect(result).not.toBeNull();
-      expect(result!.driftAssessment.isDrifting).toBe(false);
+      const response = await client.batchSummarize(timeline, 'Fix the auth bug');
+      expect(response).not.toBeNull();
+      expect(response!.result.driftAssessment.isDrifting).toBe(false);
     });
 
     it('does not flag reading docs as drift when implementing a feature', async () => {
@@ -218,9 +219,9 @@ describe('AnthropicLlmClient', () => {
         dominantApp: 'VS Code',
       });
 
-      const result = await client.batchSummarize(timeline, 'Implement user settings page');
-      expect(result).not.toBeNull();
-      expect(result!.driftAssessment.isDrifting).toBe(false);
+      const response = await client.batchSummarize(timeline, 'Implement user settings page');
+      expect(response).not.toBeNull();
+      expect(response!.result.driftAssessment.isDrifting).toBe(false);
     });
 
     it('does not flag Stack Overflow research as drift when debugging', async () => {
@@ -260,9 +261,9 @@ describe('AnthropicLlmClient', () => {
         dominantApp: 'Cursor',
       });
 
-      const result = await client.batchSummarize(timeline, 'Debug API timeout issue');
-      expect(result).not.toBeNull();
-      expect(result!.driftAssessment.isDrifting).toBe(false);
+      const response = await client.batchSummarize(timeline, 'Debug API timeout issue');
+      expect(response).not.toBeNull();
+      expect(response!.result.driftAssessment.isDrifting).toBe(false);
     });
 
     it('correctly flags watching YouTube entertainment as drift', async () => {
@@ -293,10 +294,10 @@ describe('AnthropicLlmClient', () => {
         dominantApp: 'Chrome',
       });
 
-      const result = await client.batchSummarize(timeline, 'Fix the auth bug');
-      expect(result).not.toBeNull();
-      expect(result!.driftAssessment.isDrifting).toBe(true);
-      expect(result!.driftAssessment.confidence).toBeGreaterThanOrEqual(0.6);
+      const response = await client.batchSummarize(timeline, 'Fix the auth bug');
+      expect(response).not.toBeNull();
+      expect(response!.result.driftAssessment.isDrifting).toBe(true);
+      expect(response!.result.driftAssessment.confidence).toBeGreaterThanOrEqual(0.6);
     });
 
     it('handles empty timeline', async () => {
@@ -439,9 +440,9 @@ describe('AnthropicLlmClient', () => {
         makeMockAnthropic(`Here is the analysis:\n${validResponse}\nDone.`),
       );
 
-      const result = await client.batchSummarize(sampleTimeline(), 'test');
-      expect(result).not.toBeNull();
-      expect(result!.summary).toContain('Edited TypeScript');
+      const response = await client.batchSummarize(sampleTimeline(), 'test');
+      expect(response).not.toBeNull();
+      expect(response!.result.summary).toContain('Edited TypeScript');
     });
   });
 
