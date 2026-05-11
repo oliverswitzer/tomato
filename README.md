@@ -1,10 +1,12 @@
-# Tomato
+![Screenshot of Tomato Logo](./splash/assets/Tomato.png)
 
-Pomodoro timer for macOS with screen-reading focus tracking. Uses [screenpipe](https://github.com/screenpipe/screenpipe) to observe what you're doing and an LLM to detect when you drift from your intention.
+The smartest Pomodoro timer you've ever used. 
+
+Tomato is a Pomodoro timer for macOS with screen-reading focus tracking. Uses [screenpipe](https://github.com/screenpipe/screenpipe) to observe what you're doing and an LLM to detect when you drift from your intention.
 
 ## Download
 
-[**Download Tomato.dmg**](https://github.com/oliverswitzer/tomato/releases/latest/download/Tomato.dmg) — macOS Apple Silicon only.
+[*Download Tomato*](https://github.com/oliverswitzer/tomato/releases/latest/download/Tomato.dmg) — currently macOS Apple Silicon only.
 
 ## How it works
 
