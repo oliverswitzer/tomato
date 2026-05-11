@@ -43,6 +43,10 @@ export interface RollingActivity {
   confidence: number;
 }
 
+export interface IdeaSummaryResult {
+  ideaSummary: string;
+}
+
 export interface LlmClient {
   batchSummarize(
     timeline: ActivityTimeline,
@@ -55,6 +59,11 @@ export interface LlmClient {
     activities: { summary: string; timestamp: string; apps: string[] }[],
     durationMin: number,
   ): Promise<SessionSummaryResult | null>;
+  summarizeIdea(
+    timeline: ActivityTimeline,
+    intention: string,
+    driftContext: { reason: string; classification: string; batchSummary: string },
+  ): Promise<IdeaSummaryResult | null>;
   getLastPrompt(): string | null;
   getModel(): string;
   setModel?(model: string): void;
@@ -263,6 +272,72 @@ Consider this trajectory when assessing drift. A user who has been on-track and 
         usage,
       };
     } catch {
+      return null;
+    }
+  }
+
+  async summarizeIdea(
+    timeline: ActivityTimeline,
+    intention: string,
+    driftContext: { reason: string; classification: string; batchSummary: string },
+  ): Promise<IdeaSummaryResult | null> {
+    const timelineText = timeline.entries.length > 0
+      ? timeline.entries
+          .map((e) => {
+            const time = e.timestamp.slice(11, 19);
+            const parts = [`[${time}] ${e.app} — ${e.window}`];
+            if (e.browserUrl) parts.push(`  url: ${e.browserUrl}`);
+            if (e.typedText) parts.push(`  typed: "${e.typedText}"`);
+            return parts.join('\n');
+          })
+          .join('\n')
+      : 'No activity detected.';
+
+    const passiveContextSections = this.buildPassiveContextSection(timeline);
+
+    const prompt = `The user was focused on "${intention}". They drifted into the following activity. Distill what they were exploring into a concise idea summary (2-4 sentences) worth revisiting later.
+
+Focus on: the topic/concept they were curious about, which apps or LLMs they were using, specific URLs or video titles if visible, the core question or thread they were pulling on.
+
+Do NOT mention that they drifted or were distracted. Write it as a useful note-to-self.
+
+## Drift context
+Classification: ${driftContext.classification}
+Activity summary: ${driftContext.batchSummary}
+
+## Activity timeline (${timeline.startTime} to ${timeline.endTime})
+Apps used: ${timeline.uniqueApps.join(', ') || 'none'}
+
+${timelineText}${passiveContextSections}
+
+Respond with EXACTLY this JSON (no other text):
+{
+  "ideaSummary": "2-4 sentence note-to-self about the idea worth revisiting"
+}`;
+
+    this.lastPrompt = prompt;
+
+    try {
+      const res = await this.anthropic.messages.create({
+        model: this.model,
+        max_tokens: 300,
+        messages: [{ role: 'user', content: prompt }],
+      });
+
+      const block = res.content.find((b) => b.type === 'text');
+      if (!block || block.type !== 'text') return null;
+
+      const jsonMatch = block.text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) return null;
+
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (typeof parsed.ideaSummary !== 'string') return null;
+
+      return { ideaSummary: parsed.ideaSummary };
+    } catch (err: any) {
+      const status = err?.status ?? err?.statusCode;
+      if (status === 401 || status === 403) throw new LlmAuthError(err.message);
+      if (status === 404) throw new LlmModelNotFoundError(this.model, err.message);
       return null;
     }
   }

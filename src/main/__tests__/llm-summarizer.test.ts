@@ -445,6 +445,93 @@ describe('AnthropicLlmClient', () => {
     });
   });
 
+  describe('summarizeIdea', () => {
+    const ideaResponse = JSON.stringify({
+      ideaSummary: 'Exploring CLI tool patterns for productivity apps. Watched a video about building CLI tools with Node.js and browsed related GitHub repos.',
+    });
+
+    const driftContext = {
+      reason: 'User switched to YouTube and watched a video about CLI tools.',
+      classification: 'Off-task',
+      batchSummary: 'Watched a YouTube video about CLI tools.',
+    };
+
+    it('returns idea summary from LLM response', async () => {
+      const client = new AnthropicLlmClient(makeMockAnthropic(ideaResponse));
+      const result = await client.summarizeIdea(sampleTimeline(), 'Build the focus tracker', driftContext);
+
+      expect(result).not.toBeNull();
+      expect(result!.ideaSummary).toContain('CLI tool patterns');
+    });
+
+    it('prompt includes intention and drift context', async () => {
+      const anthropic = makeMockAnthropic(ideaResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      await client.summarizeIdea(sampleTimeline(), 'Build the focus tracker', driftContext);
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).toContain('Build the focus tracker');
+      expect(prompt).toContain('Off-task');
+      expect(prompt).toContain('Watched a YouTube video about CLI tools');
+      expect(prompt).toContain('note-to-self');
+      expect(prompt).toContain('Do NOT mention that they drifted');
+    });
+
+    it('prompt includes timeline entries with URLs', async () => {
+      const anthropic = makeMockAnthropic(ideaResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      const timeline = sampleTimeline({
+        entries: [{
+          timestamp: '2026-04-25T10:00:05Z',
+          app: 'Chrome',
+          window: 'YouTube',
+          typedText: null,
+          eventType: 'app_switch',
+          accessibilityHints: [],
+          browserUrl: 'https://youtube.com/watch?v=abc',
+        }],
+      });
+
+      await client.summarizeIdea(timeline, 'Build it', driftContext);
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).toContain('url: https://youtube.com/watch?v=abc');
+    });
+
+    it('returns null on API failure', async () => {
+      const anthropic = {
+        messages: { create: vi.fn().mockRejectedValue(new Error('API error')) },
+      } as any;
+      const client = new AnthropicLlmClient(anthropic);
+
+      const result = await client.summarizeIdea(sampleTimeline(), 'test', driftContext);
+      expect(result).toBeNull();
+    });
+
+    it('returns null on malformed JSON', async () => {
+      const client = new AnthropicLlmClient(makeMockAnthropic('not json'));
+      const result = await client.summarizeIdea(sampleTimeline(), 'test', driftContext);
+      expect(result).toBeNull();
+    });
+
+    it('returns null when ideaSummary is not a string', async () => {
+      const client = new AnthropicLlmClient(makeMockAnthropic(JSON.stringify({ ideaSummary: 42 })));
+      const result = await client.summarizeIdea(sampleTimeline(), 'test', driftContext);
+      expect(result).toBeNull();
+    });
+
+    it('throws LlmAuthError on 401', async () => {
+      const error = new Error('401') as any;
+      error.status = 401;
+      const anthropic = { messages: { create: vi.fn().mockRejectedValue(error) } } as any;
+      const client = new AnthropicLlmClient(anthropic);
+
+      await expect(client.summarizeIdea(sampleTimeline(), 'test', driftContext)).rejects.toThrow(LlmAuthError);
+    });
+  });
+
   describe('summarizeSession', () => {
     const sessionResponse = JSON.stringify({
       summary: 'Wrote TypeScript code in Cursor for the focus tracker, then briefly checked Messages.',

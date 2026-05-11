@@ -111,6 +111,21 @@ export class FocusTracker {
     return this.deps.llm.summarizeSession(this.intention, this.activities, durationMin);
   }
 
+  getDriftContext(): { timeline: ActivityTimeline; batchResult: BatchSummaryResult; intention: string } | null {
+    if (!this.lastBatchResult || !this.lastBatchResult.driftAssessment.isDrifting) return null;
+
+    const now = this.clock();
+    const since = new Date(now.getTime() - this.batchMs).toISOString();
+    const until = now.toISOString();
+
+    try {
+      const timeline = this.timelineBuilder.buildFromDb(this.deps.db, since, until);
+      return { timeline, batchResult: this.lastBatchResult, intention: this.intention };
+    } catch {
+      return null;
+    }
+  }
+
   getDebugState(): DebugPipelineState {
     return {
       currentPollState: this.getLatestPollState(),

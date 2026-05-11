@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { relativeDate } from '@shared/utils';
-import type { SavedSession } from '@shared/ipc';
+import type { SavedSession, VaultItem } from '@shared/ipc';
 import { deriveRecentChips } from '@shared/chips';
 import './StartPage.css';
 
@@ -25,11 +25,13 @@ export function StartPage() {
   const [selectedMinutes, setSelectedMinutes] = useState(25);
   const [recentSessions, setRecentSessions] = useState<SavedSession[]>([]);
   const [hasScreenPermission, setHasScreenPermission] = useState(true);
+  const [vaultCount, setVaultCount] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     window.tomato.getRecentSessions().then(setRecentSessions);
     window.tomato.getScreenPermission().then(setHasScreenPermission);
+    window.tomato.getVaultItems().then((items: VaultItem[]) => setVaultCount(items.length));
     const interval = setInterval(() => {
       window.tomato.getScreenPermission().then(setHasScreenPermission);
     }, 3000);
@@ -177,6 +179,22 @@ export function StartPage() {
           Start {selectedMinutes}-minute session
         </button>
       </div>
+
+      {vaultCount > 0 && (
+        <div className="no-drag" style={{ width: '100%', textAlign: 'center', marginBottom: 4 }}>
+          <a
+            href="#/vault"
+            style={{
+              fontSize: 13,
+              color: '#6B5B4F',
+              textDecoration: 'none',
+              fontWeight: 500,
+            }}
+          >
+            View Idea Vault &rarr; <span style={{ fontSize: 11, color: '#8B8477' }}>{vaultCount} saved {vaultCount === 1 ? 'idea' : 'ideas'}</span>
+          </a>
+        </div>
+      )}
 
       {recentSessions.length > 0 && (
         <div className="recent-section no-drag">
