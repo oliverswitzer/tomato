@@ -191,18 +191,7 @@ export function HudPage() {
             {driftInfo && (
               <div className="activity-section" style={{ background: driftLevel === 'off-track' ? '#FCE5E2' : '#FBE6B6', borderRadius: 12, padding: '10px 14px' }}>
                 <span className="activity-label" style={{ color: driftLevel === 'off-track' ? '#B42318' : '#8A6420' }}>OFF TRACK</span>
-                <div
-                  title={driftInfo.reason}
-                  style={{
-                    fontSize: 13,
-                    color: '#2A2A2A',
-                    lineHeight: 1.4,
-                    display: '-webkit-box',
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                  }}
-                >{driftInfo.reason}</div>
+                <div style={{ fontSize: 13, color: '#2A2A2A', lineHeight: 1.4 }}>{driftInfo.reason}</div>
                 <div style={{ fontSize: 11, color: '#8B8477', marginTop: 4 }}>
                   {driftInfo.level2Classification} &middot; {Math.round(driftInfo.confidence * 100)}% confidence
                 </div>
