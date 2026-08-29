@@ -6,3 +6,4 @@ tmp-prompt.txt
 *.log
 .envrc.sample
 .claude/scheduled_tasks.lock
+.build-continuation-prompt.md
