@@ -26,10 +26,10 @@ function ModelCostLabel({ model }: { model: ModelInfo }) {
   const input = pricing?.inputPer1M ?? model.inputPer1M;
   const output = pricing?.outputPer1M ?? model.outputPer1M;
   if (input == null || output == null) {
-    return <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 10, color: '#8B8477' }}>{model.priceTier}</span>;
+    return <span className="font-mono text-[10px] text-muted">{model.priceTier}</span>;
   }
   return (
-    <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 10, color: '#8B8477' }}>
+    <span className="font-mono text-[10px] text-muted">
       {formatTokenCost({ id: model.id, inputPer1M: input, outputPer1M: output })}
     </span>
   );
@@ -46,75 +46,41 @@ interface ModelPickerProps {
 
 export function ModelPicker({ models, selectedModel, onSelect, open, onToggle, error }: ModelPickerProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, color: '#2A2A2A' }}>
-        Model
-      </span>
+    <div className="flex flex-col gap-2">
+      <span className="text-xs font-semibold text-text">Model</span>
 
       <div
         onClick={onToggle}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: open ? '#FFFFFF' : '#FBF7F1',
-          borderRadius: open ? '8px 8px 0 0' : 8,
-          border: `1px solid ${open ? '#E2574C' : '#E8E1D7'}`,
-          padding: '10px 12px',
-          cursor: 'pointer',
-        }}
+        className={`flex cursor-pointer items-center justify-between border px-3 py-2.5 ${
+          open ? 'rounded-t-lg border-accent bg-white' : 'rounded-lg border-[#E8E1D7] bg-cream'
+        }`}
       >
-        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: open ? 500 : 400, color: '#2A2A2A' }}>
+        <span className={`text-xs text-text ${open ? 'font-medium' : 'font-normal'}`}>
           {selectedModel ? formatModelName(selectedModel) : 'Select a model'}
         </span>
         <ChevronIcon direction={open ? 'up' : 'down'} color={open ? '#E2574C' : '#8B8477'} />
       </div>
 
       {open && (
-        <div
-          style={{
-            background: '#FFFFFF',
-            borderRadius: '0 0 8px 8px',
-            border: '1px solid #E2574C',
-            borderTop: 'none',
-            boxShadow: '0 8px 18px rgba(0,0,0,0.09)',
-            padding: '4px 0',
-            marginTop: -8,
-          }}
-        >
+        <div className="-mt-2 rounded-b-lg border border-t-0 border-accent bg-white py-1 shadow-[0_8px_18px_rgba(0,0,0,0.09)]">
           {models.length > 0 ? (
             models.map((m) => (
               <div
                 key={m.id}
                 onClick={() => onSelect(m.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 12px',
-                  cursor: 'pointer',
-                  background: m.id === selectedModel ? '#FFF5F4' : 'transparent',
-                }}
+                className={`flex cursor-pointer items-center justify-between px-3 py-2.5 ${
+                  m.id === selectedModel ? 'bg-[#FFF5F4]' : 'bg-transparent'
+                }`}
               >
-                <span style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: 12,
-                  fontWeight: m.id === selectedModel ? 600 : 500,
-                  color: '#2A2A2A',
-                }}>
+                <span className={`text-xs text-text ${m.id === selectedModel ? 'font-semibold' : 'font-medium'}`}>
                   {formatModelName(m.id)}
                 </span>
                 <ModelCostLabel model={m} />
               </div>
             ))
           ) : (
-            <div style={{ padding: '10px 12px', textAlign: 'center' }}>
-              <span style={{
-                fontFamily: "'Newsreader', Georgia, serif",
-                fontSize: 11,
-                fontStyle: 'italic',
-                color: '#A89F94',
-              }}>
+            <div className="px-3 py-2.5 text-center">
+              <span className="font-serif text-[11px] italic text-subtle">
                 {error || 'Loading models…'}
               </span>
             </div>
@@ -123,15 +89,7 @@ export function ModelPicker({ models, selectedModel, onSelect, open, onToggle, e
       )}
 
       {!open && (
-        <p
-          style={{
-            fontFamily: "'Newsreader', Georgia, serif",
-            fontSize: 12,
-            fontStyle: 'italic',
-            color: '#8B8477',
-            margin: 0,
-          }}
-        >
+        <p className="m-0 font-serif text-xs italic text-muted">
           {error || 'Haiku is recommended for the cheapest summaries.'}
         </p>
       )}

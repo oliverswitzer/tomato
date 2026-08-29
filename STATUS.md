@@ -102,7 +102,26 @@ the prior look. Never mark a unit done aspirationally.
   serif italic nudge text, cream secondary / red primary buttons, matching
   the prior look, no regressions. Mock was reverted before commit (not part
   of the shipped diff). 176/176 tests green, typecheck green.
-- ⬜ U07 migrate SettingsPage to tailwind
+- ✅ U07 migrate SettingsPage to tailwind — rewrote `SettingsPage.tsx` and
+  `ModelPicker.tsx` to Tailwind utility classes on JSX (modal overlay, key
+  input/edit/connected states, error banner, toast, model dropdown), using
+  the U03 `Button` (primary variant) for the Save action. Kept a handful of
+  one-off inline hex values (`#E8E1D7` border, `#EEF6E3`/`#5A7A2F` connected
+  badge, `#FBE9E7`/`#7A2E25` error banner, `#B86B60` link text, toast
+  background) as Tailwind arbitrary-value classes rather than adding new
+  `@theme` tokens for colors that only appear once in this page — no new
+  per-page `.css` file, no remaining inline `style={{}}` blocks except the
+  genuinely dynamic `no-drag` region removed in favor of the arbitrary
+  property `[-webkit-app-region:no-drag]` pattern used elsewhere. `ModelPicker`
+  had no logic changes, only markup restyled per the plan's carve-out.
+  Verified visually via a temporary (not committed) dev-mode `window.tomato`
+  mock + a `?mock=1` render branch in `main.tsx` + `npm run dev`-equivalent
+  Vite server + browser screenshot: connected/saved state, key-editing state,
+  and the open model dropdown (with cost labels, red-highlighted selected
+  row) all render correctly — cream/red editorial palette, serif headline,
+  monospace key/model text, no regressions. Mock and its main.tsx changes
+  were reverted before commit (not part of the shipped diff). 176/176 tests
+  green, typecheck green.
 - ⬜ U08 migrate ApiKeyPage + PermissionsPage to tailwind
 - ⬜ U09 migrate DebugDashboard to tailwind
 - ⬜ U10 dead code + lint pass
