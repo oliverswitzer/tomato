@@ -6,7 +6,7 @@ import path from 'path';
 
 const ENCRYPTION_SALT = 'com.tomato.pomodoro.v1';
 
-export interface KeychainStore {
+interface KeychainStore {
   saveApiKey(key: string): void;
   getApiKey(): string | null;
   deleteApiKey(): void;

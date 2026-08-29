@@ -164,5 +164,29 @@ the prior look. Never mark a unit done aspirationally.
   serif heading, monospace timestamps/JSON, badge colors intact, no visual
   regressions. Mock and its main.tsx changes were reverted before commit
   (not part of the shipped diff). 176/176 tests green, typecheck green.
-- ⬜ U10 dead code + lint pass
+- ✅ U10 dead code + lint pass — ran `npx knip` (one-off, not added as a
+  dependency) against `src/**/*.{ts,tsx}` to find unused exports/files.
+  Deleted `src/renderer/components/ui/index.ts` (an unused barrel — every
+  page already imports components directly from their own files, e.g.
+  `./ui/Button`). Un-exported 4 internal-only types/consts that had no
+  outside consumers: `API_KEY_REGEX` (api-key-validator.ts), and interfaces
+  `ValidationSuccess`/`ValidationError` (api-key-validator.ts),
+  `KeychainStore` (keychain.ts), `PassiveContext` (timeline-builder.ts) —
+  all made non-exported (module-private) rather than deleted since they're
+  still used internally in the same file. Left the other 5 knip-flagged
+  "unused exported types" alone (`DriftInfo` — public Zustand store shape;
+  `ScreenpipeFrame`/`CaptureResult`/`ApiKeyValidationResult`/
+  `OnboardingState` — part of the `src/shared/ipc.ts` main<->renderer
+  contract) since ARCHITECTURE.md says not to touch the IPC contract shape,
+  and DriftInfo is legitimately consumer-facing store API even though no
+  current caller imports the type name directly. Also confirmed knip's
+  "unused dependency: tailwindcss" and "unused dependency: screenpipe" are
+  false positives (tailwindcss is pulled in via `@import "tailwindcss"` in
+  index.css, not a JS import; screenpipe/@screenpipe/cli-* binaries are
+  used at runtime/packaging, not statically imported) — left both in
+  package.json. No orphaned per-page `.css` files existed to remove (only
+  `index.css`, the Tailwind entry point, remains — consistent with U01-U09
+  already having migrated every page to Tailwind). No logic changes.
+  `npm run verify` (typecheck + tests): 176/176 tests green, typecheck
+  clean, no unused-import/unused-local warnings.
 - ⬜ U11 docs + final verify
