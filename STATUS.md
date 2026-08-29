@@ -18,7 +18,14 @@ the prior look. Never mark a unit done aspirationally.
 - ✅ glass-cleanup (pre-existing, done live) — removed electron-liquid-glass,
   vibrancy/transparent flags, lg-* CSS variants; HUD auto collapses on-track,
   expands + flashes red on drift. 159 tests green, typecheck green.
-- ⬜ U01 zustand session store
+- ✅ U01 zustand session store — added `zustand`, new `src/renderer/store/sessionStore.ts`
+  (state/activities/driftInfo/apiError/sessionEnded + `initSessionStore()` wiring all
+  `window.tomato.on*` IPC listeners), called once from `App.tsx`. `HudPage.tsx` now reads
+  via store selectors (kept `isExpanded`/`manualOverride` as local state per plan). 10 new
+  vitest cases for the store (activity cap at 100, drift reset on new activity, etc.).
+  Verified visually via a temporary (not committed) dev-mode IPC mock + browser screenshot:
+  on-track, expanded, and simulated-drift states all render correctly with no regression.
+  169/169 tests green, typecheck green.
 - ⬜ U02 migrate remaining pages onto the store
 - ⬜ U03 reusable tailwind ui components
 - ⬜ U04 migrate HudPage to tailwind

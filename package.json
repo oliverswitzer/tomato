@@ -24,7 +24,8 @@
     "better-sqlite3": "^12.9.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "screenpipe": "^0.3.289"
+    "screenpipe": "^0.3.289",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.0",

@@ -6,6 +6,7 @@ import { DebugDashboard } from './pages/DebugDashboard';
 import { PermissionsPage } from './pages/PermissionsPage';
 import { ApiKeyPage } from './pages/ApiKeyPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { initSessionStore } from './store/sessionStore';
 import type { ComponentType } from 'react';
 
 const pages: Record<string, ComponentType> = {
@@ -42,6 +43,10 @@ export function App() {
 
   useEffect(() => {
     return window.tomato.onShowSettings(() => setSettingsOpen(true));
+  }, []);
+
+  useEffect(() => {
+    return initSessionStore();
   }, []);
 
   if (!route) return null;

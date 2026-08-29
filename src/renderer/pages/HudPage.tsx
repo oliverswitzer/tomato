@@ -1,23 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { formatTime, formatActivityTime } from '@shared/utils';
-import type { Activity, SessionStateWithActivities } from '@shared/ipc';
+import { useSessionStore } from '../store/sessionStore';
 import './HudPage.css';
 
 export function HudPage() {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [driftInfo, setDriftInfo] = useState<{ reason: string; confidence: number; level2Classification: string } | null>(null);
-  const [apiError, setApiError] = useState<{ type: 'auth' | 'model_deprecated'; message: string } | null>(null);
-  const [sessionEnded, setSessionEnded] = useState(false);
   const [manualOverride, setManualOverride] = useState(false);
-  const [state, setState] = useState<SessionStateWithActivities>({
-    active: false,
-    intention: '',
-    durationMin: 25,
-    remainingSec: 1500,
-    paused: false,
-    activities: [],
-  });
+  const state = useSessionStore((s) => s.state);
+  const activities = useSessionStore((s) => s.activities);
+  const driftInfo = useSessionStore((s) => s.driftInfo);
+  const apiError = useSessionStore((s) => s.apiError);
+  const sessionEnded = useSessionStore((s) => s.sessionEnded);
 
   const latestSummary =
     activities.length > 0
@@ -38,34 +31,7 @@ export function HudPage() {
   }, [resize]);
 
   useEffect(() => {
-    const unsubs = [
-      window.tomato.onSessionState((s) => {
-        setState(s);
-        if (s.activities && s.activities.length > 0) {
-          setActivities(s.activities);
-        }
-      }),
-      window.tomato.onActivityUpdate((activity) => {
-        setDriftInfo(null);
-        setActivities((prev) => {
-          const next = [...prev, activity];
-          return next.length > 100 ? next.slice(1) : next;
-        });
-      }),
-      window.tomato.onDriftDetected((data) => {
-        setDriftInfo(data);
-      }),
-      window.tomato.onSessionEnded(() => {
-        setSessionEnded(true);
-      }),
-      window.tomato.onApiError((data) => {
-        setApiError(data);
-      }),
-    ];
-
     window.tomato.timerReady();
-
-    return () => unsubs.forEach((fn) => fn());
   }, []);
 
   // Auto collapse/expand with drift state, unless the user has manually
