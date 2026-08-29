@@ -1,37 +1,29 @@
 import { useState, useRef } from 'react';
-
-const noDrag = { WebkitAppRegion: 'no-drag' } as React.CSSProperties;
+import { Button } from '../components/ui/Button';
 
 type PageState = 'entry' | 'verifying' | 'error';
 
 function StepDots({ current }: { current: number }) {
   const steps = ['Permissions', 'API Key', 'Intent'];
   return (
-    <div className="flex items-center" style={{ gap: 8 }}>
+    <div className="flex items-center gap-2">
       {steps.map((label, i) => (
-        <div key={label} className="flex items-center" style={{ gap: 8 }}>
-          <div className="flex items-center" style={{ gap: 6 }}>
+        <div key={label} className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <div
-              className="rounded-full flex items-center justify-center text-[10px] font-semibold"
-              style={{
-                width: 20,
-                height: 20,
-                background: i < current ? '#7CB342' : i === current ? '#E2574C' : '#D6D2C8',
-                color: 'white',
-              }}
+              className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold text-white ${
+                i < current ? 'bg-[#7CB342]' : i === current ? 'bg-accent' : 'bg-[#D6D2C8]'
+              }`}
             >
               {i < current ? '✓' : i + 1}
             </div>
             <span
-              className="text-[12px]"
-              style={{ color: i === current ? '#2A2A2A' : '#8B8477', fontWeight: i === current ? 600 : 400 }}
+              className={`text-xs ${i === current ? 'font-semibold text-text' : 'font-normal text-muted'}`}
             >
               {label}
             </span>
           </div>
-          {i < steps.length - 1 && (
-            <div style={{ width: 24, height: 1, background: '#D6D2C8' }} />
-          )}
+          {i < steps.length - 1 && <div className="h-px w-6 bg-[#D6D2C8]" />}
         </div>
       ))}
     </div>
@@ -110,42 +102,30 @@ export function ApiKeyPage() {
   const isError = pageState === 'error';
 
   return (
-    <div
-      className="h-screen overflow-hidden rounded-[28px] flex flex-col items-center"
-      style={{ background: '#FBF7F1', WebkitAppRegion: 'drag', padding: '44px 80px 40px', gap: 28 } as React.CSSProperties}
-    >
+    <div className="flex h-screen flex-col items-center overflow-hidden rounded-[28px] bg-cream px-20 pb-10 pt-11 gap-7 [-webkit-app-region:drag]">
       {/* Step dots */}
       <StepDots current={1} />
 
       {/* Header */}
-      <div className="flex flex-col items-center" style={{ gap: 14 }}>
-        <div
-          className="rounded-[48px] flex items-center justify-center overflow-hidden"
-          style={{ width: 96, height: 96, border: '1px solid #EFE8DD', boxShadow: '0 6px 20px rgba(226,87,76,0.1)', fontSize: 52, lineHeight: 1 }}
-        >
+      <div className="flex flex-col items-center gap-3.5">
+        <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-[48px] border border-border text-[52px] leading-none shadow-[0_6px_20px_rgba(226,87,76,0.1)]">
           🔑
         </div>
 
-        <h1
-          className="text-center text-[#2A2A2A]"
-          style={{ fontFamily: "'Newsreader', Georgia, serif", fontSize: 36, fontWeight: 500, letterSpacing: '-0.4px' }}
-        >
+        <h1 className="text-center font-serif text-[36px] font-medium tracking-[-0.4px] text-text">
           Add your Anthropic key
         </h1>
 
-        <p className="text-center text-[#8B8477]" style={{ fontSize: 14, lineHeight: 1.45, maxWidth: 480 }}>
+        <p className="max-w-[480px] text-center text-sm leading-[1.45] text-muted">
           Your key stays on this Mac — stored in the system Keychain, never sent to our servers.
           Tomato calls Anthropic directly to summarize your activity and detect drift.
         </p>
       </div>
 
       {/* Input area */}
-      <div className="w-full flex flex-col" style={{ gap: 14, ...noDrag }}>
-        <div className="flex flex-col" style={{ gap: 8 }}>
-          <label
-            className="text-[13px] font-medium text-[#5E5A52]"
-            htmlFor="api-key-input"
-          >
+      <div className="flex w-full flex-col gap-3.5 [-webkit-app-region:no-drag]">
+        <div className="flex flex-col gap-2">
+          <label className="text-[13px] font-medium text-[#5E5A52]" htmlFor="api-key-input">
             Anthropic API Key
           </label>
           <div className="relative">
@@ -153,13 +133,9 @@ export function ApiKeyPage() {
               ref={inputRef}
               id="api-key-input"
               type="text"
-              className="w-full rounded-[12px] border text-[14px] text-[#2A2A2A] outline-none transition-colors"
-              style={{
-                padding: '14px 16px',
-                fontFamily: 'monospace',
-                borderColor: isError ? '#E2574C' : '#EFE8DD',
-                background: 'white',
-              }}
+              className={`w-full rounded-xl border bg-white px-4 py-3.5 font-mono text-sm text-text outline-none transition-colors ${
+                isError ? 'border-accent' : 'border-border'
+              }`}
               placeholder="sk-ant-…"
               value={maskedKey}
               onChange={(e) => {
@@ -181,9 +157,7 @@ export function ApiKeyPage() {
             />
           </div>
           {isError && errorMessage && (
-            <p className="text-[13px]" style={{ color: '#E2574C', lineHeight: 1.4 }}>
-              {errorMessage}
-            </p>
+            <p className="text-[13px] leading-[1.4] text-accent">{errorMessage}</p>
           )}
         </div>
 
@@ -191,8 +165,7 @@ export function ApiKeyPage() {
           href="https://console.anthropic.com/settings/keys"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[13px] font-medium hover:underline"
-          style={{ color: '#8B8477' }}
+          className="text-[13px] font-medium text-muted hover:underline"
           onClick={(e) => {
             e.preventDefault();
             window.open('https://console.anthropic.com/settings/keys', '_blank');
@@ -203,19 +176,12 @@ export function ApiKeyPage() {
       </div>
 
       {/* CTA */}
-      <div className="w-full flex flex-col items-center" style={{ gap: 14, ...noDrag }}>
-        <button
+      <div className="flex w-full flex-col items-center gap-3.5 [-webkit-app-region:no-drag]">
+        <Button
+          variant="primary"
           onClick={handleContinue}
           disabled={isVerifying || !key.trim()}
-          className="w-full flex items-center justify-center rounded-[12px] text-white text-[14px] font-semibold transition-colors hover:brightness-95 active:brightness-90"
-          style={{
-            background: '#E2574C',
-            padding: '14px 16px',
-            boxShadow: '0 4px 14px rgba(226,87,76,0.25)',
-            opacity: isVerifying || !key.trim() ? 0.7 : 1,
-            cursor: isVerifying || !key.trim() ? 'not-allowed' : 'pointer',
-            gap: 8,
-          }}
+          className="w-full gap-2"
         >
           {isVerifying ? (
             <>
@@ -227,9 +193,9 @@ export function ApiKeyPage() {
           ) : (
             'Continue'
           )}
-        </button>
+        </Button>
 
-        <p className="text-[11px] text-center" style={{ color: '#BAA898', maxWidth: 360 }}>
+        <p className="max-w-[360px] text-center text-[11px] text-subtle">
           Tomato needs an Anthropic API key to summarize your activity and detect drift.
         </p>
       </div>

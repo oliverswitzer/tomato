@@ -122,7 +122,29 @@ the prior look. Never mark a unit done aspirationally.
   monospace key/model text, no regressions. Mock and its main.tsx changes
   were reverted before commit (not part of the shipped diff). 176/176 tests
   green, typecheck green.
-- ⬜ U08 migrate ApiKeyPage + PermissionsPage to tailwind
+- ✅ U08 migrate ApiKeyPage + PermissionsPage to tailwind — rewrote both
+  `ApiKeyPage.tsx` and `PermissionsPage.tsx` to Tailwind utility classes on
+  JSX (step dots, key input/error states, permission cards with icon/toggle/
+  CTA, footer), using the U03 `Button` (primary variant) for ApiKeyPage's
+  Continue/Retry action; PermissionsPage's system-settings buttons and
+  toggle switches stayed as plain `<button>`/`<div>` markup since neither
+  matches an existing `ui/` primitive closely enough to reuse one without
+  over-abstracting for two call sites. Used `@theme` tokens (`bg-cream`,
+  `text-text`, `text-muted`, `text-subtle`, `border-border`, `bg-accent`,
+  `font-serif`) throughout; kept the handful of one-off colors that only
+  appear once (green granted-dot `#7CB342`, gray step-dot `#D6D2C8`, icon
+  gradients) as Tailwind arbitrary-value classes/inline `style` for the
+  `iconGradient` prop, consistent with U07's precedent — no new `.css`
+  files, `[-webkit-app-region:*]` arbitrary-property pattern used instead
+  of the old `noDrag`/`style` const. No logic changes to either page.
+  Verified visually via a temporary (not committed) dev-mode `window.tomato`
+  mock behind a `?mock=1` query param in `main.tsx` + local `vite --port
+  5183` + browser screenshot: ApiKeyPage (step dots, key input, Continue
+  button) and PermissionsPage (both permission cards, toggles, Open System
+  Settings buttons, Skip for now) both render correctly — cream/red
+  editorial palette, serif headings, no visual regressions. Mock and its
+  main.tsx changes were reverted before commit (not part of the shipped
+  diff). 176/176 tests green, typecheck green.
 - ⬜ U09 migrate DebugDashboard to tailwind
 - ⬜ U10 dead code + lint pass
 - ⬜ U11 docs + final verify

@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 
-const noDrag = { WebkitAppRegion: 'no-drag' } as React.CSSProperties;
-
 interface PermissionCardProps {
   icon: React.ReactNode;
   iconGradient: string;
@@ -13,75 +11,52 @@ interface PermissionCardProps {
 
 function PermissionCard({ icon, iconGradient, title, description, granted, onOpen }: PermissionCardProps) {
   return (
-    <div
-      className="flex-1 basis-0 flex flex-col rounded-[18px] border border-[#EFE8DD] bg-white"
-      style={{ padding: 24, gap: 14 }}
-    >
-      <div className="flex items-center" style={{ gap: 14 }}>
+    <div className="flex flex-1 basis-0 flex-col gap-3.5 rounded-[18px] border border-border bg-white p-6">
+      <div className="flex items-center gap-3.5">
         <div
-          className="w-[56px] h-[56px] rounded-[14px] flex items-center justify-center shrink-0"
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[14px]"
           style={{ background: iconGradient }}
         >
           {icon}
         </div>
-        <div className="flex flex-col" style={{ gap: 6 }}>
-          <span
-            className="text-[17px] font-medium text-[#2A2A2A] leading-[1.25]"
-            style={{ fontFamily: "'Newsreader', Georgia, serif" }}
-          >
+        <div className="flex flex-col gap-1.5">
+          <span className="font-serif text-[17px] font-medium leading-[1.25] text-text">
             {title}
           </span>
-          <span className="text-[11px] text-[#8B8477] flex items-center" style={{ gap: 4 }}>
+          <span className="flex items-center gap-1 text-[11px] text-muted">
             <span
-              className="w-[6px] h-[6px] rounded-full inline-block"
-              style={{ background: granted ? '#7CB342' : '#E2574C' }}
+              className={`inline-block h-1.5 w-1.5 rounded-full ${granted ? 'bg-[#7CB342]' : 'bg-accent'}`}
             />
             {granted ? 'Granted' : 'Not granted'}
           </span>
         </div>
       </div>
 
-      <p className="text-[13px] text-[#5E5A52] flex-1" style={{ lineHeight: 1.5 }}>
-        {description}
-      </p>
+      <p className="flex-1 text-[13px] leading-[1.5] text-[#5E5A52]">{description}</p>
 
-      <div
-        className="flex items-center justify-between rounded-[10px] border border-[#EFE8DD]"
-        style={{ background: '#F8F5EE', padding: '10px 12px' }}
-      >
-        <div className="flex items-center" style={{ gap: 8 }}>
-          <div
-            className="w-[22px] h-[22px] rounded-[5px] flex items-center justify-center"
-            style={{ background: '#E2574C' }}
-          >
+      <div className="flex items-center justify-between rounded-[10px] border border-border bg-cream px-3 py-2.5">
+        <div className="flex items-center gap-2">
+          <div className="flex h-[22px] w-[22px] items-center justify-center rounded-[5px] bg-accent">
             <span className="text-[9px] leading-none">🍅</span>
           </div>
-          <span className="text-[12px] font-semibold text-[#2A2A2A]">Tomato</span>
+          <span className="text-xs font-semibold text-text">Tomato</span>
         </div>
         <div
-          className="relative"
-          style={{
-            width: 36, height: 20, borderRadius: 10,
-            background: granted ? '#7CB342' : '#D6D2C8',
-            transition: 'background 0.2s',
-          }}
+          className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${
+            granted ? 'bg-[#7CB342]' : 'bg-[#D6D2C8]'
+          }`}
         >
           <div
-            className="absolute bg-white rounded-full"
-            style={{
-              width: 16, height: 16, top: 2,
-              left: granted ? 18 : 2,
-              transition: 'left 0.2s',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-            }}
+            className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.1)] transition-[left] duration-200 ${
+              granted ? 'left-[18px]' : 'left-0.5'
+            }`}
           />
         </div>
       </div>
 
       <button
         onClick={onOpen}
-        style={{ ...noDrag, background: '#E2574C', padding: '12px 16px', boxShadow: '0 4px 14px rgba(226,87,76,0.25)' }}
-        className="w-full flex items-center justify-center gap-[8px] rounded-[12px] text-white text-[14px] font-semibold transition-colors hover:brightness-95 active:brightness-90"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(226,87,76,0.25)] transition-colors hover:brightness-95 active:brightness-90 [-webkit-app-region:no-drag]"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -97,7 +72,6 @@ function PermissionCard({ icon, iconGradient, title, description, granted, onOpe
 export function PermissionsPage() {
   const [screenGranted, setScreenGranted] = useState(false);
   const [accessibilityGranted, setAccessibilityGranted] = useState(false);
-
 
   useEffect(() => {
     async function check() {
@@ -115,33 +89,24 @@ export function PermissionsPage() {
   }, []);
 
   return (
-    <div
-      className="h-screen overflow-hidden rounded-[28px] flex flex-col items-center"
-      style={{ background: '#FBF7F1', WebkitAppRegion: 'drag', padding: '44px 80px 40px', gap: 28 } as React.CSSProperties}
-    >
+    <div className="flex h-screen flex-col items-center overflow-hidden rounded-[28px] bg-cream px-20 pb-10 pt-11 gap-7 [-webkit-app-region:drag]">
       {/* Header */}
-      <div className="flex flex-col items-center" style={{ gap: 14 }}>
-        <div
-          className="rounded-[48px] flex items-center justify-center overflow-hidden"
-          style={{ width: 96, height: 96, border: '1px solid #EFE8DD', boxShadow: '0 6px 20px rgba(226,87,76,0.1)', fontSize: 52, lineHeight: 1 }}
-        >
+      <div className="flex flex-col items-center gap-3.5">
+        <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-[48px] border border-border text-[52px] leading-none shadow-[0_6px_20px_rgba(226,87,76,0.1)]">
           🍅
         </div>
 
-        <h1
-          className="text-center text-[#2A2A2A]"
-          style={{ fontFamily: "'Newsreader', Georgia, serif", fontSize: 36, fontWeight: 500, letterSpacing: '-0.4px' }}
-        >
+        <h1 className="text-center font-serif text-[36px] font-medium tracking-[-0.4px] text-text">
           Two quick permissions
         </h1>
 
-        <p className="text-center text-[#8B8477]" style={{ fontSize: 14, lineHeight: 1.45, maxWidth: 480 }}>
+        <p className="max-w-[480px] text-center text-sm leading-[1.45] text-muted">
           Tomato needs to read your screen — on-device only — to gently nudge you when you drift. Grant both to get started.
         </p>
       </div>
 
       {/* Cards */}
-      <div className="flex w-full" style={{ gap: 14 }}>
+      <div className="flex w-full gap-3.5">
         <PermissionCard
           icon={
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -172,15 +137,13 @@ export function PermissionsPage() {
       </div>
 
       {/* Footer */}
-      <div className="flex flex-col items-center w-full" style={{ gap: 14 }}>
-        <div style={noDrag}>
-          <button
-            onClick={() => window.tomato.permissionsComplete()}
-            className="text-[13px] font-medium text-[#8B8477] hover:text-[#6B6259] transition-colors"
-          >
-            Skip for now
-          </button>
-        </div>
+      <div className="flex w-full flex-col items-center gap-3.5">
+        <button
+          onClick={() => window.tomato.permissionsComplete()}
+          className="text-[13px] font-medium text-muted transition-colors hover:text-[#6B6259] [-webkit-app-region:no-drag]"
+        >
+          Skip for now
+        </button>
       </div>
     </div>
   );
