@@ -145,6 +145,24 @@ the prior look. Never mark a unit done aspirationally.
   editorial palette, serif headings, no visual regressions. Mock and its
   main.tsx changes were reverted before commit (not part of the shipped
   diff). 176/176 tests green, typecheck green.
-- ⬜ U09 migrate DebugDashboard to tailwind
+- ✅ U09 migrate DebugDashboard to tailwind — rewrote `DebugDashboard.tsx` to
+  Tailwind utility classes on JSX (page background, panels, timeline rows,
+  batch history rows, expandable JSON/prompt sections, LLM state), swapping
+  the page's local `Badge` sub-component for the shared U03 `Badge` (kept
+  a handful of one-off inline-hex arbitrary-value classes for colors that
+  only appear once here, same precedent as U07/U08 — no new `.css` file,
+  no remaining `style={{}}` blocks except where a color truly only needed
+  a single arbitrary Tailwind class). No logic changes (still dev-only
+  polling + timeline IPC subscription, left as page-local per
+  ARCHITECTURE.md/plan carve-out — not routed through the Zustand store
+  since it's debug-only, high-frequency, and never subscribed elsewhere).
+  Verified visually via a temporary (not committed) dev-mode `window.tomato`
+  mock behind a `?mock=1` query param in `main.tsx` + local `vite --port
+  5183` + browser screenshot: Live Timeline (with an expanded JSON detail
+  row), Batch History (drift/on-track badges, cost figures), and LLM State
+  panels all render correctly — cream background, white rounded panels,
+  serif heading, monospace timestamps/JSON, badge colors intact, no visual
+  regressions. Mock and its main.tsx changes were reverted before commit
+  (not part of the shipped diff). 176/176 tests green, typecheck green.
 - ⬜ U10 dead code + lint pass
 - ⬜ U11 docs + final verify
