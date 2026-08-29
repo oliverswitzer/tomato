@@ -1,16 +1,8 @@
-import { useState, useEffect } from 'react';
 import './NudgePage.css';
+import { useSessionStore } from '../store/sessionStore';
 
 export function NudgePage() {
-  const [intention, setIntention] = useState('');
-
-  useEffect(() => {
-    window.tomato.getSessionState().then((state) => {
-      if (state?.intention) {
-        setIntention(state.intention);
-      }
-    });
-  }, []);
+  const intention = useSessionStore((s) => s.state.intention);
 
   const nudgeText = intention
     ? `I noticed you don't seem to be working on "${intention}" right now.`

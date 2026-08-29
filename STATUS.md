@@ -26,7 +26,17 @@ the prior look. Never mark a unit done aspirationally.
   Verified visually via a temporary (not committed) dev-mode IPC mock + browser screenshot:
   on-track, expanded, and simulated-drift states all render correctly with no regression.
   169/169 tests green, typecheck green.
-- ⬜ U02 migrate remaining pages onto the store
+- ✅ U02 migrate remaining pages onto the store — `NudgePage.tsx` was the only
+  page duplicating shared state via IPC (`getSessionState` for `intention`);
+  switched it to `useSessionStore((s) => s.state.intention)`. Audited
+  StartPage/SettingsPage/ApiKeyPage/PermissionsPage/DebugDashboard: all
+  remaining `window.tomato.*` calls are genuinely page-local (settings form
+  fields, onboarding checks, debug-only pipeline/timeline polling) per the
+  plan's carve-out, so left untouched. Verified visually via a temporary
+  (not committed) dev-mode `window.tomato` mock in `main.tsx` + browser
+  screenshot: nudge bubble renders with intention text pulled from the
+  store, matching prior look (serif italic text, cream/red buttons), no
+  regression. 169/169 tests green, typecheck green.
 - ⬜ U03 reusable tailwind ui components
 - ⬜ U04 migrate HudPage to tailwind
 - ⬜ U05 migrate StartPage to tailwind
