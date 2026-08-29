@@ -11,7 +11,7 @@ function StepDots({ current }: { current: number }) {
         <div key={label} className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
             <div
-              className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold text-white ${
+              className={`flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold text-white ${
                 i < current ? 'bg-[#7CB342]' : i === current ? 'bg-accent' : 'bg-[#D6D2C8]'
               }`}
             >
@@ -102,21 +102,21 @@ export function ApiKeyPage() {
   const isError = pageState === 'error';
 
   return (
-    <div className="flex h-screen flex-col items-center overflow-hidden rounded-[28px] bg-cream px-20 pb-10 pt-11 gap-7 [-webkit-app-region:drag]">
+    <div className="flex h-screen flex-col items-center overflow-hidden rounded-3xl bg-cream px-20 pb-10 pt-11 gap-7 [-webkit-app-region:drag]">
       {/* Step dots */}
       <StepDots current={1} />
 
       {/* Header */}
       <div className="flex flex-col items-center gap-3.5">
-        <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-[48px] border border-border text-[52px] leading-none shadow-[0_6px_20px_rgba(226,87,76,0.1)]">
+        <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-border text-5xl leading-none shadow-[0_6px_20px_rgba(226,87,76,0.1)]">
           🔑
         </div>
 
-        <h1 className="text-center font-serif text-[36px] font-medium tracking-[-0.4px] text-text">
+        <h1 className="text-center font-serif text-4xl font-medium tracking-tight text-text">
           Add your Anthropic key
         </h1>
 
-        <p className="max-w-[480px] text-center text-sm leading-[1.45] text-muted">
+        <p className="max-w-lg text-center text-sm leading-normal text-muted">
           Your key stays on this Mac — stored in the system Keychain, never sent to our servers.
           Tomato calls Anthropic directly to summarize your activity and detect drift.
         </p>
@@ -125,7 +125,7 @@ export function ApiKeyPage() {
       {/* Input area */}
       <div className="flex w-full flex-col gap-3.5 [-webkit-app-region:no-drag]">
         <div className="flex flex-col gap-2">
-          <label className="text-[13px] font-medium text-[#5E5A52]" htmlFor="api-key-input">
+          <label className="text-sm font-medium text-[#5E5A52]" htmlFor="api-key-input">
             Anthropic API Key
           </label>
           <div className="relative">
@@ -157,7 +157,7 @@ export function ApiKeyPage() {
             />
           </div>
           {isError && errorMessage && (
-            <p className="text-[13px] leading-[1.4] text-accent">{errorMessage}</p>
+            <p className="text-sm leading-snug text-accent">{errorMessage}</p>
           )}
         </div>
 
@@ -165,7 +165,7 @@ export function ApiKeyPage() {
           href="https://console.anthropic.com/settings/keys"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[13px] font-medium text-muted hover:underline"
+          className="text-sm font-medium text-muted hover:underline"
           onClick={(e) => {
             e.preventDefault();
             window.open('https://console.anthropic.com/settings/keys', '_blank');
@@ -195,7 +195,7 @@ export function ApiKeyPage() {
           )}
         </Button>
 
-        <p className="max-w-[360px] text-center text-[11px] text-subtle">
+        <p className="max-w-sm text-center text-xs text-subtle">
           Tomato needs an Anthropic API key to summarize your activity and detect drift.
         </p>
       </div>

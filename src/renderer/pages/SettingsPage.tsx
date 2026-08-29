@@ -48,7 +48,7 @@ function Toast({ message, onDone }: { message: string; onDone: () => void }) {
   }, [onDone]);
 
   return (
-    <div className="fixed bottom-5 right-5 flex items-center gap-2 rounded-[10px] bg-text px-4 py-2.5 text-xs font-medium text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)] z-[1000] [animation:toast-in_0.2s_ease-out]">
+    <div className="fixed bottom-5 right-5 flex items-center gap-2 rounded-xl bg-text px-4 py-2.5 text-xs font-medium text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)] z-[1000] [animation:toast-in_0.2s_ease-out]">
       <span className="text-[#7CB342]"><CheckIcon /></span>
       {message}
     </div>
@@ -187,12 +187,12 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className={`[-webkit-app-region:no-drag] relative flex w-[400px] flex-col rounded-2xl border border-[#E8E1D7] bg-white px-[22px] py-5 shadow-[0_12px_28px_rgba(0,0,0,0.1)] ${
-          isSaved ? 'gap-4' : 'gap-[18px]'
+        className={`[-webkit-app-region:no-drag] relative flex w-96 flex-col rounded-2xl border border-[#E8E1D7] bg-white px-6 py-5 shadow-[0_12px_28px_rgba(0,0,0,0.1)] ${
+          isSaved ? 'gap-4' : 'gap-5'
         }`}
       >
         <div className="flex items-center justify-between">
-          <h1 className="m-0 font-serif text-[22px] font-medium text-text">Settings</h1>
+          <h1 className="m-0 font-serif text-2xl font-medium text-text">Settings</h1>
           <button
             onClick={onClose}
             className="flex cursor-pointer items-center justify-center rounded-md border-0 bg-transparent p-1 text-muted"
@@ -208,7 +208,7 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
               <a
                 href="https://console.anthropic.com/settings/keys"
                 onClick={(e) => { e.preventDefault(); window.open('https://console.anthropic.com/settings/keys', '_blank'); }}
-                className="cursor-pointer text-[11px] font-medium text-[#B86B60] no-underline"
+                className="cursor-pointer text-xs font-medium text-[#B86B60] no-underline"
               >
                 Get a key &rarr;
               </a>
@@ -252,23 +252,23 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
               <span className="flex-1 font-mono text-xs text-text">
                 {settingsState?.maskedKey ?? ''}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#EEF6E3] px-2 py-[3px] font-mono text-[10px] font-medium tracking-[0.3px] text-[#5A7A2F]">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#EEF6E3] px-2 py-1 font-mono text-xs font-medium tracking-wide text-[#5A7A2F]">
                 &#x2713; Connected
               </span>
             </div>
           )}
 
           {isNoKey && (
-            <p className="m-0 text-[11px] leading-[1.5] text-muted">
+            <p className="m-0 text-xs leading-normal text-muted">
               Used to summarize your screen activity. Stored in your Mac&apos;s Keychain &mdash; never sent anywhere else.
             </p>
           )}
         </div>
 
         {isError && errorMessage && (
-          <div className="flex gap-2.5 rounded-[10px] border border-accent bg-[#FBE9E7] px-3.5 py-3">
+          <div className="flex gap-2.5 rounded-xl border border-accent bg-[#FBE9E7] px-3.5 py-3">
             <AlertCircleIcon />
-            <span className="flex-1 text-[11px] leading-[1.5] text-[#7A2E25]">
+            <span className="flex-1 text-xs leading-normal text-[#7A2E25]">
               {errorMessage}
             </span>
           </div>
@@ -319,7 +319,7 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
         )}
 
         {isSaved && !hasKeyChanges && (
-          <p className="m-0 text-center text-[11px] text-subtle">
+          <p className="m-0 text-center text-xs text-subtle">
             Models are fetched live from your Anthropic account.
           </p>
         )}

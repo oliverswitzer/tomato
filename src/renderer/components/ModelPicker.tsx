@@ -26,10 +26,10 @@ function ModelCostLabel({ model }: { model: ModelInfo }) {
   const input = pricing?.inputPer1M ?? model.inputPer1M;
   const output = pricing?.outputPer1M ?? model.outputPer1M;
   if (input == null || output == null) {
-    return <span className="font-mono text-[10px] text-muted">{model.priceTier}</span>;
+    return <span className="font-mono text-xs text-muted">{model.priceTier}</span>;
   }
   return (
-    <span className="font-mono text-[10px] text-muted">
+    <span className="font-mono text-xs text-muted">
       {formatTokenCost({ id: model.id, inputPer1M: input, outputPer1M: output })}
     </span>
   );
@@ -80,7 +80,7 @@ export function ModelPicker({ models, selectedModel, onSelect, open, onToggle, e
             ))
           ) : (
             <div className="px-3 py-2.5 text-center">
-              <span className="font-serif text-[11px] italic text-subtle">
+              <span className="font-serif text-xs italic text-subtle">
                 {error || 'Loading models…'}
               </span>
             </div>

@@ -11,16 +11,16 @@ export function NudgePage() {
   return (
     <div
       id="bubble"
-      className="flex flex-col gap-3.5 rounded-[18px] bg-white p-[18px] shadow-[0_14px_50px_rgba(0,0,0,0.2),0_4px_12px_rgba(0,0,0,0.08)] [-webkit-app-region:drag]"
+      className="flex flex-col gap-3.5 rounded-2xl bg-white p-5 shadow-[0_14px_50px_rgba(0,0,0,0.2),0_4px_12px_rgba(0,0,0,0.08)] [-webkit-app-region:drag]"
     >
-      <div className="font-serif text-[15px] italic leading-[1.45] text-text [&_strong]:font-medium">
+      <div className="font-serif text-base italic leading-normal text-text [&_strong]:font-medium">
         {nudgeText}
       </div>
       <div className="flex gap-2 [-webkit-app-region:no-drag]">
         <Button
           variant="secondary"
           size="sm"
-          className="flex-1 rounded-lg py-[9px] text-xs"
+          className="flex-1 rounded-lg py-2.5 text-xs"
           onClick={() => window.tomato.nudgePause()}
         >
           Pause session
@@ -28,7 +28,7 @@ export function NudgePage() {
         <Button
           variant="primary"
           size="sm"
-          className="flex-1 rounded-lg py-[9px] text-xs shadow-none"
+          className="flex-1 rounded-lg py-2.5 text-xs shadow-none"
           onClick={() => window.tomato.nudgeRefocus()}
         >
           Refocus

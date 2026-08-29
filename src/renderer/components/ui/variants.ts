@@ -81,7 +81,7 @@ const badgeDotClasses: Record<BadgeVariant, string> = {
 
 export function badgeClasses(variant: BadgeVariant = 'neutral', className = ''): string {
   return [
-    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold',
+    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold',
     badgeVariantClasses[variant],
     className,
   ]
@@ -90,7 +90,7 @@ export function badgeClasses(variant: BadgeVariant = 'neutral', className = ''):
 }
 
 export function badgeDotClass(variant: BadgeVariant = 'neutral'): string {
-  return ['w-[5px] h-[5px] rounded-full', badgeDotClasses[variant]].filter(Boolean).join(' ');
+  return ['w-1.5 h-1.5 rounded-full', badgeDotClasses[variant]].filter(Boolean).join(' ');
 }
 
 export function progressTrackClasses(className = ''): string {

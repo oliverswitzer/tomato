@@ -11,19 +11,19 @@ interface PermissionCardProps {
 
 function PermissionCard({ icon, iconGradient, title, description, granted, onOpen }: PermissionCardProps) {
   return (
-    <div className="flex flex-1 basis-0 flex-col gap-3.5 rounded-[18px] border border-border bg-white p-6">
+    <div className="flex flex-1 basis-0 flex-col gap-3.5 rounded-2xl border border-border bg-white p-6">
       <div className="flex items-center gap-3.5">
         <div
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[14px]"
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
           style={{ background: iconGradient }}
         >
           {icon}
         </div>
         <div className="flex flex-col gap-1.5">
-          <span className="font-serif text-[17px] font-medium leading-[1.25] text-text">
+          <span className="font-serif text-lg font-medium leading-tight text-text">
             {title}
           </span>
-          <span className="flex items-center gap-1 text-[11px] text-muted">
+          <span className="flex items-center gap-1 text-xs text-muted">
             <span
               className={`inline-block h-1.5 w-1.5 rounded-full ${granted ? 'bg-[#7CB342]' : 'bg-accent'}`}
             />
@@ -32,12 +32,12 @@ function PermissionCard({ icon, iconGradient, title, description, granted, onOpe
         </div>
       </div>
 
-      <p className="flex-1 text-[13px] leading-[1.5] text-[#5E5A52]">{description}</p>
+      <p className="flex-1 text-sm leading-normal text-[#5E5A52]">{description}</p>
 
-      <div className="flex items-center justify-between rounded-[10px] border border-border bg-cream px-3 py-2.5">
+      <div className="flex items-center justify-between rounded-xl border border-border bg-cream px-3 py-2.5">
         <div className="flex items-center gap-2">
-          <div className="flex h-[22px] w-[22px] items-center justify-center rounded-[5px] bg-accent">
-            <span className="text-[9px] leading-none">🍅</span>
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-accent">
+            <span className="text-xs leading-none">🍅</span>
           </div>
           <span className="text-xs font-semibold text-text">Tomato</span>
         </div>
@@ -48,7 +48,7 @@ function PermissionCard({ icon, iconGradient, title, description, granted, onOpe
         >
           <div
             className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.1)] transition-[left] duration-200 ${
-              granted ? 'left-[18px]' : 'left-0.5'
+              granted ? 'left-5' : 'left-0.5'
             }`}
           />
         </div>
@@ -89,18 +89,18 @@ export function PermissionsPage() {
   }, []);
 
   return (
-    <div className="flex h-screen flex-col items-center overflow-hidden rounded-[28px] bg-cream px-20 pb-10 pt-11 gap-7 [-webkit-app-region:drag]">
+    <div className="flex h-screen flex-col items-center overflow-hidden rounded-3xl bg-cream px-20 pb-10 pt-11 gap-7 [-webkit-app-region:drag]">
       {/* Header */}
       <div className="flex flex-col items-center gap-3.5">
-        <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-[48px] border border-border text-[52px] leading-none shadow-[0_6px_20px_rgba(226,87,76,0.1)]">
+        <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-border text-5xl leading-none shadow-[0_6px_20px_rgba(226,87,76,0.1)]">
           🍅
         </div>
 
-        <h1 className="text-center font-serif text-[36px] font-medium tracking-[-0.4px] text-text">
+        <h1 className="text-center font-serif text-4xl font-medium tracking-tight text-text">
           Two quick permissions
         </h1>
 
-        <p className="max-w-[480px] text-center text-sm leading-[1.45] text-muted">
+        <p className="max-w-lg text-center text-sm leading-normal text-muted">
           Tomato needs to read your screen — on-device only — to gently nudge you when you drift. Grant both to get started.
         </p>
       </div>
@@ -140,7 +140,7 @@ export function PermissionsPage() {
       <div className="flex w-full flex-col items-center gap-3.5">
         <button
           onClick={() => window.tomato.permissionsComplete()}
-          className="text-[13px] font-medium text-muted transition-colors hover:text-[#6B6259] [-webkit-app-region:no-drag]"
+          className="text-sm font-medium text-muted transition-colors hover:text-[#6B6259] [-webkit-app-region:no-drag]"
         >
           Skip for now
         </button>

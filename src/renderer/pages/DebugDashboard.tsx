@@ -12,9 +12,9 @@ function Expandable({ label, children }: { label: React.ReactNode; children: Rea
     <div>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-start gap-1 w-full text-left font-mono text-[11px] bg-transparent border-none p-0 cursor-pointer text-[#6B6259]"
+        className="flex items-start gap-1 w-full text-left font-mono text-xs bg-transparent border-none p-0 cursor-pointer text-[#6B6259]"
       >
-        <span className="text-[9px] shrink-0 mt-0.5 w-2.5">{open ? '▼' : '▶'}</span>
+        <span className="text-xs shrink-0 mt-0.5 w-2.5">{open ? '▼' : '▶'}</span>
         {label}
       </button>
       {open && (
@@ -30,7 +30,7 @@ function Panel({ title, right, children }: { title: string; right?: React.ReactN
   return (
     <div className="rounded-2xl p-4 mb-3 bg-white border border-[#E0D8CC] shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
       <div className="flex items-center justify-between mb-2.5">
-        <h2 className="text-[10px] font-bold uppercase m-0 text-subtle tracking-[1.2px]">
+        <h2 className="text-xs font-bold uppercase m-0 text-subtle tracking-widest">
           {title}
         </h2>
         {right}
@@ -50,22 +50,22 @@ function TimelineEntryRow({ entry }: { entry: TimelineEntryIpc }) {
 
   const label = (
     <span className="flex items-center gap-1.5 min-w-0">
-      <span className="font-mono text-[11px] shrink-0 w-[70px] text-subtle">
+      <span className="font-mono text-xs shrink-0 w-16 text-subtle">
         {formatTime(entry.timestamp)}
       </span>
       <span className="shrink-0 text-xs">{icon}</span>
       <Badge className={isPassive ? 'bg-[#F3E5F5] text-[#9C27B0]' : 'bg-[#F5F0E8] text-muted'}>
         {entry.eventType}
       </Badge>
-      <span className="text-[11px] shrink-0 text-[#6B6259]">{entry.app}</span>
-      <span className="text-[11px] truncate min-w-0 text-muted">{entry.window}</span>
+      <span className="text-xs shrink-0 text-[#6B6259]">{entry.app}</span>
+      <span className="text-xs truncate min-w-0 text-muted">{entry.window}</span>
     </span>
   );
 
   return (
     <div className="py-1 border-b border-[#F5F0E8]">
       <Expandable label={label}>
-        <pre className="font-mono text-[11px] rounded-lg p-2.5 whitespace-pre-wrap break-words max-h-[300px] overflow-y-auto mt-1 text-[#6B6259] bg-cream border border-border">
+        <pre className="font-mono text-xs rounded-lg p-2.5 whitespace-pre-wrap break-words max-h-72 overflow-y-auto mt-1 text-[#6B6259] bg-cream border border-border">
           {JSON.stringify(entry, null, 2)}
         </pre>
       </Expandable>
@@ -78,32 +78,32 @@ function BatchHistoryRow({ entry }: { entry: BatchHistoryEntry }) {
 
   const label = (
     <span className="flex items-center gap-1.5 min-w-0">
-      <span className="font-mono text-[11px] shrink-0 w-[70px] text-subtle">
+      <span className="font-mono text-xs shrink-0 w-16 text-subtle">
         {formatTime(entry.timestamp)}
       </span>
       <Badge className="bg-[#E8EAF6] text-[#5C6BC0]">{entry.level2Classification}</Badge>
       <Badge variant={entry.isDrifting ? 'accent' : 'success'}>
         {entry.isDrifting ? `Drift ${Math.round(entry.confidence * 100)}%` : 'On track'}
       </Badge>
-      <span className="font-mono text-[11px] shrink-0 text-[#D97706]">
+      <span className="font-mono text-xs shrink-0 text-[#D97706]">
         ${entry.costUsd.toFixed(4)}
       </span>
-      <span className="text-[11px] truncate min-w-0 text-[#6B6259]">{entry.summary}</span>
+      <span className="text-xs truncate min-w-0 text-[#6B6259]">{entry.summary}</span>
     </span>
   );
 
   return (
     <div className="py-1.5 border-b border-[#F5F0E8]">
       <Expandable label={label}>
-        <div className="font-mono text-[11px] mb-0.5">
+        <div className="font-mono text-xs mb-0.5">
           <span className="text-subtle">summary: </span>
           <span className="text-text">{entry.summary}</span>
         </div>
-        <div className="font-mono text-[11px] mb-0.5">
+        <div className="font-mono text-xs mb-0.5">
           <span className="text-subtle">drift reason: </span>
           <span className="text-text">{entry.reason}</span>
         </div>
-        <div className="font-mono text-[11px] mb-0.5">
+        <div className="font-mono text-xs mb-0.5">
           <span className="text-subtle">tokens: </span>
           <span className="text-text">{entry.inputTokens} in / {entry.outputTokens} out</span>
           <span className="ml-2 text-[#D97706]">${entry.costUsd.toFixed(4)}</span>
@@ -111,12 +111,12 @@ function BatchHistoryRow({ entry }: { entry: BatchHistoryEntry }) {
         <div className="mt-1.5">
           <button
             onClick={() => setShowPrompt(!showPrompt)}
-            className="bg-transparent border-none p-0 cursor-pointer font-mono text-[11px] font-semibold hover:underline text-accent"
+            className="bg-transparent border-none p-0 cursor-pointer font-mono text-xs font-semibold hover:underline text-accent"
           >
             {showPrompt ? 'Hide' : 'Show'} full prompt
           </button>
           {showPrompt && (
-            <pre className="font-mono text-[11px] rounded-lg p-2.5 whitespace-pre-wrap break-words max-h-[300px] overflow-y-auto mt-1 text-[#6B6259] bg-cream border border-border">
+            <pre className="font-mono text-xs rounded-lg p-2.5 whitespace-pre-wrap break-words max-h-72 overflow-y-auto mt-1 text-[#6B6259] bg-cream border border-border">
               {entry.prompt}
             </pre>
           )}
@@ -158,12 +158,12 @@ export function DebugDashboard() {
           <h1 className="text-xl font-semibold tracking-tight m-0 text-text">
             Debug Dashboard
           </h1>
-          <span className="text-[11px] font-mono text-muted">screenpipe pipeline</span>
+          <span className="text-xs font-mono text-muted">screenpipe pipeline</span>
         </div>
 
         <Panel title={`Live Timeline (${timelineEntries.length} events)`}>
           {timelineEntries.length > 0 ? (
-            <div className="max-h-[400px] overflow-y-auto">
+            <div className="max-h-96 overflow-y-auto">
               {[...timelineEntries].reverse().map((e, i) => (
                 <TimelineEntryRow key={i} entry={e} />
               ))}
@@ -176,7 +176,7 @@ export function DebugDashboard() {
         <Panel
           title={`Batch History (${batchHistory.length} summaries)`}
           right={
-            <span className="text-[11px] font-mono font-semibold text-[#D97706]">
+            <span className="text-xs font-mono font-semibold text-[#D97706]">
               Session: ${sessionCost.toFixed(4)}
             </span>
           }
