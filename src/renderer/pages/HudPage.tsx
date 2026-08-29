@@ -1,16 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { formatTime, formatActivityTime } from '@shared/utils';
 import type { Activity, SessionStateWithActivities } from '@shared/ipc';
-import tomatoOutline from '../../../assets/tomato-outline-white.png';
 import './HudPage.css';
-
-type DriftLevel = 'on-track' | 'drifting' | 'off-track';
-
-function getDriftLevel(driftInfo: { confidence: number } | null): DriftLevel {
-  if (!driftInfo) return 'on-track';
-  if (driftInfo.confidence < 0.6) return 'drifting';
-  return 'off-track';
-}
 
 export function HudPage() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -18,7 +9,7 @@ export function HudPage() {
   const [driftInfo, setDriftInfo] = useState<{ reason: string; confidence: number; level2Classification: string } | null>(null);
   const [apiError, setApiError] = useState<{ type: 'auth' | 'model_deprecated'; message: string } | null>(null);
   const [sessionEnded, setSessionEnded] = useState(false);
-  const [liquidGlass, setLiquidGlass] = useState(false);
+  const [manualOverride, setManualOverride] = useState(false);
   const [state, setState] = useState<SessionStateWithActivities>({
     active: false,
     intention: '',
@@ -33,13 +24,18 @@ export function HudPage() {
       ? activities[activities.length - 1].summary
       : 'First summary in a few minutes...';
 
+  const resize = useCallback((expanded: boolean) => {
+    window.tomato.timerResize(expanded ? 700 : 175);
+  }, []);
+
   const toggleExpand = useCallback(() => {
+    setManualOverride(true);
     setIsExpanded((prev) => {
       const next = !prev;
-      window.tomato.timerResize(next ? 700 : 175);
+      resize(next);
       return next;
     });
-  }, []);
+  }, [resize]);
 
   useEffect(() => {
     const unsubs = [
@@ -69,12 +65,17 @@ export function HudPage() {
 
     window.tomato.timerReady();
 
-    window.tomato.getLiquidGlassSupported().then((supported) => {
-      setLiquidGlass(supported);
-    });
-
     return () => unsubs.forEach((fn) => fn());
   }, []);
+
+  // Auto collapse/expand with drift state, unless the user has manually
+  // toggled the HUD open/closed for this session.
+  useEffect(() => {
+    if (manualOverride) return;
+    const shouldExpand = !!driftInfo;
+    setIsExpanded(shouldExpand);
+    resize(shouldExpand);
+  }, [driftInfo, manualOverride, resize]);
 
   const timeStr = sessionEnded ? '00:00' : formatTime(state.remainingSec);
   const displaySummary = sessionEnded ? 'Session complete!' : latestSummary;
@@ -84,19 +85,12 @@ export function HudPage() {
 
   const recentTimeline = activities.slice(-6).reverse();
 
-  const driftLevel = getDriftLevel(driftInfo);
-
-  let containerClass = '';
-  if (liquidGlass) {
-    containerClass = `lg-${driftLevel}`;
-  } else if (driftInfo) {
-    containerClass = 'glow-drift';
-  }
+  const containerClass = driftInfo ? 'glow-drift' : undefined;
 
   return (
     <div
       id="session-timer"
-      className={containerClass || undefined}
+      className={containerClass}
     >
       {/* Status badge + expand toggle */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
@@ -121,9 +115,7 @@ export function HudPage() {
       {/* Timer row */}
       <div className="top-row">
         <div className="tomato-avatar">
-          {liquidGlass && driftLevel === 'on-track'
-            ? <img src={tomatoOutline} alt="" style={{ width: 44, height: 44 }} />
-            : '🍅'}
+          🍅
         </div>
         <div className="text-col">
           <div className="timer-row">
@@ -189,8 +181,8 @@ export function HudPage() {
             </div>
 
             {driftInfo && (
-              <div className="activity-section" style={{ background: driftLevel === 'off-track' ? '#FCE5E2' : '#FBE6B6', borderRadius: 12, padding: '10px 14px' }}>
-                <span className="activity-label" style={{ color: driftLevel === 'off-track' ? '#B42318' : '#8A6420' }}>OFF TRACK</span>
+              <div className="activity-section" style={{ background: '#FCE5E2', borderRadius: 12, padding: '10px 14px' }}>
+                <span className="activity-label" style={{ color: '#B42318' }}>OFF TRACK</span>
                 <div
                   title={driftInfo.reason}
                   style={{

@@ -10,12 +10,6 @@ import {
   desktopCapturer,
   systemPreferences,
 } from 'electron';
-let liquidGlass: { addView: (handle: Buffer, options?: { cornerRadius?: number; tintColor?: string; opaque?: boolean }) => number } | null = null;
-try {
-  liquidGlass = require('electron-liquid-glass');
-} catch {
-  // Not available on non-macOS (optional dependency)
-}
 import { spawn, execFileSync, ChildProcess } from 'child_process';
 import path from 'path';
 import os from 'os';
@@ -34,13 +28,6 @@ import type { SessionState } from '../shared/ipc';
 
 const APP_ROOT = path.join(__dirname, '..', '..');
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
-
-function isMacOS26OrNewer(): boolean {
-  if (process.platform !== 'darwin') return false;
-  const ver = process.getSystemVersion?.() ?? '';
-  const major = parseInt(ver.split('.')[0], 10);
-  return major >= 26;
-}
 
 function getLogPath(): string {
   try {
@@ -370,8 +357,6 @@ function showTimerWindow(): void {
 
   const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
 
-  const supportsLiquidGlass = isMacOS26OrNewer();
-
   timerWin = new BrowserWindow({
     width: 360,
     height: 175,
@@ -382,27 +367,13 @@ function showTimerWindow(): void {
     alwaysOnTop: true,
     resizable: false,
     skipTaskbar: true,
-    hasShadow: !supportsLiquidGlass,
+    hasShadow: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: getPreloadPath(),
     },
   });
-
-  if (supportsLiquidGlass && liquidGlass) {
-    timerWin.webContents.once('did-finish-load', () => {
-      if (!timerWin || !liquidGlass) return;
-      try {
-        liquidGlass.addView(timerWin.getNativeWindowHandle(), {
-          cornerRadius: 22,
-        });
-        log('Liquid Glass applied to timer window');
-      } catch (err) {
-        log(`Liquid Glass failed: ${(err as Error).message}`);
-      }
-    });
-  }
 
   loadRendererPage(timerWin, '/hud');
   timerWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
@@ -808,8 +779,6 @@ ipcMain.on('close-settings', () => {
     startWin.webContents.send('hide-settings');
   }
 });
-
-ipcMain.handle('get-liquid-glass-supported', () => isMacOS26OrNewer());
 
 ipcMain.handle('get-debug-pipeline-state', () => {
   return focusTracker?.getDebugState() ?? null;

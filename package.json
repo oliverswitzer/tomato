@@ -25,9 +25,6 @@
     "react-dom": "^19.1.0",
     "screenpipe": "^0.3.289"
   },
-  "optionalDependencies": {
-    "electron-liquid-glass": "^1.1.1"
-  },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.0",
     "@types/node": "^22.0.0",
