@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+@theme {
+  --color-text: #2A2A2A;
+  --color-muted: #8B8477;
+  --color-subtle: #BAA898;
+  --color-border: #EFE8DD;
+  --color-cream: #FBF7F1;
+  --color-accent: #E2574C;
+  --color-accent-dark: #D04A3F;
+
+  --font-serif: 'Newsreader', Georgia, serif;
+  --font-mono: 'Geist Mono', monospace;
+}
+
 @layer base {
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
