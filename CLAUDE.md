@@ -125,6 +125,12 @@ Key modules:
   `@theme` tokens in `index.css` (`--color-text/muted/subtle/border/cream/
   accent/accent-dark`, `--font-serif/--font-mono`) rather than hardcoded hex
   values in components.
+- **Tailwind scale conventions**: Use Tailwind's standard spacing scale
+  (`p-4`, `gap-3`, etc.) and standard font-size utilities (`text-sm`,
+  `text-base`, `text-lg`, etc.) instead of arbitrary bracket values (e.g.
+  avoid `text-[13px]`, `p-[18px]`) for consistency. Bracket syntax is
+  reserved for values with no reasonable standard equivalent (custom
+  shadows, colors, CSS properties).
 - **Shared UI components**: `src/renderer/components/ui/` (`Button`, `Card`,
   `Badge`, `ProgressBar`, `IconButton`) — small typed components with
   variant/size props, backed by plain-function class assembly in
