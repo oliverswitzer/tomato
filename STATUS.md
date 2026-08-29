@@ -73,7 +73,22 @@ the prior look. Never mark a unit done aspirationally.
   text, monospace timer, no regressions. Mock and its main.tsx changes
   were reverted before commit (not part of the shipped diff). 176/176
   tests green, typecheck green.
-- ⬜ U05 migrate StartPage to tailwind
+- ✅ U05 migrate StartPage to tailwind — rewrote `StartPage.tsx` to Tailwind
+  utility classes on JSX (drag handle, close button, headline, intention
+  textarea + char counter, recent/suggested chips, timer-length picker,
+  screen-permission warning, start button, recent-sessions list), using the
+  U03 `Button` (primary variant, custom shadow classes preserved) and `Card`
+  (recent-session cards) components; deleted `StartPage.css` entirely (no
+  remaining imports). Kept per-chip/dot inline `style` for dynamic hex
+  colors (same pattern as HudPage/U04) since Tailwind can't express
+  runtime-computed colors without arbitrary-value class strings per color.
+  Verified visually via a temporary (not committed) dev-mode `window.tomato`
+  mock in `main.tsx` + `npm run dev` + browser screenshot: headline/input/
+  chips/timer-options/start-button and the scrolled recent-sessions section
+  both render correctly — cream/red editorial palette, serif headline/body,
+  correct chip dots, selected-timer highlight, no regressions. Mock was
+  reverted before commit (not part of the shipped diff). 176/176 tests
+  green, typecheck green.
 - ⬜ U06 migrate NudgePage to tailwind
 - ⬜ U07 migrate SettingsPage to tailwind
 - ⬜ U08 migrate ApiKeyPage + PermissionsPage to tailwind
