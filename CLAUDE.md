@@ -109,6 +109,28 @@ Key modules:
 - `llm-summarizer.ts` — batch summarization + session summary with focus score
 - `focus-tracker.ts` — orchestrator with two timers
 
+## Renderer state & styling
+
+- **State**: `zustand` store at `src/renderer/store/sessionStore.ts` is the
+  single source of truth for session/activity/drift/apiError state pushed
+  from the main process over IPC. It's initialized once (`initSessionStore()`
+  called from `App.tsx`) and pages read it via selectors
+  (`useSessionStore((s) => ...)`) instead of each page subscribing to
+  `window.tomato.on*` listeners directly. Purely local/page-specific UI state
+  (form inputs, `isExpanded` toggles) stays as component `useState`.
+- **Styling**: Tailwind v4, wired via `@tailwindcss/vite` in `vite.config.ts`
+  and `@import "tailwindcss";` in `src/renderer/index.css`. All pages use
+  Tailwind utility classes on JSX — there are no per-page `.css` files
+  anymore. The cream/red editorial palette and serif/mono fonts are Tailwind
+  `@theme` tokens in `index.css` (`--color-text/muted/subtle/border/cream/
+  accent/accent-dark`, `--font-serif/--font-mono`) rather than hardcoded hex
+  values in components.
+- **Shared UI components**: `src/renderer/components/ui/` (`Button`, `Card`,
+  `Badge`, `ProgressBar`, `IconButton`) — small typed components with
+  variant/size props, backed by plain-function class assembly in
+  `variants.ts`. Reach for one of these before writing new utility-class
+  markup for a pattern that already exists.
+
 ## Splash page (Vercel)
 
 The `splash/` directory is deployed to Vercel as a static site. Vercel auto-deploys on push to main and creates preview URLs on PRs.

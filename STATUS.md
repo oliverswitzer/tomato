@@ -189,4 +189,19 @@ the prior look. Never mark a unit done aspirationally.
   already having migrated every page to Tailwind). No logic changes.
   `npm run verify` (typecheck + tests): 176/176 tests green, typecheck
   clean, no unused-import/unused-local warnings.
-- ⬜ U11 docs + final verify
+- ✅ U11 docs + final verify — added a "Renderer state & styling" section to
+  `CLAUDE.md` documenting the Zustand `sessionStore` (single source of truth
+  for IPC-pushed state, initialized once from `App.tsx`), Tailwind v4 as the
+  styling approach (no per-page CSS, `@theme` palette tokens), and where the
+  `ui/` component library lives. Did a full click-through visual pass of
+  every page via a temporary (not committed) dev-mode `window.tomato` mock
+  behind `?mock=1` query params in `main.tsx` + local `vite --port 5183` +
+  browser screenshots/vision_analyze: StartPage, HUD on-track, HUD
+  drift/expanded, NudgePage, ApiKeyPage, PermissionsPage, DebugDashboard
+  (Live Timeline expanded row + Batch History + LLM State), and the Settings
+  modal overlay — all render correctly with the cream/red editorial palette,
+  serif/mono fonts, no regressions found. Mock and its main.tsx changes were
+  reverted before commit (not part of the shipped diff — verified via `git
+  diff --stat` showing no changes to main.tsx). `npm run verify`
+  (typecheck + tests): 176/176 tests green, typecheck clean. This is the
+  last unit — all units U01-U11 are now ✅.
