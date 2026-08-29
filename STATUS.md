@@ -54,7 +54,25 @@ the prior look. Never mark a unit done aspirationally.
   correct serif/mono fonts, and no visual breakage, then both the smoke
   page and the index.html mock were removed before commit. 176/176 tests
   green, typecheck green.
-- ⬜ U04 migrate HudPage to tailwind
+- ✅ U04 migrate HudPage to tailwind — rewrote `HudPage.tsx` to Tailwind
+  utility classes on JSX, using the U03 `Badge` (status pill), `ProgressBar`,
+  and `IconButton` (expand toggle) components; deleted `HudPage.css`
+  entirely (no remaining imports). The `glow-drift` red pulse animation is
+  now a Tailwind v4 `@theme` `--animate-drift-pulse` token backed by a
+  `drift-pulse` `@keyframes` in `index.css` (kept the keyframe itself in
+  plain CSS since Tailwind v4 doesn't have a JS keyframe API, but it's
+  registered as a first-class `animate-*` utility per the plan). Kept
+  `apiError` banner and drift/timeline sections as utility-class markup
+  (no existing `ui/` primitive fit those without over-abstracting for a
+  single call site). Verified visually via a temporary (not committed)
+  dev-mode `window.tomato` mock in `main.tsx` (toggled by a `?drift=1`
+  query param) + `npm run dev` + browser screenshot: on-track collapsed
+  state and drift/expanded state (red pulsing border, off-track box,
+  timeline entries, pause/end-session buttons) both render correctly,
+  matching the prior look — cream/red palette, serif body/italic activity
+  text, monospace timer, no regressions. Mock and its main.tsx changes
+  were reverted before commit (not part of the shipped diff). 176/176
+  tests green, typecheck green.
 - ⬜ U05 migrate StartPage to tailwind
 - ⬜ U06 migrate NudgePage to tailwind
 - ⬜ U07 migrate SettingsPage to tailwind

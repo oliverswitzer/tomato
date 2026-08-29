@@ -11,6 +11,23 @@
 
   --font-serif: 'Newsreader', Georgia, serif;
   --font-mono: 'Geist Mono', monospace;
+
+  --animate-drift-pulse: drift-pulse 2s ease-in-out infinite;
+}
+
+@keyframes drift-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 12px 3px rgba(226, 87, 76, 0.5),
+      0 0 24px 6px rgba(226, 87, 76, 0.25),
+      0 20px 44px rgba(0, 0, 0, 0.12);
+  }
+  50% {
+    box-shadow:
+      0 0 20px 6px rgba(226, 87, 76, 0.7),
+      0 0 40px 12px rgba(226, 87, 76, 0.35),
+      0 20px 44px rgba(0, 0, 0, 0.12);
+  }
 }
 
 @layer base {
