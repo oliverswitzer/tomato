@@ -89,7 +89,19 @@ the prior look. Never mark a unit done aspirationally.
   correct chip dots, selected-timer highlight, no regressions. Mock was
   reverted before commit (not part of the shipped diff). 176/176 tests
   green, typecheck green.
-- ⬜ U06 migrate NudgePage to tailwind
+- ✅ U06 migrate NudgePage to tailwind — rewrote `NudgePage.tsx` to Tailwind
+  utility classes on JSX (bubble container, nudge text, button row), using
+  the U03 `Button` component (secondary/primary variants, sm size) for
+  "Pause session"/"Refocus"; deleted `NudgePage.css` entirely (no remaining
+  imports). Kept `[-webkit-app-region:drag]`/`no-drag` as Tailwind arbitrary
+  properties since there's no utility equivalent. Verified visually by
+  hitting the Vite dev server directly at `http://localhost:5173/?mock=1#/nudge`
+  with a temporary (not committed) `window.tomato` mock + hash-route branch
+  in `main.tsx` (simpler than the Electron-window screenshot path used in
+  prior units, same end result) + browser screenshot: white rounded bubble,
+  serif italic nudge text, cream secondary / red primary buttons, matching
+  the prior look, no regressions. Mock was reverted before commit (not part
+  of the shipped diff). 176/176 tests green, typecheck green.
 - ⬜ U07 migrate SettingsPage to tailwind
 - ⬜ U08 migrate ApiKeyPage + PermissionsPage to tailwind
 - ⬜ U09 migrate DebugDashboard to tailwind

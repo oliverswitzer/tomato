@@ -1,5 +1,5 @@
-import './NudgePage.css';
 import { useSessionStore } from '../store/sessionStore';
+import { Button } from '../components/ui/Button';
 
 export function NudgePage() {
   const intention = useSessionStore((s) => s.state.intention);
@@ -9,21 +9,30 @@ export function NudgePage() {
     : "I noticed you don't seem to be working on your focus task right now.";
 
   return (
-    <div id="bubble">
-      <div className="bubble-text">{nudgeText}</div>
-      <div className="bubble-buttons">
-        <button
-          className="bubble-btn secondary"
+    <div
+      id="bubble"
+      className="flex flex-col gap-3.5 rounded-[18px] bg-white p-[18px] shadow-[0_14px_50px_rgba(0,0,0,0.2),0_4px_12px_rgba(0,0,0,0.08)] [-webkit-app-region:drag]"
+    >
+      <div className="font-serif text-[15px] italic leading-[1.45] text-text [&_strong]:font-medium">
+        {nudgeText}
+      </div>
+      <div className="flex gap-2 [-webkit-app-region:no-drag]">
+        <Button
+          variant="secondary"
+          size="sm"
+          className="flex-1 rounded-lg py-[9px] text-xs"
           onClick={() => window.tomato.nudgePause()}
         >
           Pause session
-        </button>
-        <button
-          className="bubble-btn primary"
+        </Button>
+        <Button
+          variant="primary"
+          size="sm"
+          className="flex-1 rounded-lg py-[9px] text-xs shadow-none"
           onClick={() => window.tomato.nudgeRefocus()}
         >
           Refocus
-        </button>
+        </Button>
       </div>
     </div>
   );
