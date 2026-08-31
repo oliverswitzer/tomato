@@ -1,17 +1,17 @@
 import { cheapestHaikuFromList, DEFAULT_MODEL } from '../config/model-pricing';
 
-export const API_KEY_REGEX = /^sk-ant-[a-zA-Z0-9_-]{20,}$/;
+const API_KEY_REGEX = /^sk-ant-[a-zA-Z0-9_-]{20,}$/;
 
 export function isValidKeyFormat(key: string): boolean {
   return API_KEY_REGEX.test(key);
 }
 
-export interface ValidationSuccess {
+interface ValidationSuccess {
   valid: true;
   selectedModel: string;
 }
 
-export interface ValidationError {
+interface ValidationError {
   valid: false;
   error: string;
   retryable: boolean;

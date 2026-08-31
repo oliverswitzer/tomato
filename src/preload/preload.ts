@@ -70,7 +70,6 @@ const api: TomatoApi = {
     ipcRenderer.on('timeline-update', handler);
     return () => { ipcRenderer.removeListener('timeline-update', handler); };
   },
-  getLiquidGlassSupported: () => ipcRenderer.invoke('get-liquid-glass-supported'),
 };
 
 contextBridge.exposeInMainWorld('tomato', api);

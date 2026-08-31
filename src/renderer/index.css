@@ -1,5 +1,35 @@
 @import "tailwindcss";
 
+@theme {
+  --color-text: #2A2A2A;
+  --color-muted: #8B8477;
+  --color-subtle: #BAA898;
+  --color-border: #EFE8DD;
+  --color-cream: #FBF7F1;
+  --color-accent: #E2574C;
+  --color-accent-dark: #D04A3F;
+
+  --font-serif: 'Newsreader', Georgia, serif;
+  --font-mono: 'Geist Mono', monospace;
+
+  --animate-drift-pulse: drift-pulse 2s ease-in-out infinite;
+}
+
+@keyframes drift-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 12px 3px rgba(226, 87, 76, 0.5),
+      0 0 24px 6px rgba(226, 87, 76, 0.25),
+      0 20px 44px rgba(0, 0, 0, 0.12);
+  }
+  50% {
+    box-shadow:
+      0 0 20px 6px rgba(226, 87, 76, 0.7),
+      0 0 40px 12px rgba(226, 87, 76, 0.35),
+      0 20px 44px rgba(0, 0, 0, 0.12);
+  }
+}
+
 @layer base {
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;

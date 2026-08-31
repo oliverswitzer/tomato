@@ -1,6 +1,6 @@
 import type { ScreenpipeDb, PassiveFrameRow, ClickEventRow } from './screenpipe-db';
 
-export interface PassiveContext {
+interface PassiveContext {
   urls: string[];
   screenText: string | null;
   clickTargets: string[];

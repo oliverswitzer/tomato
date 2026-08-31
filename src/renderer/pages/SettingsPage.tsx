@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ModelInfo, SettingsState } from '@shared/ipc';
 import { ModelPicker, formatModelName } from '../components/ModelPicker';
-
-const noDrag = { WebkitAppRegion: 'no-drag' } as React.CSSProperties;
+import { Button } from '../components/ui/Button';
 
 type PageMode = 'loading' | 'no-key' | 'saved' | 'editing' | 'error';
 
@@ -49,27 +48,8 @@ function Toast({ message, onDone }: { message: string; onDone: () => void }) {
   }, [onDone]);
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: 20,
-        right: 20,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        background: '#2A2A2A',
-        color: '#FFFFFF',
-        borderRadius: 10,
-        padding: '10px 16px',
-        fontFamily: 'Inter, sans-serif',
-        fontSize: 12,
-        fontWeight: 500,
-        boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-        zIndex: 1000,
-        animation: 'toast-in 0.2s ease-out',
-      }}
-    >
-      <span style={{ color: '#7CB342' }}><CheckIcon /></span>
+    <div className="fixed bottom-5 right-5 flex items-center gap-2 rounded-xl bg-text px-4 py-2.5 text-xs font-medium text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)] z-[1000] [animation:toast-in_0.2s_ease-out]">
+      <span className="text-[#7CB342]"><CheckIcon /></span>
       {message}
     </div>
   );
@@ -203,72 +183,32 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 100,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'rgba(0, 0, 0, 0.3)',
-        backdropFilter: 'blur(2px)',
-      }}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-[2px]"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="flex flex-col"
-        style={{
-          width: 400,
-          background: '#FFFFFF',
-          borderRadius: 16,
-          border: '1px solid #E8E1D7',
-          boxShadow: '0 12px 28px rgba(0,0,0,0.1)',
-          padding: '20px 22px',
-          gap: isSaved ? 16 : 18,
-          ...noDrag,
-          position: 'relative',
-        }}
+        className={`[-webkit-app-region:no-drag] relative flex w-96 flex-col rounded-2xl border border-[#E8E1D7] bg-white px-6 py-5 shadow-[0_12px_28px_rgba(0,0,0,0.1)] ${
+          isSaved ? 'gap-4' : 'gap-5'
+        }`}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1
-            style={{
-              fontFamily: "'Newsreader', Georgia, serif",
-              fontSize: 22,
-              fontWeight: 500,
-              color: '#2A2A2A',
-              margin: 0,
-            }}
-          >
-            Settings
-          </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="m-0 font-serif text-2xl font-medium text-text">Settings</h1>
           <button
             onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#8B8477',
-              padding: 4,
-              borderRadius: 6,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            className="flex cursor-pointer items-center justify-center rounded-md border-0 bg-transparent p-1 text-muted"
           >
             <CloseIcon />
           </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, color: '#2A2A2A' }}>
-              Anthropic API key
-            </span>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text">Anthropic API key</span>
             {isNoKey && (
               <a
                 href="https://console.anthropic.com/settings/keys"
                 onClick={(e) => { e.preventDefault(); window.open('https://console.anthropic.com/settings/keys', '_blank'); }}
-                style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: '#B86B60', cursor: 'pointer', textDecoration: 'none' }}
+                className="cursor-pointer text-xs font-medium text-[#B86B60] no-underline"
               >
                 Get a key &rarr;
               </a>
@@ -277,28 +217,15 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
 
           {(isNoKey || isEditing || isError) ? (
             <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: '#FBF7F1',
-                borderRadius: 8,
-                border: `1px solid ${isError ? '#E2574C' : '#E8E1D7'}`,
-                padding: '10px 12px',
-              }}
+              className={`flex items-center rounded-lg border bg-cream px-3 py-2.5 ${
+                isError ? 'border-accent' : 'border-[#E8E1D7]'
+              }`}
             >
               <input
                 ref={inputRef}
                 type="text"
-                style={{
-                  flex: 1,
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  fontFamily: "'Geist Mono', monospace",
-                  fontSize: 12,
-                  color: '#2A2A2A',
-                }}
-                placeholder="sk-ant-api03-…"
+                className="flex-1 border-0 bg-transparent font-mono text-xs text-text outline-none"
+                placeholder="«redacted:sk-…»…"
                 value={maskedInput}
                 onChange={(e) => {
                   const v = e.target.value;
@@ -319,68 +246,29 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
             </div>
           ) : (
             <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: '#FBF7F1',
-                borderRadius: 8,
-                border: '1px solid #E8E1D7',
-                padding: '10px 12px',
-                gap: 8,
-                cursor: 'pointer',
-              }}
+              className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#E8E1D7] bg-cream px-3 py-2.5"
               onClick={() => setMode('editing')}
             >
-              <span
-                style={{
-                  flex: 1,
-                  fontFamily: "'Geist Mono', monospace",
-                  fontSize: 12,
-                  color: '#2A2A2A',
-                }}
-              >
+              <span className="flex-1 font-mono text-xs text-text">
                 {settingsState?.maskedKey ?? ''}
               </span>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  background: '#EEF6E3',
-                  borderRadius: 999,
-                  padding: '3px 8px',
-                  fontFamily: "'Geist Mono', monospace",
-                  fontSize: 10,
-                  fontWeight: 500,
-                  color: '#5A7A2F',
-                  letterSpacing: 0.3,
-                }}
-              >
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#EEF6E3] px-2 py-1 font-mono text-xs font-medium tracking-wide text-[#5A7A2F]">
                 &#x2713; Connected
               </span>
             </div>
           )}
 
           {isNoKey && (
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#8B8477', lineHeight: 1.5, margin: 0 }}>
+            <p className="m-0 text-xs leading-normal text-muted">
               Used to summarize your screen activity. Stored in your Mac&apos;s Keychain &mdash; never sent anywhere else.
             </p>
           )}
         </div>
 
         {isError && errorMessage && (
-          <div
-            style={{
-              display: 'flex',
-              gap: 10,
-              background: '#FBE9E7',
-              borderRadius: 10,
-              border: '1px solid #E2574C',
-              padding: '12px 14px',
-            }}
-          >
+          <div className="flex gap-2.5 rounded-xl border border-accent bg-[#FBE9E7] px-3.5 py-3">
             <AlertCircleIcon />
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#7A2E25', lineHeight: 1.5, flex: 1 }}>
+            <span className="flex-1 text-xs leading-normal text-[#7A2E25]">
               {errorMessage}
             </span>
           </div>
@@ -389,32 +277,14 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
         {isError && (
           <button
             onClick={() => { setMode('editing'); setErrorMessage(''); inputRef.current?.focus(); }}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 12,
-              fontWeight: 500,
-              color: '#B86B60',
-              cursor: 'pointer',
-              textAlign: 'center',
-              padding: 0,
-            }}
+            className="cursor-pointer border-0 bg-transparent p-0 text-center text-xs font-medium text-[#B86B60]"
           >
             Edit key &rarr;
           </button>
         )}
 
         {isNoKey && (
-          <p
-            style={{
-              fontFamily: "'Newsreader', Georgia, serif",
-              fontSize: 12,
-              fontStyle: 'italic',
-              color: '#A89F94',
-              margin: 0,
-            }}
-          >
+          <p className="m-0 font-serif text-xs italic text-subtle">
             Model selector appears here once a key is saved.
           </p>
         )}
@@ -431,27 +301,11 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
         )}
 
         {!isError && hasKeyChanges && (
-          <button
+          <Button
+            variant="primary"
             onClick={handleSave}
             disabled={isValidating}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              background: '#E2574C',
-              color: 'white',
-              border: 'none',
-              borderRadius: 8,
-              padding: '10px 16px',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: isValidating ? 'not-allowed' : 'pointer',
-              opacity: isValidating ? 0.4 : 1,
-              transition: 'opacity 0.15s',
-            }}
+            className="w-full"
           >
             {isValidating ? (
               <>
@@ -461,11 +315,11 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
             ) : (
               'Save'
             )}
-          </button>
+          </Button>
         )}
 
         {isSaved && !hasKeyChanges && (
-          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#A89F94', textAlign: 'center', margin: 0 }}>
+          <p className="m-0 text-center text-xs text-subtle">
             Models are fetched live from your Anthropic account.
           </p>
         )}
