@@ -65,7 +65,7 @@ export function HudPage() {
       {/* Status badge + expand toggle */}
       <div className="flex items-center justify-between gap-2.5">
         <Badge
-          variant="accent"
+          variant={driftInfo ? 'accent' : 'success'}
           dot
           className={`uppercase tracking-widest whitespace-nowrap${driftInfo ? ' animate-pulse' : ''}`}
         >
@@ -107,7 +107,7 @@ export function HudPage() {
       </div>
 
       {/* Progress bar */}
-      <ProgressBar value={progress} />
+      <ProgressBar value={progress} variant={driftInfo ? 'accent' : 'success'} />
 
       {apiError && (
         <div

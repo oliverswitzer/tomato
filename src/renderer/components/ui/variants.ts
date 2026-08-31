@@ -99,7 +99,21 @@ export function progressTrackClasses(className = ''): string {
     .join(' ');
 }
 
-export const progressFillClasses = 'h-full bg-accent rounded-full transition-[width] duration-1000 ease-linear';
+export type ProgressVariant = 'success' | 'accent';
+
+const progressFillVariantClasses: Record<ProgressVariant, string> = {
+  success: 'bg-[#2E7D32]',
+  accent: 'bg-accent',
+};
+
+export function progressFillClasses(variant: ProgressVariant = 'success'): string {
+  return [
+    'h-full rounded-full transition-[width,background-color] duration-1000 ease-linear',
+    progressFillVariantClasses[variant],
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
 
 export function clampPercent(value: number): number {
   if (Number.isNaN(value)) return 0;
