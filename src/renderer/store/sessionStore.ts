@@ -103,13 +103,28 @@ export function initSessionStore(): () => void {
     return () => existing.forEach((fn) => fn());
   }
 
-  const { setSessionState, addActivity, setDriftInfo, setSessionEnded, setApiError } =
+  const { setSessionState, addActivity, setDriftInfo, setLastPreDriftActivity, setSessionEnded, setApiError } =
     useSessionStore.getState();
 
   unsubscribeFns = [
     window.tomato.onSessionState(setSessionState),
     window.tomato.onActivityUpdate(addActivity),
-    window.tomato.onDriftDetected(setDriftInfo),
+    window.tomato.onDriftDetected((data) => {
+      setDriftInfo({
+        reason: data.reason,
+        confidence: data.confidence,
+        level2Classification: data.level2Classification,
+      });
+      setLastPreDriftActivity(
+        data.lastActivity
+          ? {
+              app: data.lastActivity.app,
+              window: data.lastActivity.window,
+              intention: useSessionStore.getState().state.intention,
+            }
+          : null,
+      );
+    }),
     window.tomato.onSessionEnded(() => setSessionEnded(true)),
     window.tomato.onApiError(setApiError),
   ];
