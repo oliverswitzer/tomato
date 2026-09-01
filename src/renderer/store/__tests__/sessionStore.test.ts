@@ -111,6 +111,8 @@ describe('sessionStore', () => {
     useSessionStore.getState().setDriftInfo({ reason: 'x', confidence: 0.5, level2Classification: 'y' });
     useSessionStore.getState().setApiError({ type: 'auth', message: 'bad' });
     useSessionStore.getState().setSessionEnded(true);
+    useSessionStore.getState().incrementResume();
+    useSessionStore.getState().setLastPreDriftActivity({ app: 'Chrome', window: 'Twitter', intention: 'write code' });
 
     useSessionStore.getState().reset();
 
@@ -119,5 +121,40 @@ describe('sessionStore', () => {
     expect(s.driftInfo).toBeNull();
     expect(s.apiError).toBeNull();
     expect(s.sessionEnded).toBe(false);
+    expect(s.resumeCount).toBe(0);
+    expect(s.lastPreDriftActivity).toBeNull();
+  });
+
+  it('has resumeCount 0 and no lastPreDriftActivity initially', () => {
+    const s = useSessionStore.getState();
+    expect(s.resumeCount).toBe(0);
+    expect(s.lastPreDriftActivity).toBeNull();
+  });
+
+  it('incrementResume bumps the counter by one each call', () => {
+    useSessionStore.getState().incrementResume();
+    expect(useSessionStore.getState().resumeCount).toBe(1);
+
+    useSessionStore.getState().incrementResume();
+    useSessionStore.getState().incrementResume();
+    expect(useSessionStore.getState().resumeCount).toBe(3);
+  });
+
+  it('setLastPreDriftActivity sets and clears the pre-drift snapshot', () => {
+    useSessionStore.getState().setLastPreDriftActivity({
+      app: 'VS Code',
+      window: 'onboarding.md',
+      intention: 'write onboarding docs',
+    });
+
+    const s = useSessionStore.getState();
+    expect(s.lastPreDriftActivity).toEqual({
+      app: 'VS Code',
+      window: 'onboarding.md',
+      intention: 'write onboarding docs',
+    });
+
+    useSessionStore.getState().setLastPreDriftActivity(null);
+    expect(useSessionStore.getState().lastPreDriftActivity).toBeNull();
   });
 });

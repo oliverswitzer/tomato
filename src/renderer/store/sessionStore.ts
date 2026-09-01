@@ -5,18 +5,31 @@ const ACTIVITY_CAP = 100;
 
 export type DriftInfo = { reason: string; confidence: number; level2Classification: string } | null;
 
+/**
+ * Snapshot of what the user was doing right before drift was detected: the
+ * app/window Tomato last saw in focus, plus the intention text at that
+ * moment. Used by the resume-from-drift nudge to let the user jump back
+ * instantly instead of re-orienting from scratch. Reuses focus-tracker's
+ * existing app/window capture — no new tracking here.
+ */
+export type PreDriftActivity = { app: string; window: string; intention: string } | null;
+
 export interface SessionStoreState {
   state: SessionStateWithActivities;
   activities: Activity[];
   driftInfo: DriftInfo;
   apiError: ApiErrorEvent | null;
   sessionEnded: boolean;
+  resumeCount: number;
+  lastPreDriftActivity: PreDriftActivity;
 
   setSessionState: (s: SessionStateWithActivities) => void;
   addActivity: (activity: Activity) => void;
   setDriftInfo: (data: DriftInfo) => void;
   setSessionEnded: (ended: boolean) => void;
   setApiError: (data: ApiErrorEvent | null) => void;
+  incrementResume: () => void;
+  setLastPreDriftActivity: (data: PreDriftActivity) => void;
   reset: () => void;
 }
 
@@ -35,6 +48,8 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   driftInfo: null,
   apiError: null,
   sessionEnded: false,
+  resumeCount: 0,
+  lastPreDriftActivity: null,
 
   setSessionState: (s) =>
     set((prev) => ({
@@ -57,6 +72,10 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
 
   setApiError: (data) => set({ apiError: data }),
 
+  incrementResume: () => set((prev) => ({ resumeCount: prev.resumeCount + 1 })),
+
+  setLastPreDriftActivity: (data) => set({ lastPreDriftActivity: data }),
+
   reset: () =>
     set({
       state: initialState,
@@ -64,6 +83,8 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
       driftInfo: null,
       apiError: null,
       sessionEnded: false,
+      resumeCount: 0,
+      lastPreDriftActivity: null,
     }),
 }));
 
