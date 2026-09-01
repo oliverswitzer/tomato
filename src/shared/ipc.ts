@@ -138,6 +138,7 @@ export interface TomatoApi {
   closeStart(): void;
   nudgeRefocus(): void;
   nudgePause(): void;
+  takeMeBack(app: string): Promise<{ success: boolean; error?: string }>;
 
   getSessionState(): Promise<SessionStateWithActivities>;
   getRecentSessions(): Promise<SavedSession[]>;

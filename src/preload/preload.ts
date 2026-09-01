@@ -11,6 +11,7 @@ const api: TomatoApi = {
   closeStart: () => ipcRenderer.send('close-start'),
   nudgeRefocus: () => ipcRenderer.send('nudge-refocus'),
   nudgePause: () => ipcRenderer.send('nudge-pause'),
+  takeMeBack: (app: string) => ipcRenderer.invoke('take-me-back', app),
 
   getSessionState: () => ipcRenderer.invoke('get-session-state'),
   getRecentSessions: () => ipcRenderer.invoke('get-recent-sessions'),
