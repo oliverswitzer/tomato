@@ -13,6 +13,7 @@ export function HudPage() {
   const driftInfo = useSessionStore((s) => s.driftInfo);
   const apiError = useSessionStore((s) => s.apiError);
   const sessionEnded = useSessionStore((s) => s.sessionEnded);
+  const resumeCount = useSessionStore((s) => s.resumeCount);
 
   const latestSummary =
     activities.length > 0
@@ -165,6 +166,12 @@ export function HudPage() {
                   {activities.length} ACTIVIT{activities.length === 1 ? 'Y' : 'IES'}
                 </span>
               </div>
+
+              {resumeCount > 0 && (
+                <Badge variant="success" className="self-start whitespace-nowrap">
+                  {resumeCount} resume{resumeCount === 1 ? '' : 's'} this session
+                </Badge>
+              )}
               <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-subtle/30 [&::-webkit-scrollbar-thumb]:rounded-full">
                 {recentTimeline.length === 0 ? (
                   <div className="bg-cream border border-border rounded-2xl px-3.5 py-3 flex flex-col gap-1.5">
