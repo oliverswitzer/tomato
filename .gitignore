@@ -11,3 +11,8 @@ PLAN.md
 STATUS.md
 ARCHITECTURE.md
 KNOWN-GAPS.md
+.build-logs/
+FIELD-REPORT-*.md
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/

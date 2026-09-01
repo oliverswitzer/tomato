@@ -143,6 +143,29 @@ The `splash/` directory is deployed to Vercel as a static site. Vercel auto-depl
 
 **After any splash page change:** verify the Vercel deploy succeeded and that the live site matches the design. Check the Vercel preview URL on the PR (posted as a comment by the Vercel bot) or the production URL after merge. Use Chrome DevTools or screenshots to confirm visual correctness.
 
+## iOS companion app (spike)
+
+`mobile/` is a spike-scope React Native (Expo) companion app, own
+`package.json`, no RN/Expo deps in the root package. It detects "phone
+pickup" via the accelerometer (pure, unit-tested heuristic in
+`mobile/src/pickup/pickupDetector.ts`) and publishes that event through a
+swappable `SyncTransport` interface (`mobile/src/sync/`). See
+`mobile/README.md` for what's real vs. mocked — short version: the pickup
+detector and the transport interface/mocks are real and unit-tested,
+**iCloud/CloudKit cross-device sync is NOT implemented** (mocked behind the
+same interface), and the app has never been built/run — this build machine
+only has Xcode Command Line Tools, no full Xcode or Simulator.
+
+The Electron-side receiver lives in `src/main/sync/` (`PickupSyncTransport`,
+`fileSyncTransport`, `PickupDistractionReceiver`, `pickupDistractionDecision`)
+and is wired up in `main.ts`: on a pickup event during an active, unpaused
+session it reuses the existing `drift-detected` IPC path (the same one
+`focus-tracker.ts`'s LLM-driven drift detection already drives) to show the
+timer and a possible-distraction state — no new renderer UI needed. Run
+`mobile/`'s own verify with `cd mobile && npm run verify` (typecheck + jest);
+it's independent from the root `npm run verify` (typecheck + vitest), which
+must stay green and unaffected by anything under `mobile/`.
+
 ## Linear project
 
 All issues for this repo belong to the **Tomato** project (ID: `4554e4ee-0cc8-48d6-a8f7-9d1e95b88fa0`) in the **IDE** team (`0a4ce72a-2ad7-4404-b7ed-a2f5dec76ad0`). When creating issues, always set `projectId` to the Tomato project. Never create issues without a project assignment.

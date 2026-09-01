@@ -25,6 +25,8 @@ import { ElectronKeychainStore } from './keychain';
 import { validateApiKey } from './api-key-validator';
 import { DEFAULT_MODEL, getPriceTier, getModelPricing } from '../config/model-pricing';
 import type { SessionState } from '../shared/ipc';
+import { createFileSyncTransport, getDefaultPickupSyncFilePath } from './sync/fileSyncTransport';
+import { PickupDistractionReceiver } from './sync/PickupDistractionReceiver';
 
 const APP_ROOT = path.join(__dirname, '..', '..');
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
@@ -51,6 +53,31 @@ let nudgeWin: BrowserWindow | null = null;
 let screenpipeProc: ChildProcess | null = null;
 let focusTracker: FocusTracker | null = null;
 let db: import('./screenpipe-db').ScreenpipeDb | null = null;
+
+/**
+ * Cross-device pickup-distraction plumbing (see sync/ for the pieces). The
+ * transport is created once at app startup and the receiver listens for the
+ * lifetime of the app — the pure decision function inside it (see
+ * `pickupDistractionDecision.ts`) is what actually gates whether any given
+ * pickup surfaces the possible-distraction UI, based on live session state.
+ * `pickupSyncTransport` is a `FileSyncTransport` mock (see KNOWN-GAPS.md for
+ * exactly what swapping this for real CloudKit sync would require) — the RN
+ * app and this Electron app agree on the same file path via
+ * `getDefaultPickupSyncFilePath()`.
+ */
+const pickupSyncTransport = createFileSyncTransport({ filePath: getDefaultPickupSyncFilePath() });
+const pickupDistractionReceiver = new PickupDistractionReceiver({
+  transport: pickupSyncTransport,
+  getSessionInfo: () => ({ active: sessionState.active, paused: sessionState.paused }),
+  onDistraction: (data) => {
+    log(`Possible distraction from phone pickup: ${data.reason} (confidence: ${data.confidence})`);
+    if (timerWin) {
+      timerWin.show();
+      timerWin.focus();
+      timerWin.webContents.send('drift-detected', data);
+    }
+  },
+});
 
 let sessionState: SessionState = {
   active: false,
@@ -881,6 +908,9 @@ app.whenReady().then(async () => {
 
   createTray();
 
+  pickupDistractionReceiver.start();
+  log(`Pickup-distraction receiver listening on ${getDefaultPickupSyncFilePath()}`);
+
   const hasApiKey = keychain.getApiKey() !== null;
 
   if (!screenOk || !a11yOk) {
@@ -898,6 +928,7 @@ app.whenReady().then(async () => {
 function cleanup(): void {
   stopScreenpipe();
   if (focusTracker) focusTracker.stop();
+  pickupDistractionReceiver.stop();
   if (debugWin) {
     debugWin.close();
     debugWin = null;
