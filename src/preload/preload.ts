@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import type { TomatoApi, SessionStateWithActivities, Activity, TimelineEntryIpc, ApiErrorEvent } from '../shared/ipc';
+import type { TomatoApi, SessionStateWithActivities, Activity, TimelineEntryIpc, ApiErrorEvent, LastActivity } from '../shared/ipc';
 
 const api: TomatoApi = {
   startSession: (intention, durationMin) =>
@@ -11,6 +11,7 @@ const api: TomatoApi = {
   closeStart: () => ipcRenderer.send('close-start'),
   nudgeRefocus: () => ipcRenderer.send('nudge-refocus'),
   nudgePause: () => ipcRenderer.send('nudge-pause'),
+  takeMeBack: (app: string) => ipcRenderer.invoke('take-me-back', app),
 
   getSessionState: () => ipcRenderer.invoke('get-session-state'),
   getRecentSessions: () => ipcRenderer.invoke('get-recent-sessions'),
@@ -56,7 +57,7 @@ const api: TomatoApi = {
     return () => { ipcRenderer.removeListener('activity-update', handler); };
   },
   onDriftDetected: (callback) => {
-    const handler = (_e: IpcRendererEvent, data: { reason: string; confidence: number; level2Classification: string }) => callback(data);
+    const handler = (_e: IpcRendererEvent, data: { reason: string; confidence: number; level2Classification: string; lastActivity: LastActivity }) => callback(data);
     ipcRenderer.on('drift-detected', handler);
     return () => { ipcRenderer.removeListener('drift-detected', handler); };
   },

@@ -65,6 +65,13 @@ export interface PollState {
   screenpipeStatus: 'ok' | 'error' | 'unavailable';
 }
 
+/**
+ * The app/window Tomato last saw in focus before drift was detected. `null`
+ * when no non-drift snapshot has been captured yet this session (e.g. drift
+ * fires on the very first batch).
+ */
+export type LastActivity = { app: string; window: string } | null;
+
 export interface BatchHistoryEntry {
   timestamp: string;
   prompt: string;
@@ -131,6 +138,7 @@ export interface TomatoApi {
   closeStart(): void;
   nudgeRefocus(): void;
   nudgePause(): void;
+  takeMeBack(app: string): Promise<{ success: boolean; error?: string }>;
 
   getSessionState(): Promise<SessionStateWithActivities>;
   getRecentSessions(): Promise<SavedSession[]>;
@@ -159,7 +167,7 @@ export interface TomatoApi {
 
   onSessionState(callback: (state: SessionStateWithActivities) => void): () => void;
   onActivityUpdate(callback: (activity: Activity) => void): () => void;
-  onDriftDetected(callback: (data: { reason: string; confidence: number; level2Classification: string }) => void): () => void;
+  onDriftDetected(callback: (data: { reason: string; confidence: number; level2Classification: string; lastActivity: LastActivity }) => void): () => void;
   onSessionEnded(callback: () => void): () => void;
   onTimelineUpdate(callback: (entries: TimelineEntryIpc[]) => void): () => void;
 }

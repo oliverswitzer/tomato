@@ -24,6 +24,7 @@ import { saveSession, getRecentSessions } from './session-store';
 import { ElectronKeychainStore } from './keychain';
 import { validateApiKey } from './api-key-validator';
 import { DEFAULT_MODEL, getPriceTier, getModelPricing } from '../config/model-pricing';
+import { buildForegroundCommand, isValidAppName } from './take-me-back';
 import type { SessionState } from '../shared/ipc';
 
 const APP_ROOT = path.join(__dirname, '..', '..');
@@ -646,6 +647,25 @@ ipcMain.on('nudge-pause', () => {
   if (nudgeWin) {
     nudgeWin.close();
     nudgeWin = null;
+  }
+});
+
+ipcMain.handle('take-me-back', async (_event, appName: string) => {
+  if (!isValidAppName(appName)) {
+    return { success: false, error: 'No app to restore — no pre-drift snapshot captured this session.' };
+  }
+  const { command, args } = buildForegroundCommand(appName);
+  try {
+    // Best-effort: `open -a <app>` asks Launch Services to foreground the
+    // named app. This is intentionally not awaited on a headless build box —
+    // see take-me-back.ts for the pure decision logic and KNOWN-GAPS.md for
+    // the runtime-verification-pending note.
+    execFileSync(command, args, { timeout: 5000 });
+    log(`take-me-back: foregrounded "${appName}"`);
+    return { success: true };
+  } catch (err) {
+    log(`take-me-back: failed to foreground "${appName}": ${(err as Error).message}`);
+    return { success: false, error: (err as Error).message };
   }
 });
 

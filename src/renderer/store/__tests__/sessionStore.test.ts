@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { useSessionStore } from '../sessionStore';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { useSessionStore, initSessionStore } from '../sessionStore';
 import type { Activity, SessionStateWithActivities } from '@shared/ipc';
 
 function makeActivity(overrides: Partial<Activity> = {}): Activity {
@@ -111,6 +111,8 @@ describe('sessionStore', () => {
     useSessionStore.getState().setDriftInfo({ reason: 'x', confidence: 0.5, level2Classification: 'y' });
     useSessionStore.getState().setApiError({ type: 'auth', message: 'bad' });
     useSessionStore.getState().setSessionEnded(true);
+    useSessionStore.getState().incrementResume();
+    useSessionStore.getState().setLastPreDriftActivity({ app: 'Chrome', window: 'Twitter', intention: 'write code' });
 
     useSessionStore.getState().reset();
 
@@ -119,5 +121,99 @@ describe('sessionStore', () => {
     expect(s.driftInfo).toBeNull();
     expect(s.apiError).toBeNull();
     expect(s.sessionEnded).toBe(false);
+    expect(s.resumeCount).toBe(0);
+    expect(s.lastPreDriftActivity).toBeNull();
+  });
+
+  it('has resumeCount 0 and no lastPreDriftActivity initially', () => {
+    const s = useSessionStore.getState();
+    expect(s.resumeCount).toBe(0);
+    expect(s.lastPreDriftActivity).toBeNull();
+  });
+
+  it('incrementResume bumps the counter by one each call', () => {
+    useSessionStore.getState().incrementResume();
+    expect(useSessionStore.getState().resumeCount).toBe(1);
+
+    useSessionStore.getState().incrementResume();
+    useSessionStore.getState().incrementResume();
+    expect(useSessionStore.getState().resumeCount).toBe(3);
+  });
+
+  it('setLastPreDriftActivity sets and clears the pre-drift snapshot', () => {
+    useSessionStore.getState().setLastPreDriftActivity({
+      app: 'VS Code',
+      window: 'onboarding.md',
+      intention: 'write onboarding docs',
+    });
+
+    const s = useSessionStore.getState();
+    expect(s.lastPreDriftActivity).toEqual({
+      app: 'VS Code',
+      window: 'onboarding.md',
+      intention: 'write onboarding docs',
+    });
+
+    useSessionStore.getState().setLastPreDriftActivity(null);
+    expect(useSessionStore.getState().lastPreDriftActivity).toBeNull();
+  });
+
+  describe('initSessionStore drift wiring', () => {
+    let driftCallback: ((data: { reason: string; confidence: number; level2Classification: string; lastActivity: { app: string; window: string } | null }) => void) | null = null;
+    let unsubscribe: (() => void) | null = null;
+
+    beforeEach(() => {
+      driftCallback = null;
+      (globalThis as any).window ??= {};
+      (window as any).tomato = {
+        onSessionState: vi.fn().mockReturnValue(() => {}),
+        onActivityUpdate: vi.fn().mockReturnValue(() => {}),
+        onDriftDetected: vi.fn((cb) => {
+          driftCallback = cb;
+          return () => {};
+        }),
+        onSessionEnded: vi.fn().mockReturnValue(() => {}),
+        onApiError: vi.fn().mockReturnValue(() => {}),
+      };
+    });
+
+    afterEach(() => {
+      unsubscribe?.();
+      unsubscribe = null;
+    });
+
+    it('pushes drift info and snapshots the current intention into lastPreDriftActivity', () => {
+      useSessionStore.getState().setSessionState(makeSessionState({ intention: 'ship the spike' }));
+      unsubscribe = initSessionStore();
+
+      driftCallback?.({
+        reason: 'off task',
+        confidence: 0.9,
+        level2Classification: 'social_media',
+        lastActivity: { app: 'VS Code', window: 'onboarding.md' },
+      });
+
+      const s = useSessionStore.getState();
+      expect(s.driftInfo).toEqual({ reason: 'off task', confidence: 0.9, level2Classification: 'social_media' });
+      expect(s.lastPreDriftActivity).toEqual({
+        app: 'VS Code',
+        window: 'onboarding.md',
+        intention: 'ship the spike',
+      });
+    });
+
+    it('clears lastPreDriftActivity when the drift event carries no last activity', () => {
+      useSessionStore.getState().setSessionState(makeSessionState({ intention: 'ship the spike' }));
+      unsubscribe = initSessionStore();
+
+      driftCallback?.({
+        reason: 'off task',
+        confidence: 0.9,
+        level2Classification: 'social_media',
+        lastActivity: null,
+      });
+
+      expect(useSessionStore.getState().lastPreDriftActivity).toBeNull();
+    });
   });
 });

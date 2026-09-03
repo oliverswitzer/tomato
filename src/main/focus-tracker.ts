@@ -25,6 +25,26 @@ export function truncateToWords(text: string, maxWords: number): string {
   return words.slice(0, maxWords).join(' ');
 }
 
+export type LastActivity = { app: string; window: string } | null;
+
+/**
+ * Pure "remember last non-drift window" decision: called on every tick with
+ * the previously remembered snapshot, whether the session is currently
+ * flagged as drifting (per the most recent batch result), and the freshly
+ * polled state. While drifting, the previous snapshot is frozen (so it keeps
+ * pointing at the app/window the user was in right before drift started).
+ * Once not drifting, it tracks the latest successful poll.
+ */
+export function computeLastNonDriftActivity(
+  previous: LastActivity,
+  isCurrentlyDrifting: boolean,
+  pollState: PollState,
+): LastActivity {
+  if (isCurrentlyDrifting) return previous;
+  if (pollState.screenpipeStatus !== 'ok') return previous;
+  return { app: pollState.activeApp, window: pollState.windowTitle };
+}
+
 export interface FocusTrackerDeps {
   db: ScreenpipeDb;
   llm: LlmClient;
@@ -46,13 +66,15 @@ export class FocusTracker {
   private sessionCostUsd = 0;
   private pendingLlmCall = false;
   private _paused = false;
+  private lastNonDriftActivity: LastActivity = null;
+  private isCurrentlyDrifting = false;
 
   private tickMs: number;
   private batchMs: number;
   private clock: () => Date;
 
   onActivity: ((activity: Activity) => void) | null = null;
-  onDrift: ((data: { reason: string; confidence: number; level2Classification: string }) => void) | null = null;
+  onDrift: ((data: { reason: string; confidence: number; level2Classification: string; lastActivity: LastActivity }) => void) | null = null;
   onPollState: ((state: PollState) => void) | null = null;
   onTimelineUpdate: ((entries: TimelineEntry[]) => void) | null = null;
   onApiError: ((data: { type: 'auth' | 'model_deprecated'; message: string }) => void) | null = null;
@@ -68,6 +90,8 @@ export class FocusTracker {
     this.durationMin = durationMin;
     this.activities = [];
     this.lastBatchResult = null;
+    this.lastNonDriftActivity = null;
+    this.isCurrentlyDrifting = false;
 
     this.tick();
     this.tickTimer = setInterval(() => this.tick(), this.tickMs);
@@ -148,6 +172,11 @@ export class FocusTracker {
       };
       this.onPollState?.(pollState);
       this.onTimelineUpdate?.(timeline.entries);
+      this.lastNonDriftActivity = computeLastNonDriftActivity(
+        this.lastNonDriftActivity,
+        this.isCurrentlyDrifting,
+        pollState,
+      );
     } catch (err) {
       log(`tick error: ${(err as Error).message}`);
       this.onPollState?.({
@@ -267,11 +296,15 @@ export class FocusTracker {
     this.onActivity?.(activity);
 
     if (result.driftAssessment.isDrifting && result.driftAssessment.confidence >= 0.6) {
+      this.isCurrentlyDrifting = true;
       this.onDrift?.({
         reason: result.driftAssessment.reason,
         confidence: result.driftAssessment.confidence,
         level2Classification: result.level2Classification,
+        lastActivity: this.lastNonDriftActivity,
       });
+    } else {
+      this.isCurrentlyDrifting = false;
     }
   }
 

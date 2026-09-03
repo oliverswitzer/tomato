@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { FocusTracker, truncateToWords } from '../focus-tracker';
+import { FocusTracker, truncateToWords, computeLastNonDriftActivity } from '../focus-tracker';
 import { LlmAuthError, LlmModelNotFoundError } from '../llm-summarizer';
 import type { ScreenpipeDb } from '../screenpipe-db';
 import type { LlmClient, BatchSummaryResult } from '../llm-summarizer';
@@ -113,7 +113,7 @@ describe('FocusTracker', () => {
     });
     const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
 
-    const driftEvents: { reason: string; confidence: number; level2Classification: string }[] = [];
+    const driftEvents: { reason: string; confidence: number; level2Classification: string; lastActivity: { app: string; window: string } | null }[] = [];
     tracker.onDrift = (data) => driftEvents.push(data);
 
     tracker.start('Build focus tracker');
@@ -123,6 +123,9 @@ describe('FocusTracker', () => {
     expect(driftEvents[0].reason).toContain('LinkedIn');
     expect(driftEvents[0].confidence).toBe(0.8);
     expect(driftEvents[0].level2Classification).toBe('Off-task');
+    // First tick (before the batch fires) reported Cursor/main.ts as the active
+    // app, so that's what should be remembered as the last pre-drift activity.
+    expect(driftEvents[0].lastActivity).toEqual({ app: 'Cursor', window: 'main.ts' });
 
     tracker.stop();
   });
@@ -559,6 +562,45 @@ describe('FocusTracker', () => {
     it('returns exact limit when at boundary', () => {
       const text = Array(25).fill('word').join(' ');
       expect(truncateToWords(text, 25)).toBe(text);
+    });
+  });
+
+  describe('computeLastNonDriftActivity', () => {
+    const okPoll = (app: string, window: string) => ({
+      timestamp: '2026-04-25T10:00:00Z',
+      activeApp: app,
+      windowTitle: window,
+      screenpipeStatus: 'ok' as const,
+    });
+
+    it('captures the latest poll when not drifting', () => {
+      const result = computeLastNonDriftActivity(null, false, okPoll('VS Code', 'onboarding.md'));
+      expect(result).toEqual({ app: 'VS Code', window: 'onboarding.md' });
+    });
+
+    it('overwrites the previous snapshot with a newer poll while not drifting', () => {
+      const previous = { app: 'VS Code', window: 'onboarding.md' };
+      const result = computeLastNonDriftActivity(previous, false, okPoll('Terminal', 'npm test'));
+      expect(result).toEqual({ app: 'Terminal', window: 'npm test' });
+    });
+
+    it('freezes the previous snapshot while currently drifting, ignoring the drift-time poll', () => {
+      const previous = { app: 'VS Code', window: 'onboarding.md' };
+      const result = computeLastNonDriftActivity(previous, true, okPoll('Twitter', 'Home'));
+      expect(result).toEqual(previous);
+    });
+
+    it('ignores a poll with a non-ok screenpipe status and keeps the previous snapshot', () => {
+      const previous = { app: 'VS Code', window: 'onboarding.md' };
+      const errored = { timestamp: 't', activeApp: '', windowTitle: '', screenpipeStatus: 'error' as const };
+      const result = computeLastNonDriftActivity(previous, false, errored);
+      expect(result).toEqual(previous);
+    });
+
+    it('returns null when there is no previous snapshot and the poll errored', () => {
+      const errored = { timestamp: 't', activeApp: '', windowTitle: '', screenpipeStatus: 'error' as const };
+      const result = computeLastNonDriftActivity(null, false, errored);
+      expect(result).toBeNull();
     });
   });
 });

@@ -118,6 +118,26 @@ Key modules:
   (`useSessionStore((s) => ...)`) instead of each page subscribing to
   `window.tomato.on*` listeners directly. Purely local/page-specific UI state
   (form inputs, `isExpanded` toggles) stays as component `useState`.
+  - **Resume-from-drift (spike `spike/resume-from-drift`)**: the store also
+    tracks `resumeCount: number` (`incrementResume()`, resets on `reset()`)
+    and `lastPreDriftActivity: { app; window; intention } | null`
+    (`setLastPreDriftActivity()`). `focus-tracker.ts` remembers the last
+    non-drifting `{ app, window }` seen and rides it along on the `onDrift`
+    IPC payload as `lastActivity` (see `DriftInfo`/`onDriftDetected` in
+    `src/shared/ipc.ts`); `initSessionStore()` combines that with the
+    renderer's own `state.intention` to populate `lastPreDriftActivity` when
+    a drift event arrives. `TomatoApi.takeMeBack(app): Promise<{ success;
+    error? }>` (declared in `ipc.ts`, wired through `preload.ts`) calls a
+    main-process IPC handler in `main.ts` that best-effort foregrounds the
+    app via `execFileSync('open', ['-a', appName])` — the app-name/command
+    decision logic is pure and unit-tested in `src/main/take-me-back.ts`.
+    `NudgePage.tsx` shows the last-seen app/window plus a "Take me back"
+    button (falls back to the original "Refocus" button when there's no
+    pre-drift snapshot yet); `HudPage.tsx` shows a "N resumes this session"
+    badge from `resumeCount` once it's above zero. This is app-level
+    foreground restore only — no exact window/tab/cursor restore inside the
+    other app (documented follow-up), and no secondary/buffer timer (out of
+    scope for the spike).
 - **Styling**: Tailwind v4, wired via `@tailwindcss/vite` in `vite.config.ts`
   and `@import "tailwindcss";` in `src/renderer/index.css`. All pages use
   Tailwind utility classes on JSX — there are no per-page `.css` files
