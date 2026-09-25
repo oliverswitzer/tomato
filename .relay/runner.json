@@ -1,0 +1,17 @@
+{
+  "name": "Oliver's 15 Inch MBP",
+  "namespace": "Tomato",
+  "capacity": {
+    "shared_clean": 3,
+    "exclusive": 2
+  },
+  "poll_timeout": 25,
+  "heartbeat_interval": 15,
+  "max_retained_failed": 3,
+  "auto_update": true,
+  "auto_update_min_interval": 300,
+  "limits": {
+    "max_five_hour": 0.95,
+    "max_seven_day": 0.95
+  }
+}
