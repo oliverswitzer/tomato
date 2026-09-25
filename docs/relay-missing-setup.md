@@ -6,6 +6,9 @@ Relay itself never set up. For the maintainer.
 Context: fresh board (`Tomato`), `relayboard.fly.dev`, scaffold `5db10acff0b0`, runner v69.
 Line refs are into the served `./relay`.
 
+**Most severe: §7 (green doctor, every run fails) and §1 (`/tmp/` unignored eats `$RELAY_PLAN`).**
+Both are silent — the failure surfaces far from the cause.
+
 ---
 
 ## 1. `.gitignore` entries — Relay never writes them, but depends on them
@@ -99,6 +102,41 @@ creation the way `/relay-onboard` Phase 3 already does.
   Nothing tells you which form you're on.
 - **`/relay-setup` says a restart is required** before the four new skills resolve. In practice
   they registered mid-session without one.
+
+## 7. Nothing checks that flow artifacts are **committed and pushed** — doctor goes green, every run fails
+
+The worst one, because the doctor actively vouches for a broken setup.
+
+`/relay-doctor` resolves node `agent` / `/skill` names against the **working tree's**
+`.claude/`. Runs execute in a git worktree checked out at **`origin/main`**
+(`DEFAULT_BASE`, `relay:1356`; `refresh_worktree` → `git checkout --detach origin/main`), which
+sees only committed, pushed content. Those are different filesystems, and nothing reconciles
+them.
+
+Observed, end to end:
+
+1. `/relay-onboard` completed — **0 errors, 0 warnings across 3 flows**
+2. Enabled `spec`, created a card, runner pulled it
+3. Both attempts: `agent exited 0 but did not write an outcome to $RELAY_NODE_OUTCOME`,
+   **3 seconds each, `cost: None`**
+
+Cause: `.claude/skills/brainstorm/` and `.claude/agents/` were still uncommitted, so the
+worktree had neither (nor `./relay`). Claude Code started, couldn't resolve `/brainstorm`, and
+exited 0. The runner's outcome guard correctly refused to call that success — but the reported
+error describes the *symptom* (no verdict) and points at a temp path, giving no hint that the
+skill was simply absent.
+
+Note it is **push**, not just commit: a local commit leaves `origin/main` stale, so the worktree
+is rebuilt from the same broken state and the retry fails identically.
+
+**Suggested fixes**, cheapest first:
+
+- A doctor check: for every flow-named agent/skill/command, is the file tracked *and* present
+  at `origin/main`? Error if not. This alone would have caught it before the card was created.
+- `/relay-onboard` Phase 5 should refuse to offer "enable" while flow artifacts are uncommitted.
+- Better runner diagnostic: on a zero-outcome exit, report whether the invoked skill/command
+  resolved in the worktree at all. "3s, $0, no outcome" is almost always "the thing didn't
+  exist", not "the agent forgot its verdict".
 
 ---
 
