@@ -60,4 +60,42 @@ describe('ElectronKeychainStore', () => {
       expect(store.getSelectedModel()).toBe('claude-haiku-4-5-20251001');
     });
   });
+
+  describe('analytics preference', () => {
+    it('defaults to enabled', () => {
+      expect(store.getAnalyticsEnabled()).toBe(true);
+    });
+
+    it('persists an opt-out', () => {
+      store.setAnalyticsEnabled(false);
+      expect(store.getAnalyticsEnabled()).toBe(false);
+      expect(new ElectronKeychainStore(tmpDir, 'test-machine-id').getAnalyticsEnabled()).toBe(false);
+    });
+
+    it('persists an opt back in', () => {
+      store.setAnalyticsEnabled(false);
+      store.setAnalyticsEnabled(true);
+      expect(store.getAnalyticsEnabled()).toBe(true);
+    });
+
+    it('does not disturb the selected model', () => {
+      store.setSelectedModel('claude-haiku-4-5-20251001');
+      store.setAnalyticsEnabled(false);
+      expect(store.getSelectedModel()).toBe('claude-haiku-4-5-20251001');
+    });
+  });
+
+  describe('first launch', () => {
+    it('is true once and false afterwards', () => {
+      expect(store.consumeFirstLaunch()).toBe(true);
+      expect(store.consumeFirstLaunch()).toBe(false);
+      expect(new ElectronKeychainStore(tmpDir, 'test-machine-id').consumeFirstLaunch()).toBe(false);
+    });
+
+    it('does not disturb the analytics preference', () => {
+      store.setAnalyticsEnabled(false);
+      store.consumeFirstLaunch();
+      expect(store.getAnalyticsEnabled()).toBe(false);
+    });
+  });
 });
