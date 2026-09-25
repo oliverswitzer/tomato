@@ -1,9 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
-import { formatTime, formatActivityTime } from '@shared/utils';
-import { useSessionStore } from '../store/sessionStore';
-import { Badge } from '../components/ui/Badge';
-import { ProgressBar } from '../components/ui/ProgressBar';
-import { IconButton } from '../components/ui/IconButton';
+import { useState, useEffect, useCallback } from "react";
+import { formatTime, formatActivityTime } from "@shared/utils";
+import { useSessionStore } from "../store/sessionStore";
+import { Badge } from "../components/ui/Badge";
+import { ProgressBar } from "../components/ui/ProgressBar";
+import { IconButton } from "../components/ui/IconButton";
+import {
+  buildActivityEvidenceTooltip,
+  getActivityEvidenceLabel,
+  getActivityEvidenceVariant,
+} from "../utils/activity-evidence";
 
 export function HudPage() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -17,7 +22,7 @@ export function HudPage() {
   const latestSummary =
     activities.length > 0
       ? activities[activities.length - 1].summary
-      : 'First summary in a few minutes...';
+      : "First summary in a few minutes...";
 
   const resize = useCallback((expanded: boolean) => {
     window.tomato.timerResize(expanded ? 700 : 175);
@@ -45,8 +50,8 @@ export function HudPage() {
     resize(shouldExpand);
   }, [driftInfo, manualOverride, resize]);
 
-  const timeStr = sessionEnded ? '00:00' : formatTime(state.remainingSec);
-  const displaySummary = sessionEnded ? 'Session complete!' : latestSummary;
+  const timeStr = sessionEnded ? "00:00" : formatTime(state.remainingSec);
+  const displaySummary = sessionEnded ? "Session complete!" : latestSummary;
   const progress = sessionEnded
     ? 0
     : (state.remainingSec / (state.durationMin * 60)) * 100;
@@ -58,18 +63,19 @@ export function HudPage() {
       id="session-timer"
       className={`[-webkit-app-region:drag] rounded-3xl p-4 flex flex-col gap-3.5 h-screen overflow-hidden bg-white border transition-[background,border-color,box-shadow] duration-[800ms] ease-in-out [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-subtle/30 [&::-webkit-scrollbar-thumb]:rounded-full ${
         driftInfo
-          ? 'border-accent/60 shadow-[0_0_12px_3px_rgba(226,87,76,0.5),0_0_24px_6px_rgba(226,87,76,0.25),0_20px_44px_rgba(0,0,0,0.12)] animate-drift-pulse'
-          : 'border-border shadow-[0_20px_44px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]'
+          ? "border-accent/60 shadow-[0_0_12px_3px_rgba(226,87,76,0.5),0_0_24px_6px_rgba(226,87,76,0.25),0_20px_44px_rgba(0,0,0,0.12)] animate-drift-pulse"
+          : "border-border shadow-[0_20px_44px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]"
       }`}
     >
       {/* Status badge + expand toggle */}
       <div className="flex items-center justify-between gap-2.5">
         <Badge
-          variant={driftInfo ? 'accent' : 'success'}
+          variant={driftInfo ? "accent" : "success"}
           dot
-          className={`uppercase tracking-widest whitespace-nowrap${driftInfo ? ' animate-pulse' : ''}`}
+          className={`uppercase tracking-widest whitespace-nowrap${driftInfo ? " animate-pulse" : ""}`}
         >
-          {driftInfo ? 'POSSIBLE DISTRACTION' : 'ON TRACK'} &bull; {state.durationMin} MIN
+          {driftInfo ? "POSSIBLE DISTRACTION" : "ON TRACK"} &bull;{" "}
+          {state.durationMin} MIN
         </Badge>
         <IconButton
           size="sm"
@@ -84,7 +90,9 @@ export function HudPage() {
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <polyline points={isExpanded ? '18,15 12,9 6,15' : '6,9 12,15 18,9'} />
+            <polyline
+              points={isExpanded ? "18,15 12,9 6,15" : "6,9 12,15 18,9"}
+            />
           </svg>
         </IconButton>
       </div>
@@ -107,17 +115,20 @@ export function HudPage() {
       </div>
 
       {/* Progress bar */}
-      <ProgressBar value={progress} variant={driftInfo ? 'accent' : 'success'} />
+      <ProgressBar
+        value={progress}
+        variant={driftInfo ? "accent" : "success"}
+      />
 
       {apiError && (
         <div
           className={`flex items-center gap-2.5 rounded-xl px-3 py-2 mx-0.5 [-webkit-app-region:no-drag] ${
-            apiError.type === 'auth' ? 'bg-[#FEE4E2]' : 'bg-[#FFF3E0]'
+            apiError.type === "auth" ? "bg-[#FEE4E2]" : "bg-[#FFF3E0]"
           }`}
         >
           <span
             className={`flex-1 text-xs leading-snug ${
-              apiError.type === 'auth' ? 'text-[#7A2E25]' : 'text-[#5D4037]'
+              apiError.type === "auth" ? "text-[#7A2E25]" : "text-[#5D4037]"
             }`}
           >
             {apiError.message}
@@ -135,7 +146,9 @@ export function HudPage() {
         <div id="expanded" className="flex flex-col flex-1 min-h-0">
           <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3.5 [-webkit-app-region:no-drag] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-subtle/30 [&::-webkit-scrollbar-thumb]:rounded-full">
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-bold text-subtle tracking-widest">CURRENT ACTIVITY</span>
+              <span className="text-xs font-bold text-subtle tracking-widest">
+                CURRENT ACTIVITY
+              </span>
               <div className="font-serif text-base italic font-medium text-text tracking-tight leading-tight line-clamp-3">
                 {displaySummary}
               </div>
@@ -143,7 +156,9 @@ export function HudPage() {
 
             {driftInfo && (
               <div className="flex flex-col gap-1.5 bg-[#FCE5E2] rounded-xl px-3.5 py-2.5">
-                <span className="text-xs font-bold tracking-widest text-[#B42318]">OFF TRACK</span>
+                <span className="text-xs font-bold tracking-widest text-[#B42318]">
+                  OFF TRACK
+                </span>
                 <div
                   title={driftInfo.reason}
                   className="text-sm text-text leading-snug line-clamp-3"
@@ -151,7 +166,8 @@ export function HudPage() {
                   {driftInfo.reason}
                 </div>
                 <div className="text-xs text-muted mt-1">
-                  {driftInfo.level2Classification} &middot; {Math.round(driftInfo.confidence * 100)}% confidence
+                  {driftInfo.level2Classification} &middot;{" "}
+                  {Math.round(driftInfo.confidence * 100)}% confidence
                 </div>
               </div>
             )}
@@ -162,7 +178,8 @@ export function HudPage() {
                   LAST {state.durationMin} MINUTES
                 </span>
                 <span className="text-xs font-semibold text-subtle tracking-widest">
-                  {activities.length} ACTIVIT{activities.length === 1 ? 'Y' : 'IES'}
+                  {activities.length} ACTIVIT
+                  {activities.length === 1 ? "Y" : "IES"}
                 </span>
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-subtle/30 [&::-webkit-scrollbar-thumb]:rounded-full">
@@ -170,7 +187,9 @@ export function HudPage() {
                   <div className="bg-cream border border-border rounded-2xl px-3.5 py-3 flex flex-col gap-1.5">
                     <div className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
-                      <span className="font-mono text-base font-semibold text-text">0:00</span>
+                      <span className="font-mono text-base font-semibold text-text">
+                        0:00
+                      </span>
                     </div>
                     <div className="text-sm text-[#6B6259] leading-snug pl-3.5">
                       Waiting for screen activity...
@@ -183,15 +202,40 @@ export function HudPage() {
                       className="bg-cream border border-border rounded-2xl px-3.5 py-3 flex flex-col gap-1.5 [&+&]:mt-2"
                       key={a.timestamp}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
-                        <span className="font-mono text-base font-semibold text-text">
-                          {formatActivityTime(a.timestamp)}
-                        </span>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+                          <span className="font-mono text-base font-semibold text-text">
+                            {formatActivityTime(a.timestamp)}
+                          </span>
+                        </div>
+                        <div className="relative group shrink-0 [-webkit-app-region:no-drag]">
+                          <Badge
+                            variant={getActivityEvidenceVariant(a)}
+                            dot
+                            title={buildActivityEvidenceTooltip(a)}
+                            aria-label={buildActivityEvidenceTooltip(a)}
+                            className="cursor-help select-none"
+                          >
+                            {getActivityEvidenceLabel(a)}
+                          </Badge>
+                          <div
+                            role="tooltip"
+                            className="pointer-events-none absolute right-0 top-full z-20 mt-1 w-72 rounded-xl border border-border bg-white px-2.5 py-2 text-xs text-text shadow-[0_8px_24px_rgba(0,0,0,0.12)] opacity-0 translate-y-1 transition-all duration-150 group-hover:opacity-100 group-hover:translate-y-0"
+                          >
+                            <div className="whitespace-pre-line leading-snug">
+                              {buildActivityEvidenceTooltip(a)}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-sm text-[#6B6259] leading-snug pl-3.5">{a.summary}</div>
+                      <div className="text-sm text-[#6B6259] leading-snug pl-3.5">
+                        {a.summary}
+                      </div>
                       {a.apps.length > 0 && (
-                        <div className="text-xs text-subtle pl-3.5">{a.apps.join(', ')}</div>
+                        <div className="text-xs text-subtle pl-3.5">
+                          {a.apps.join(", ")}
+                        </div>
                       )}
                     </div>
                   ))
@@ -205,7 +249,7 @@ export function HudPage() {
               className="flex-1 px-2.5 py-2.5 rounded-xl border border-border bg-cream text-sm font-semibold text-text cursor-pointer text-center transition-colors duration-150 hover:bg-border"
               onClick={() => window.tomato.togglePause()}
             >
-              {state.paused ? 'Resume' : 'Pause'}
+              {state.paused ? "Resume" : "Pause"}
             </button>
             <button
               className="flex-1 px-2.5 py-2.5 rounded-xl border border-accent/20 bg-cream text-sm font-semibold text-accent cursor-pointer text-center transition-colors duration-150 hover:bg-[#FEE4E2]"

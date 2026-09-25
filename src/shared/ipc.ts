@@ -12,6 +12,8 @@ export interface Activity {
   apps: string[];
   isDrifting: boolean;
   confidence: number;
+  level2Classification?: string;
+  assessmentReason?: string;
 }
 
 export interface SessionStateWithActivities extends SessionState {
@@ -48,7 +50,7 @@ export interface TimelineEntryIpc {
   app: string;
   window: string;
   typedText: string | null;
-  eventType: 'typing' | 'app_switch' | 'clipboard' | 'idle' | 'passive';
+  eventType: "typing" | "app_switch" | "clipboard" | "idle" | "passive";
   accessibilityHints: string[];
   browserUrl: string | null;
   passiveContext?: {
@@ -62,7 +64,7 @@ export interface PollState {
   timestamp: string;
   activeApp: string;
   windowTitle: string;
-  screenpipeStatus: 'ok' | 'error' | 'unavailable';
+  screenpipeStatus: "ok" | "error" | "unavailable";
 }
 
 export interface BatchHistoryEntry {
@@ -106,7 +108,7 @@ export interface OnboardingState {
 
 export interface ModelInfo {
   id: string;
-  priceTier: '$' | '$$' | '$$$';
+  priceTier: "$" | "$$" | "$$$";
   inputPer1M: number | null;
   outputPer1M: number | null;
 }
@@ -118,7 +120,7 @@ export interface SettingsState {
 }
 
 export interface ApiErrorEvent {
-  type: 'auth' | 'model_deprecated';
+  type: "auth" | "model_deprecated";
   message: string;
 }
 
@@ -143,7 +145,10 @@ export interface TomatoApi {
   getDebugPipelineState(): Promise<DebugPipelineState | null>;
 
   validateApiKey(key: string): Promise<ApiKeyValidationResult>;
-  saveApiKey(key: string, selectedModel: string): Promise<{ success: boolean; error?: string }>;
+  saveApiKey(
+    key: string,
+    selectedModel: string,
+  ): Promise<{ success: boolean; error?: string }>;
   getOnboardingState(): Promise<OnboardingState>;
   apiKeyComplete(): void;
 
@@ -157,9 +162,17 @@ export interface TomatoApi {
   onShowSettings(callback: () => void): () => void;
   onApiError(callback: (data: ApiErrorEvent) => void): () => void;
 
-  onSessionState(callback: (state: SessionStateWithActivities) => void): () => void;
+  onSessionState(
+    callback: (state: SessionStateWithActivities) => void,
+  ): () => void;
   onActivityUpdate(callback: (activity: Activity) => void): () => void;
-  onDriftDetected(callback: (data: { reason: string; confidence: number; level2Classification: string }) => void): () => void;
+  onDriftDetected(
+    callback: (data: {
+      reason: string;
+      confidence: number;
+      level2Classification: string;
+    }) => void,
+  ): () => void;
   onSessionEnded(callback: () => void): () => void;
   onTimelineUpdate(callback: (entries: TimelineEntryIpc[]) => void): () => void;
 }

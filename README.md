@@ -14,7 +14,9 @@ Tomato is a Pomodoro timer for macOS with screen-reading focus tracking. Uses [s
 2. Screenpipe records your screen activity in the background
 3. Every 15 seconds, the app queries screenpipe's SQLite database for typed text, app switches, and accessibility data
 4. Every 3 minutes, a single Claude Haiku call summarizes your activity, classifies it, and checks if you've drifted
-5. If you're off track, a gentle nudge appears asking you to refocus or pause
+5. Passive-only windows are treated conservatively: Tomato sends start/middle/end screen-text excerpts and de-emphasizes repeated UI chrome from the prior same-app frame
+6. For sparse passive evidence, drift nudges require stronger confidence and two consecutive drift windows
+7. If you're off track, a gentle nudge appears asking you to refocus or pause
 
 At the end of the session, the LLM summarizes what you accomplished and gives a focus score (0–100%).
 

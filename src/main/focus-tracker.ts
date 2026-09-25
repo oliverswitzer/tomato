@@ -1,28 +1,111 @@
-import fs from 'fs';
-import path from 'path';
-import { app } from 'electron';
-import type { Activity, PollState, DebugPipelineState, BatchHistoryEntry } from '../shared/ipc';
-import type { ScreenpipeDb } from './screenpipe-db';
-import type { LlmClient, BatchSummaryResult } from './llm-summarizer';
-import { LlmAuthError, LlmModelNotFoundError } from './llm-summarizer';
-import { DEFAULT_MODEL, getModelPricing } from '../config/model-pricing';
-import { TimelineBuilder, type TimelineEntry, type ActivityTimeline } from './timeline-builder';
-import type { ShadowEvaluator } from './shadow-eval';
+import fs from "fs";
+import path from "path";
+import { app } from "electron";
+import type {
+  Activity,
+  PollState,
+  DebugPipelineState,
+  BatchHistoryEntry,
+} from "../shared/ipc";
+import type { ScreenpipeDb } from "./screenpipe-db";
+import type { LlmClient, BatchSummaryResult } from "./llm-summarizer";
+import { LlmAuthError, LlmModelNotFoundError } from "./llm-summarizer";
+import { DEFAULT_MODEL, getModelPricing } from "../config/model-pricing";
+import {
+  TimelineBuilder,
+  type TimelineEntry,
+  type ActivityTimeline,
+} from "./timeline-builder";
+import type { ShadowEvaluator } from "./shadow-eval";
 
 const DEFAULT_TICK_MS = 15_000;
 const DEFAULT_BATCH_MS = 60_000;
+const DRIFT_ALERT_CONFIDENCE = 0.6;
+const WEAK_PASSIVE_DRIFT_ALERT_CONFIDENCE = 0.8;
+const WEAK_PASSIVE_DRIFT_WINDOWS_REQUIRED = 2;
 
 function log(msg: string): void {
   try {
-    const logPath = path.join(app.getPath('userData'), 'tomato.log');
-    fs.appendFileSync(logPath, `[${new Date().toISOString()}] [focus-tracker] ${msg}\n`);
+    const logPath = path.join(app.getPath("userData"), "tomato.log");
+    fs.appendFileSync(
+      logPath,
+      `[${new Date().toISOString()}] [focus-tracker] ${msg}\n`,
+    );
   } catch {}
 }
 
 export function truncateToWords(text: string, maxWords: number): string {
   const words = text.split(/\s+/);
   if (words.length <= maxWords) return text;
-  return words.slice(0, maxWords).join(' ');
+  return words.slice(0, maxWords).join(" ");
+}
+
+function hasExplicitPassiveEvidence(entry: TimelineEntry): boolean {
+  const hasBrowserUrl = Boolean(entry.browserUrl);
+  const hasPassiveUrl = (entry.passiveContext?.urls.length ?? 0) > 0;
+  const hasClickTargets = (entry.passiveContext?.clickTargets.length ?? 0) > 0;
+  return hasBrowserUrl || hasPassiveUrl || hasClickTargets;
+}
+
+export function isWeakPassiveOnlyWindow(timeline: ActivityTimeline): boolean {
+  if (timeline.entries.length !== 1) return false;
+  const [entry] = timeline.entries;
+  if (entry.eventType !== "passive") return false;
+  return !hasExplicitPassiveEvidence(entry);
+}
+
+interface DriftAlertDecision {
+  shouldEmit: boolean;
+  nextWeakPassiveDriftStreak: number;
+  heldForWeakPassiveConfirmation: boolean;
+}
+
+export function shouldEmitDriftAlert(
+  timeline: ActivityTimeline,
+  result: BatchSummaryResult,
+  currentWeakPassiveDriftStreak: number,
+): DriftAlertDecision {
+  if (!result.driftAssessment.isDrifting) {
+    return {
+      shouldEmit: false,
+      nextWeakPassiveDriftStreak: 0,
+      heldForWeakPassiveConfirmation: false,
+    };
+  }
+
+  const confidence = result.driftAssessment.confidence;
+  if (confidence < DRIFT_ALERT_CONFIDENCE) {
+    return {
+      shouldEmit: false,
+      nextWeakPassiveDriftStreak: 0,
+      heldForWeakPassiveConfirmation: false,
+    };
+  }
+
+  if (!isWeakPassiveOnlyWindow(timeline)) {
+    return {
+      shouldEmit: true,
+      nextWeakPassiveDriftStreak: 0,
+      heldForWeakPassiveConfirmation: false,
+    };
+  }
+
+  if (confidence < WEAK_PASSIVE_DRIFT_ALERT_CONFIDENCE) {
+    return {
+      shouldEmit: false,
+      nextWeakPassiveDriftStreak: 0,
+      heldForWeakPassiveConfirmation: false,
+    };
+  }
+
+  const nextWeakPassiveDriftStreak = currentWeakPassiveDriftStreak + 1;
+  const shouldEmit =
+    nextWeakPassiveDriftStreak >= WEAK_PASSIVE_DRIFT_WINDOWS_REQUIRED;
+  return {
+    shouldEmit,
+    nextWeakPassiveDriftStreak,
+    heldForWeakPassiveConfirmation: !shouldEmit,
+  };
 }
 
 export interface FocusTrackerDeps {
@@ -39,23 +122,32 @@ export class FocusTracker {
   private tickTimer: ReturnType<typeof setInterval> | null = null;
   private batchTimer: ReturnType<typeof setInterval> | null = null;
   private activities: Activity[] = [];
-  private intention = '';
+  private intention = "";
   private durationMin = 25;
   private lastBatchResult: BatchSummaryResult | null = null;
   private batchHistory: BatchHistoryEntry[] = [];
   private sessionCostUsd = 0;
   private pendingLlmCall = false;
   private _paused = false;
+  private weakPassiveDriftStreak = 0;
 
   private tickMs: number;
   private batchMs: number;
   private clock: () => Date;
 
   onActivity: ((activity: Activity) => void) | null = null;
-  onDrift: ((data: { reason: string; confidence: number; level2Classification: string }) => void) | null = null;
+  onDrift:
+    | ((data: {
+        reason: string;
+        confidence: number;
+        level2Classification: string;
+      }) => void)
+    | null = null;
   onPollState: ((state: PollState) => void) | null = null;
   onTimelineUpdate: ((entries: TimelineEntry[]) => void) | null = null;
-  onApiError: ((data: { type: 'auth' | 'model_deprecated'; message: string }) => void) | null = null;
+  onApiError:
+    | ((data: { type: "auth" | "model_deprecated"; message: string }) => void)
+    | null = null;
 
   constructor(private deps: FocusTrackerDeps) {
     this.tickMs = deps.tickIntervalMs ?? DEFAULT_TICK_MS;
@@ -68,6 +160,7 @@ export class FocusTracker {
     this.durationMin = durationMin;
     this.activities = [];
     this.lastBatchResult = null;
+    this.weakPassiveDriftStreak = 0;
 
     this.tick();
     this.tickTimer = setInterval(() => this.tick(), this.tickMs);
@@ -91,12 +184,12 @@ export class FocusTracker {
 
   pause(): void {
     this._paused = true;
-    log('paused — batch summarization suspended');
+    log("paused — batch summarization suspended");
   }
 
   resume(): void {
     this._paused = false;
-    log('resumed — batch summarization active');
+    log("resumed — batch summarization active");
   }
 
   get paused(): boolean {
@@ -107,8 +200,14 @@ export class FocusTracker {
     return [...this.activities];
   }
 
-  async summarizeSession(durationMin: number): Promise<{ summary: string; focusScore: number } | null> {
-    return this.deps.llm.summarizeSession(this.intention, this.activities, durationMin);
+  async summarizeSession(
+    durationMin: number,
+  ): Promise<{ summary: string; focusScore: number } | null> {
+    return this.deps.llm.summarizeSession(
+      this.intention,
+      this.activities,
+      durationMin,
+    );
   }
 
   getDebugState(): DebugPipelineState {
@@ -135,16 +234,23 @@ export class FocusTracker {
     const until = now.toISOString();
 
     try {
-      const timeline = this.timelineBuilder.buildFromDb(this.deps.db, since, until);
-      log(`tick: ${timeline.entries.length} entries, dominant=${timeline.dominantApp}, range=${since} to ${until}`);
+      const timeline = this.timelineBuilder.buildFromDb(
+        this.deps.db,
+        since,
+        until,
+      );
+      log(
+        `tick: ${timeline.entries.length} entries, dominant=${timeline.dominantApp}, range=${since} to ${until}`,
+      );
 
       const pollState: PollState = {
         timestamp: until,
         activeApp: timeline.dominantApp,
-        windowTitle: timeline.entries.length > 0
-          ? timeline.entries[timeline.entries.length - 1].window
-          : '',
-        screenpipeStatus: 'ok',
+        windowTitle:
+          timeline.entries.length > 0
+            ? timeline.entries[timeline.entries.length - 1].window
+            : "",
+        screenpipeStatus: "ok",
       };
       this.onPollState?.(pollState);
       this.onTimelineUpdate?.(timeline.entries);
@@ -152,16 +258,16 @@ export class FocusTracker {
       log(`tick error: ${(err as Error).message}`);
       this.onPollState?.({
         timestamp: until,
-        activeApp: '',
-        windowTitle: '',
-        screenpipeStatus: 'error',
+        activeApp: "",
+        windowTitle: "",
+        screenpipeStatus: "error",
       });
     }
   }
 
   async runBatch(): Promise<void> {
     if (this._paused) {
-      log('batch: skipped (session paused)');
+      log("batch: skipped (session paused)");
       return;
     }
 
@@ -172,19 +278,23 @@ export class FocusTracker {
     let timeline: ActivityTimeline;
     try {
       timeline = this.timelineBuilder.buildFromDb(this.deps.db, since, until);
-      log(`batch: ${timeline.entries.length} entries over ${since} to ${until}`);
+      log(
+        `batch: ${timeline.entries.length} entries over ${since} to ${until}`,
+      );
     } catch (err) {
       log(`batch DB error: ${(err as Error).message}`);
       return;
     }
 
     if (timeline.entries.length === 0) {
-      log('batch: no entries, skipping LLM call');
+      log("batch: no entries, skipping LLM call");
       return;
     }
 
     this.pendingLlmCall = true;
-    log(`batch: calling LLM with ${timeline.entries.length} entries, intention="${this.intention}"`);
+    log(
+      `batch: calling LLM with ${timeline.entries.length} entries, intention="${this.intention}"`,
+    );
 
     let result;
     const batchStartMs = Date.now();
@@ -198,24 +308,35 @@ export class FocusTracker {
       result = await this.deps.llm.batchSummarize(
         timeline,
         this.intention,
-        { durationMin: this.durationMin, batchWindowSec: Math.round(this.batchMs / 1000) },
+        {
+          durationMin: this.durationMin,
+          batchWindowSec: Math.round(this.batchMs / 1000),
+        },
         recentActivities,
       );
     } catch (err) {
       this.pendingLlmCall = false;
       if (err instanceof LlmAuthError) {
-        log('batch: auth error — pausing batch timer');
+        log("batch: auth error — pausing batch timer");
         if (this.batchTimer) {
           clearInterval(this.batchTimer);
           this.batchTimer = null;
         }
-        this.onApiError?.({ type: 'auth', message: 'Your API key was rejected. Open Settings to fix it.' });
+        this.onApiError?.({
+          type: "auth",
+          message: "Your API key was rejected. Open Settings to fix it.",
+        });
         return;
       }
       if (err instanceof LlmModelNotFoundError) {
-        log(`batch: model 404 for ${err.model} — falling back to ${DEFAULT_MODEL}`);
+        log(
+          `batch: model 404 for ${err.model} — falling back to ${DEFAULT_MODEL}`,
+        );
         this.deps.llm.setModel?.(DEFAULT_MODEL);
-        this.onApiError?.({ type: 'model_deprecated', message: `Switched to ${DEFAULT_MODEL} — your selected model is no longer available.` });
+        this.onApiError?.({
+          type: "model_deprecated",
+          message: `Switched to ${DEFAULT_MODEL} — your selected model is no longer available.`,
+        });
         return;
       }
       log(`batch: unexpected error: ${(err as Error).message}`);
@@ -224,26 +345,37 @@ export class FocusTracker {
     this.pendingLlmCall = false;
 
     if (!result) {
-      log('batch: LLM returned null');
+      log("batch: LLM returned null");
       return;
     }
 
-    log(`batch: summary="${result.summary}", classification=${result.level2Classification}, drifting=${result.driftAssessment.isDrifting}`);
+    log(
+      `batch: summary="${result.summary}", classification=${result.level2Classification}, drifting=${result.driftAssessment.isDrifting}`,
+    );
 
     this.lastBatchResult = result;
 
     const batchLatencyMs = Date.now() - batchStartMs;
-    this.deps.shadowEvaluator?.logProductionBatch(result, this.batchMs, since, until, timeline.entries.length, batchLatencyMs);
+    this.deps.shadowEvaluator?.logProductionBatch(
+      result,
+      this.batchMs,
+      since,
+      until,
+      timeline.entries.length,
+      batchLatencyMs,
+    );
 
     const pricing = getModelPricing(this.deps.llm.getModel());
     const costUsd = pricing
-      ? (result.usage.inputTokens * pricing.inputPer1M + result.usage.outputTokens * pricing.outputPer1M) / 1_000_000
+      ? (result.usage.inputTokens * pricing.inputPer1M +
+          result.usage.outputTokens * pricing.outputPer1M) /
+        1_000_000
       : 0;
     this.sessionCostUsd += costUsd;
 
     this.batchHistory.push({
       timestamp: until,
-      prompt: this.deps.llm.getLastPrompt() ?? '',
+      prompt: this.deps.llm.getLastPrompt() ?? "",
       summary: result.summary,
       level2Classification: result.level2Classification,
       isDrifting: result.driftAssessment.isDrifting,
@@ -261,12 +393,27 @@ export class FocusTracker {
       apps: timeline.uniqueApps,
       isDrifting: result.driftAssessment.isDrifting,
       confidence: result.driftAssessment.confidence,
+      level2Classification: result.level2Classification,
+      assessmentReason: result.driftAssessment.reason,
     };
     this.activities.push(activity);
     if (this.activities.length > 100) this.activities.shift();
     this.onActivity?.(activity);
 
-    if (result.driftAssessment.isDrifting && result.driftAssessment.confidence >= 0.6) {
+    const driftAlertDecision = shouldEmitDriftAlert(
+      timeline,
+      result,
+      this.weakPassiveDriftStreak,
+    );
+    this.weakPassiveDriftStreak = driftAlertDecision.nextWeakPassiveDriftStreak;
+
+    if (driftAlertDecision.heldForWeakPassiveConfirmation) {
+      log(
+        `batch: weak passive drift held (streak=${this.weakPassiveDriftStreak}/${WEAK_PASSIVE_DRIFT_WINDOWS_REQUIRED}, confidence=${result.driftAssessment.confidence.toFixed(2)})`,
+      );
+    }
+
+    if (driftAlertDecision.shouldEmit) {
       this.onDrift?.({
         reason: result.driftAssessment.reason,
         confidence: result.driftAssessment.confidence,
@@ -283,7 +430,7 @@ export class FocusTracker {
         timestamp: frame.timestamp,
         activeApp: frame.app_name,
         windowTitle: frame.window_name,
-        screenpipeStatus: 'ok',
+        screenpipeStatus: "ok",
       };
     } catch {
       return null;

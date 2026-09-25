@@ -1,24 +1,42 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { FocusTracker, truncateToWords } from '../focus-tracker';
-import { LlmAuthError, LlmModelNotFoundError } from '../llm-summarizer';
-import type { ScreenpipeDb } from '../screenpipe-db';
-import type { LlmClient, BatchSummaryResult } from '../llm-summarizer';
-import type { Activity, PollState } from '../../shared/ipc';
-import type { TimelineEntry } from '../timeline-builder';
-import type { ShadowEvaluator } from '../shadow-eval';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { FocusTracker, truncateToWords } from "../focus-tracker";
+import { LlmAuthError, LlmModelNotFoundError } from "../llm-summarizer";
+import type { ScreenpipeDb } from "../screenpipe-db";
+import type { LlmClient, BatchSummaryResult } from "../llm-summarizer";
+import type { Activity, PollState } from "../../shared/ipc";
+import type { TimelineEntry } from "../timeline-builder";
+import type { ShadowEvaluator } from "../shadow-eval";
 
 function mockDb(): ScreenpipeDb {
   return {
     getTextEvents: vi.fn().mockReturnValue([
-      { id: 1, timestamp: '2026-04-25T10:00:05Z', text_content: 'hello world', app_name: 'Cursor', window_title: 'main.ts' },
+      {
+        id: 1,
+        timestamp: "2026-04-25T10:00:05Z",
+        text_content: "hello world",
+        app_name: "Cursor",
+        window_title: "main.ts",
+      },
     ]),
     getAppSwitches: vi.fn().mockReturnValue([]),
     getClipboardEvents: vi.fn().mockReturnValue([]),
     getLatestFrame: vi.fn().mockReturnValue({
-      id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Cursor', window_name: 'main.ts', focused: true, browser_url: null,
+      id: 1,
+      timestamp: "2026-04-25T10:00:05Z",
+      app_name: "Cursor",
+      window_name: "main.ts",
+      focused: true,
+      browser_url: null,
     }),
     getFrames: vi.fn().mockReturnValue([
-      { id: 1, timestamp: '2026-04-25T10:00:05Z', app_name: 'Cursor', window_name: 'main.ts', focused: true, browser_url: null },
+      {
+        id: 1,
+        timestamp: "2026-04-25T10:00:05Z",
+        app_name: "Cursor",
+        window_name: "main.ts",
+        focused: true,
+        browser_url: null,
+      },
     ]),
     getPassiveFrames: vi.fn().mockReturnValue([]),
     getClickEvents: vi.fn().mockReturnValue([]),
@@ -30,117 +48,164 @@ function mockDb(): ScreenpipeDb {
 
 function mockLlm(result?: BatchSummaryResult): LlmClient {
   return {
-    batchSummarize: vi.fn().mockResolvedValue(result ?? {
-      summary: 'Editing code in Cursor.',
-      level2Classification: 'Building',
-      driftAssessment: { isDrifting: false, confidence: 0.9, reason: 'On task.' },
-      usage: { inputTokens: 400, outputTokens: 90 },
-    }),
+    batchSummarize: vi.fn().mockResolvedValue(
+      result ?? {
+        summary: "Editing code in Cursor.",
+        level2Classification: "Building",
+        driftAssessment: {
+          isDrifting: false,
+          confidence: 0.9,
+          reason: "On task.",
+        },
+        usage: { inputTokens: 400, outputTokens: 90 },
+      },
+    ),
     summarizeSession: vi.fn().mockResolvedValue({
-      summary: 'Worked on focus tracker.',
+      summary: "Worked on focus tracker.",
       focusScore: 85,
     }),
-    getLastPrompt: vi.fn().mockReturnValue('mock prompt'),
-    getModel: vi.fn().mockReturnValue('claude-haiku-4-5-20251001'),
+    getLastPrompt: vi.fn().mockReturnValue("mock prompt"),
+    getModel: vi.fn().mockReturnValue("claude-haiku-4-5-20251001"),
   };
 }
 
-describe('FocusTracker', () => {
-  beforeEach(() => { vi.useFakeTimers(); });
-  afterEach(() => { vi.useRealTimers(); });
+describe("FocusTracker", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
 
-  it('15s tick sends TimelineEntry[] to dashboard without calling LLM', () => {
+  it("15s tick sends TimelineEntry[] to dashboard without calling LLM", () => {
     const db = mockDb();
     const llm = mockLlm();
-    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 60000 });
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 60000,
+    });
 
     const timelineUpdates: TimelineEntry[][] = [];
     tracker.onTimelineUpdate = (entries) => timelineUpdates.push(entries);
 
-    tracker.start('Build focus tracker');
+    tracker.start("Build focus tracker");
 
     expect(timelineUpdates).toHaveLength(1);
     expect(timelineUpdates[0].length).toBeGreaterThan(0);
-    expect(timelineUpdates[0][0].app).toBe('Cursor');
+    expect(timelineUpdates[0][0].app).toBe("Cursor");
     expect(llm.batchSummarize).not.toHaveBeenCalled();
 
     tracker.stop();
   });
 
-  it('15s tick emits PollState', () => {
+  it("15s tick emits PollState", () => {
     const db = mockDb();
     const llm = mockLlm();
-    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 60000 });
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 60000,
+    });
 
     const pollStates: PollState[] = [];
     tracker.onPollState = (state) => pollStates.push(state);
 
-    tracker.start('test');
+    tracker.start("test");
 
     expect(pollStates).toHaveLength(1);
-    expect(pollStates[0].activeApp).toBe('Cursor');
-    expect(pollStates[0].screenpipeStatus).toBe('ok');
+    expect(pollStates[0].activeApp).toBe("Cursor");
+    expect(pollStates[0].screenpipeStatus).toBe("ok");
 
     tracker.stop();
   });
 
-  it('3-min batch triggers LLM call and emits Activity', async () => {
+  it("3-min batch triggers LLM call and emits Activity", async () => {
     const db = mockDb();
     const llm = mockLlm();
-    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 10000,
+    });
 
     const activities: Activity[] = [];
     tracker.onActivity = (a) => activities.push(a);
 
-    tracker.start('Build focus tracker');
+    tracker.start("Build focus tracker");
 
     await vi.advanceTimersByTimeAsync(10000);
 
     expect(llm.batchSummarize).toHaveBeenCalledOnce();
     expect(activities).toHaveLength(1);
-    expect(activities[0].summary).toBe('Editing code in Cursor.');
+    expect(activities[0].summary).toBe("Editing code in Cursor.");
 
     tracker.stop();
   });
 
-  it('drift detection triggers onDrift when confidence >= 0.6', async () => {
+  it("drift detection triggers onDrift when confidence >= 0.6", async () => {
     const db = mockDb();
     const llm = mockLlm({
-      summary: 'Browsing social media.',
-      level2Classification: 'Off-task',
-      driftAssessment: { isDrifting: true, confidence: 0.8, reason: 'User switched to LinkedIn feed.' },
+      summary: "Browsing social media.",
+      level2Classification: "Off-task",
+      driftAssessment: {
+        isDrifting: true,
+        confidence: 0.8,
+        reason: "User switched to LinkedIn feed.",
+      },
       usage: { inputTokens: 400, outputTokens: 90 },
     });
-    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 10000,
+    });
 
-    const driftEvents: { reason: string; confidence: number; level2Classification: string }[] = [];
+    const driftEvents: {
+      reason: string;
+      confidence: number;
+      level2Classification: string;
+    }[] = [];
     tracker.onDrift = (data) => driftEvents.push(data);
 
-    tracker.start('Build focus tracker');
+    tracker.start("Build focus tracker");
     await vi.advanceTimersByTimeAsync(10000);
 
     expect(driftEvents).toHaveLength(1);
-    expect(driftEvents[0].reason).toContain('LinkedIn');
+    expect(driftEvents[0].reason).toContain("LinkedIn");
     expect(driftEvents[0].confidence).toBe(0.8);
-    expect(driftEvents[0].level2Classification).toBe('Off-task');
+    expect(driftEvents[0].level2Classification).toBe("Off-task");
 
     tracker.stop();
   });
 
-  it('low-confidence drift does NOT trigger onDrift', async () => {
+  it("low-confidence drift does NOT trigger onDrift", async () => {
     const db = mockDb();
     const llm = mockLlm({
-      summary: 'Checking something.',
-      level2Classification: 'Research',
-      driftAssessment: { isDrifting: true, confidence: 0.3, reason: 'Maybe off task.' },
+      summary: "Checking something.",
+      level2Classification: "Research",
+      driftAssessment: {
+        isDrifting: true,
+        confidence: 0.3,
+        reason: "Maybe off task.",
+      },
       usage: { inputTokens: 400, outputTokens: 90 },
     });
-    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 10000,
+    });
 
     const driftEvents: { reason: string }[] = [];
     tracker.onDrift = (data) => driftEvents.push(data);
 
-    tracker.start('test');
+    tracker.start("test");
     await vi.advanceTimersByTimeAsync(10000);
 
     expect(driftEvents).toHaveLength(0);
@@ -148,15 +213,114 @@ describe('FocusTracker', () => {
     tracker.stop();
   });
 
-  it('stop clears both timers', async () => {
+  it("requires two consecutive weak passive drift windows before emitting onDrift", async () => {
+    const db = mockDb();
+    (db.getTextEvents as ReturnType<typeof vi.fn>).mockReturnValue([]);
+    (db.getFrames as ReturnType<typeof vi.fn>).mockReturnValue([]);
+    (db.getPassiveFrames as ReturnType<typeof vi.fn>).mockReturnValue([
+      {
+        id: 1,
+        timestamp: "2026-04-25T10:00:05Z",
+        app_name: "ChatGPT Classic",
+        window_name: "Financial Advice",
+        browser_url: null,
+        screen_text:
+          "Financial Advice\nProjects\nRecent GPTs\nPacking List Planning",
+        capture_trigger: "idle",
+      },
+    ]);
+
+    const llm = mockLlm({
+      summary: "Viewed ChatGPT sidebar.",
+      level2Classification: "Off-task",
+      driftAssessment: {
+        isDrifting: true,
+        confidence: 0.82,
+        reason: "Potentially unrelated.",
+      },
+      usage: { inputTokens: 400, outputTokens: 90 },
+    });
+
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 10000,
+    });
+
+    const driftEvents: { reason: string }[] = [];
+    tracker.onDrift = (data) => driftEvents.push(data);
+
+    tracker.start("Plan my trip packing list");
+
+    await vi.advanceTimersByTimeAsync(10000);
+    expect(driftEvents).toHaveLength(0);
+
+    await vi.advanceTimersByTimeAsync(10000);
+    expect(driftEvents).toHaveLength(1);
+
+    tracker.stop();
+  });
+
+  it("does not delay drift alerts for passive windows with explicit URL evidence", async () => {
+    const db = mockDb();
+    (db.getTextEvents as ReturnType<typeof vi.fn>).mockReturnValue([]);
+    (db.getFrames as ReturnType<typeof vi.fn>).mockReturnValue([]);
+    (db.getPassiveFrames as ReturnType<typeof vi.fn>).mockReturnValue([
+      {
+        id: 1,
+        timestamp: "2026-04-25T10:00:05Z",
+        app_name: "Google Chrome",
+        window_name: "Daft Punk - Get Lucky - YouTube",
+        browser_url: "https://www.youtube.com/watch?v=h5EofwRzit0",
+        screen_text: "Daft Punk - Get Lucky (Official Video)",
+        capture_trigger: "idle",
+      },
+    ]);
+
+    const llm = mockLlm({
+      summary: "Watched a music video on YouTube.",
+      level2Classification: "Off-task",
+      driftAssessment: {
+        isDrifting: true,
+        confidence: 0.9,
+        reason: "Entertainment video unrelated to intention.",
+      },
+      usage: { inputTokens: 400, outputTokens: 90 },
+    });
+
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 10000,
+    });
+
+    const driftEvents: { reason: string }[] = [];
+    tracker.onDrift = (data) => driftEvents.push(data);
+
+    tracker.start("Fix login bug");
+    await vi.advanceTimersByTimeAsync(10000);
+
+    expect(driftEvents).toHaveLength(1);
+
+    tracker.stop();
+  });
+
+  it("stop clears both timers", async () => {
     const db = mockDb();
     const llm = mockLlm();
-    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 10000,
+    });
 
     const pollStates: PollState[] = [];
     tracker.onPollState = (state) => pollStates.push(state);
 
-    tracker.start('test');
+    tracker.start("test");
     expect(pollStates).toHaveLength(1);
 
     tracker.stop();
@@ -166,12 +330,17 @@ describe('FocusTracker', () => {
     expect(llm.batchSummarize).not.toHaveBeenCalled();
   });
 
-  it('activities capped at 100', async () => {
+  it("activities capped at 100", async () => {
     const db = mockDb();
     const llm = mockLlm();
-    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 1000 });
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 1000,
+    });
 
-    tracker.start('test');
+    tracker.start("test");
 
     for (let i = 0; i < 105; i++) {
       await vi.advanceTimersByTimeAsync(1000);
@@ -182,35 +351,47 @@ describe('FocusTracker', () => {
     tracker.stop();
   });
 
-  it('DB error in tick reports error status', () => {
+  it("DB error in tick reports error status", () => {
     const db = mockDb();
-    (db.getTextEvents as ReturnType<typeof vi.fn>).mockImplementation(() => { throw new Error('DB locked'); });
+    (db.getTextEvents as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      throw new Error("DB locked");
+    });
     const llm = mockLlm();
-    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 60000 });
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 60000,
+    });
 
     const pollStates: PollState[] = [];
     tracker.onPollState = (state) => pollStates.push(state);
 
-    tracker.start('test');
+    tracker.start("test");
 
     expect(pollStates).toHaveLength(1);
-    expect(pollStates[0].screenpipeStatus).toBe('error');
+    expect(pollStates[0].screenpipeStatus).toBe("error");
 
     tracker.stop();
   });
 
-  it('summarizeSession passes the given durationMin to LLM', async () => {
+  it("summarizeSession passes the given durationMin to LLM", async () => {
     const db = mockDb();
     const llm = mockLlm();
-    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 10000,
+    });
 
-    tracker.start('Build focus tracker', 25);
+    tracker.start("Build focus tracker", 25);
     await vi.advanceTimersByTimeAsync(10000);
 
     await tracker.summarizeSession(1);
 
     expect(llm.summarizeSession).toHaveBeenCalledWith(
-      'Build focus tracker',
+      "Build focus tracker",
       expect.any(Array),
       1,
     );
@@ -218,33 +399,42 @@ describe('FocusTracker', () => {
     tracker.stop();
   });
 
-  it('getDebugState returns current pipeline state', () => {
+  it("getDebugState returns current pipeline state", () => {
     const db = mockDb();
     const llm = mockLlm();
     const tracker = new FocusTracker({ db, llm });
 
     const state = tracker.getDebugState();
 
-    expect(state).toHaveProperty('currentPollState');
-    expect(state).toHaveProperty('pendingLlmCall');
-    expect(state).toHaveProperty('lastLlmPromptPreview');
+    expect(state).toHaveProperty("currentPollState");
+    expect(state).toHaveProperty("pendingLlmCall");
+    expect(state).toHaveProperty("lastLlmPromptPreview");
     expect(state.pendingLlmCall).toBe(false);
   });
 
-  it('batch skips LLM call and drift when paused', async () => {
+  it("batch skips LLM call and drift when paused", async () => {
     const db = mockDb();
     const llm = mockLlm({
-      summary: 'Browsing social media.',
-      level2Classification: 'Off-task',
-      driftAssessment: { isDrifting: true, confidence: 0.8, reason: 'User is off task.' },
+      summary: "Browsing social media.",
+      level2Classification: "Off-task",
+      driftAssessment: {
+        isDrifting: true,
+        confidence: 0.8,
+        reason: "User is off task.",
+      },
       usage: { inputTokens: 400, outputTokens: 90 },
     });
-    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 10000,
+    });
 
     const driftEvents: { reason: string }[] = [];
     tracker.onDrift = (data) => driftEvents.push(data);
 
-    tracker.start('Build focus tracker');
+    tracker.start("Build focus tracker");
     tracker.pause();
 
     await vi.advanceTimersByTimeAsync(10000);
@@ -255,12 +445,17 @@ describe('FocusTracker', () => {
     tracker.stop();
   });
 
-  it('batch resumes after pause/resume cycle', async () => {
+  it("batch resumes after pause/resume cycle", async () => {
     const db = mockDb();
     const llm = mockLlm();
-    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 10000,
+    });
 
-    tracker.start('Build focus tracker');
+    tracker.start("Build focus tracker");
     tracker.pause();
 
     await vi.advanceTimersByTimeAsync(10000);
@@ -274,7 +469,7 @@ describe('FocusTracker', () => {
     tracker.stop();
   });
 
-  it('paused getter reflects current state', () => {
+  it("paused getter reflects current state", () => {
     const db = mockDb();
     const llm = mockLlm();
     const tracker = new FocusTracker({ db, llm });
@@ -286,26 +481,31 @@ describe('FocusTracker', () => {
     expect(tracker.paused).toBe(false);
   });
 
-  it('stop resets paused state', () => {
+  it("stop resets paused state", () => {
     const db = mockDb();
     const llm = mockLlm();
     const tracker = new FocusTracker({ db, llm });
 
-    tracker.start('test');
+    tracker.start("test");
     tracker.pause();
     expect(tracker.paused).toBe(true);
     tracker.stop();
     expect(tracker.paused).toBe(false);
   });
 
-  it('batch skips LLM call when timeline is empty', async () => {
+  it("batch skips LLM call when timeline is empty", async () => {
     const db = mockDb();
     (db.getTextEvents as ReturnType<typeof vi.fn>).mockReturnValue([]);
     (db.getFrames as ReturnType<typeof vi.fn>).mockReturnValue([]);
     const llm = mockLlm();
-    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 10000,
+    });
 
-    tracker.start('test');
+    tracker.start("test");
     await vi.advanceTimersByTimeAsync(10000);
 
     expect(llm.batchSummarize).not.toHaveBeenCalled();
@@ -313,11 +513,18 @@ describe('FocusTracker', () => {
     tracker.stop();
   });
 
-  it('401 from LLM pauses batch timer and emits onApiError', async () => {
+  it("401 from LLM pauses batch timer and emits onApiError", async () => {
     const db = mockDb();
     const llm = mockLlm();
-    (llm.batchSummarize as ReturnType<typeof vi.fn>).mockRejectedValue(new LlmAuthError());
-    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+    (llm.batchSummarize as ReturnType<typeof vi.fn>).mockRejectedValue(
+      new LlmAuthError(),
+    );
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 10000,
+    });
 
     const apiErrors: { type: string; message: string }[] = [];
     tracker.onApiError = (data) => apiErrors.push(data);
@@ -325,15 +532,18 @@ describe('FocusTracker', () => {
     const pollStates: PollState[] = [];
     tracker.onPollState = (state) => pollStates.push(state);
 
-    tracker.start('test');
+    tracker.start("test");
     await vi.advanceTimersByTimeAsync(10000);
 
     expect(apiErrors).toHaveLength(1);
-    expect(apiErrors[0].type).toBe('auth');
+    expect(apiErrors[0].type).toBe("auth");
 
-    const callCount = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls.length;
+    const callCount = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock
+      .calls.length;
     await vi.advanceTimersByTimeAsync(10000);
-    expect((llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls.length).toBe(callCount);
+    expect(
+      (llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls.length,
+    ).toBe(callCount);
 
     const pollCountBefore = pollStates.length;
     await vi.advanceTimersByTimeAsync(5000);
@@ -342,27 +552,36 @@ describe('FocusTracker', () => {
     tracker.stop();
   });
 
-  it('404 from LLM triggers model fallback and emits onApiError', async () => {
+  it("404 from LLM triggers model fallback and emits onApiError", async () => {
     const db = mockDb();
     const llm = mockLlm();
     (llm.batchSummarize as ReturnType<typeof vi.fn>)
-      .mockRejectedValueOnce(new LlmModelNotFoundError('old-model'))
+      .mockRejectedValueOnce(new LlmModelNotFoundError("old-model"))
       .mockResolvedValue({
-        summary: 'Back to normal.',
-        level2Classification: 'Building',
-        driftAssessment: { isDrifting: false, confidence: 0.9, reason: 'On task.' },
+        summary: "Back to normal.",
+        level2Classification: "Building",
+        driftAssessment: {
+          isDrifting: false,
+          confidence: 0.9,
+          reason: "On task.",
+        },
         usage: { inputTokens: 400, outputTokens: 90 },
       });
-    const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+    const tracker = new FocusTracker({
+      db,
+      llm,
+      tickIntervalMs: 5000,
+      batchIntervalMs: 10000,
+    });
 
     const apiErrors: { type: string; message: string }[] = [];
     tracker.onApiError = (data) => apiErrors.push(data);
 
-    tracker.start('test');
+    tracker.start("test");
     await vi.advanceTimersByTimeAsync(10000);
 
     expect(apiErrors).toHaveLength(1);
-    expect(apiErrors[0].type).toBe('model_deprecated');
+    expect(apiErrors[0].type).toBe("model_deprecated");
 
     const activities: Activity[] = [];
     tracker.onActivity = (a) => activities.push(a);
@@ -372,19 +591,28 @@ describe('FocusTracker', () => {
     tracker.stop();
   });
 
-  describe('rolling context', () => {
-    it('activity summaries are truncated to 25 words', async () => {
+  describe("rolling context", () => {
+    it("activity summaries are truncated to 25 words", async () => {
       const db = mockDb();
-      const longSummary = Array(30).fill('word').join(' ');
+      const longSummary = Array(30).fill("word").join(" ");
       const llm = mockLlm({
         summary: longSummary,
-        level2Classification: 'Building',
-        driftAssessment: { isDrifting: false, confidence: 0.9, reason: 'On task.' },
+        level2Classification: "Building",
+        driftAssessment: {
+          isDrifting: false,
+          confidence: 0.9,
+          reason: "On task.",
+        },
         usage: { inputTokens: 400, outputTokens: 90 },
       });
-      const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+      const tracker = new FocusTracker({
+        db,
+        llm,
+        tickIntervalMs: 5000,
+        batchIntervalMs: 10000,
+      });
 
-      tracker.start('test');
+      tracker.start("test");
       await vi.advanceTimersByTimeAsync(10000);
 
       const activities = tracker.getActivities();
@@ -394,73 +622,103 @@ describe('FocusTracker', () => {
       tracker.stop();
     });
 
-    it('activities store isDrifting and confidence from drift assessment', async () => {
+    it("activities store drift verdict, confidence, classification, and reason", async () => {
       const db = mockDb();
       const llm = mockLlm({
-        summary: 'Browsing social media.',
-        level2Classification: 'Off-task',
-        driftAssessment: { isDrifting: true, confidence: 0.8, reason: 'User is off task.' },
+        summary: "Browsing social media.",
+        level2Classification: "Off-task",
+        driftAssessment: {
+          isDrifting: true,
+          confidence: 0.8,
+          reason: "User is off task.",
+        },
         usage: { inputTokens: 400, outputTokens: 90 },
       });
-      const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+      const tracker = new FocusTracker({
+        db,
+        llm,
+        tickIntervalMs: 5000,
+        batchIntervalMs: 10000,
+      });
 
-      tracker.start('Build focus tracker');
+      tracker.start("Build focus tracker");
       await vi.advanceTimersByTimeAsync(10000);
 
       const activities = tracker.getActivities();
       expect(activities[0].isDrifting).toBe(true);
       expect(activities[0].confidence).toBe(0.8);
+      expect(activities[0].level2Classification).toBe("Off-task");
+      expect(activities[0].assessmentReason).toBe("User is off task.");
 
       tracker.stop();
     });
 
-    it('passes last 10 activities to batchSummarize after accumulation', async () => {
+    it("passes last 10 activities to batchSummarize after accumulation", async () => {
       const db = mockDb();
       const llm = mockLlm();
-      const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 1000 });
+      const tracker = new FocusTracker({
+        db,
+        llm,
+        tickIntervalMs: 5000,
+        batchIntervalMs: 1000,
+      });
 
-      tracker.start('test');
+      tracker.start("test");
 
       for (let i = 0; i < 12; i++) {
         await vi.advanceTimersByTimeAsync(1000);
       }
 
-      const lastCall = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls.at(-1)!;
+      const lastCall = (
+        llm.batchSummarize as ReturnType<typeof vi.fn>
+      ).mock.calls.at(-1)!;
       const previousActivities = lastCall[3];
       expect(previousActivities).toHaveLength(10);
-      expect(previousActivities[0]).toHaveProperty('summary');
-      expect(previousActivities[0]).toHaveProperty('isDrifting');
-      expect(previousActivities[0]).toHaveProperty('confidence');
+      expect(previousActivities[0]).toHaveProperty("summary");
+      expect(previousActivities[0]).toHaveProperty("isDrifting");
+      expect(previousActivities[0]).toHaveProperty("confidence");
 
       tracker.stop();
     });
 
-    it('passes empty array on first batch (no previous activities)', async () => {
+    it("passes empty array on first batch (no previous activities)", async () => {
       const db = mockDb();
       const llm = mockLlm();
-      const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 10000 });
+      const tracker = new FocusTracker({
+        db,
+        llm,
+        tickIntervalMs: 5000,
+        batchIntervalMs: 10000,
+      });
 
-      tracker.start('test');
+      tracker.start("test");
       await vi.advanceTimersByTimeAsync(10000);
 
-      const firstCall = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls[0];
+      const firstCall = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock
+        .calls[0];
       const previousActivities = firstCall[3];
       expect(previousActivities).toHaveLength(0);
 
       tracker.stop();
     });
 
-    it('passes fewer than 10 when fewer exist', async () => {
+    it("passes fewer than 10 when fewer exist", async () => {
       const db = mockDb();
       const llm = mockLlm();
-      const tracker = new FocusTracker({ db, llm, tickIntervalMs: 5000, batchIntervalMs: 1000 });
+      const tracker = new FocusTracker({
+        db,
+        llm,
+        tickIntervalMs: 5000,
+        batchIntervalMs: 1000,
+      });
 
-      tracker.start('test');
+      tracker.start("test");
       for (let i = 0; i < 3; i++) {
         await vi.advanceTimersByTimeAsync(1000);
       }
 
-      const thirdCall = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock.calls[2];
+      const thirdCall = (llm.batchSummarize as ReturnType<typeof vi.fn>).mock
+        .calls[2];
       const previousActivities = thirdCall[3];
       expect(previousActivities).toHaveLength(2);
 
@@ -468,37 +726,45 @@ describe('FocusTracker', () => {
     });
   });
 
-  describe('shadow evaluation integration', () => {
+  describe("shadow evaluation integration", () => {
     function mockShadowEvaluator(): ShadowEvaluator {
       return {
         start: vi.fn(),
         stop: vi.fn(),
         logProductionBatch: vi.fn(),
         logEntry: vi.fn(),
-        getLogFilePath: vi.fn().mockReturnValue('/tmp/shadow-eval.jsonl'),
+        getLogFilePath: vi.fn().mockReturnValue("/tmp/shadow-eval.jsonl"),
       } as unknown as ShadowEvaluator;
     }
 
-    it('starts shadow evaluator when session starts', () => {
+    it("starts shadow evaluator when session starts", () => {
       const shadow = mockShadowEvaluator();
-      const tracker = new FocusTracker({ db: mockDb(), llm: mockLlm(), shadowEvaluator: shadow });
+      const tracker = new FocusTracker({
+        db: mockDb(),
+        llm: mockLlm(),
+        shadowEvaluator: shadow,
+      });
 
-      tracker.start('Build feature', 25);
-      expect(shadow.start).toHaveBeenCalledWith('Build feature', 25);
+      tracker.start("Build feature", 25);
+      expect(shadow.start).toHaveBeenCalledWith("Build feature", 25);
 
       tracker.stop();
     });
 
-    it('stops shadow evaluator when session stops', () => {
+    it("stops shadow evaluator when session stops", () => {
       const shadow = mockShadowEvaluator();
-      const tracker = new FocusTracker({ db: mockDb(), llm: mockLlm(), shadowEvaluator: shadow });
+      const tracker = new FocusTracker({
+        db: mockDb(),
+        llm: mockLlm(),
+        shadowEvaluator: shadow,
+      });
 
-      tracker.start('Build feature', 25);
+      tracker.start("Build feature", 25);
       tracker.stop();
       expect(shadow.stop).toHaveBeenCalled();
     });
 
-    it('logs production batch result to shadow evaluator', async () => {
+    it("logs production batch result to shadow evaluator", async () => {
       const shadow = mockShadowEvaluator();
       const tracker = new FocusTracker({
         db: mockDb(),
@@ -508,23 +774,24 @@ describe('FocusTracker', () => {
         shadowEvaluator: shadow,
       });
 
-      tracker.start('Build feature', 25);
+      tracker.start("Build feature", 25);
       await vi.advanceTimersByTimeAsync(10000);
 
       expect(shadow.logProductionBatch).toHaveBeenCalledOnce();
-      const [result, batchMs, since, until, entryCount, latencyMs] =
-        (shadow.logProductionBatch as ReturnType<typeof vi.fn>).mock.calls[0];
-      expect(result.summary).toBe('Editing code in Cursor.');
+      const [result, batchMs, since, until, entryCount, latencyMs] = (
+        shadow.logProductionBatch as ReturnType<typeof vi.fn>
+      ).mock.calls[0];
+      expect(result.summary).toBe("Editing code in Cursor.");
       expect(batchMs).toBe(10000);
-      expect(typeof since).toBe('string');
-      expect(typeof until).toBe('string');
+      expect(typeof since).toBe("string");
+      expect(typeof until).toBe("string");
       expect(entryCount).toBeGreaterThan(0);
-      expect(typeof latencyMs).toBe('number');
+      expect(typeof latencyMs).toBe("number");
 
       tracker.stop();
     });
 
-    it('does not log to shadow evaluator when LLM returns null', async () => {
+    it("does not log to shadow evaluator when LLM returns null", async () => {
       const llm = mockLlm();
       (llm.batchSummarize as ReturnType<typeof vi.fn>).mockResolvedValue(null);
       const shadow = mockShadowEvaluator();
@@ -536,7 +803,7 @@ describe('FocusTracker', () => {
         shadowEvaluator: shadow,
       });
 
-      tracker.start('Build feature', 25);
+      tracker.start("Build feature", 25);
       await vi.advanceTimersByTimeAsync(10000);
 
       expect(shadow.logProductionBatch).not.toHaveBeenCalled();
@@ -545,19 +812,19 @@ describe('FocusTracker', () => {
     });
   });
 
-  describe('truncateToWords', () => {
-    it('returns text unchanged when under limit', () => {
-      expect(truncateToWords('hello world', 25)).toBe('hello world');
+  describe("truncateToWords", () => {
+    it("returns text unchanged when under limit", () => {
+      expect(truncateToWords("hello world", 25)).toBe("hello world");
     });
 
-    it('truncates text exceeding word limit', () => {
-      const text = Array(30).fill('word').join(' ');
+    it("truncates text exceeding word limit", () => {
+      const text = Array(30).fill("word").join(" ");
       const result = truncateToWords(text, 25);
       expect(result.split(/\s+/).length).toBe(25);
     });
 
-    it('returns exact limit when at boundary', () => {
-      const text = Array(25).fill('word').join(' ');
+    it("returns exact limit when at boundary", () => {
+      const text = Array(25).fill("word").join(" ");
       expect(truncateToWords(text, 25)).toBe(text);
     });
   });

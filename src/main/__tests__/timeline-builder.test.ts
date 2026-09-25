@@ -315,6 +315,38 @@ describe('TimelineBuilder', () => {
       expect(timeline.entries[0].passiveContext!.screenText).toContain('Cold Calling');
     });
 
+    it('removes repeated lines from passive screen text using previous same-app frame text', () => {
+      const chatWindow = 'Financial Advice';
+      const db = mockDb({
+        passiveFrames: [
+          {
+            id: 1,
+            timestamp: '2026-04-25T10:00:05Z',
+            app_name: 'ChatGPT Classic',
+            window_name: chatWindow,
+            browser_url: null,
+            screen_text: [
+              'Financial Advice',
+              'Projects',
+              'Recent GPTs',
+              'Packing List Planning',
+              'Bear care schedule',
+            ].join('\n'),
+            capture_trigger: 'idle',
+            previous_app_screen_text: ['Financial Advice', 'Projects', 'Recent GPTs'].join('\n'),
+          },
+        ],
+      });
+
+      const timeline = builder.buildFromDb(db, since, until);
+
+      expect(timeline.entries).toHaveLength(1);
+      expect(timeline.entries[0].eventType).toBe('passive');
+      expect(timeline.entries[0].passiveContext?.screenText).toContain('Packing List Planning');
+      expect(timeline.entries[0].passiveContext?.screenText).toContain('Bear care schedule');
+      expect(timeline.entries[0].passiveContext?.screenText).not.toContain('Recent GPTs');
+    });
+
     it('does not create passive entries when typing events exist', () => {
       const db = mockDb({
         textEvents: [
