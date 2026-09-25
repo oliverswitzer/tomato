@@ -25,6 +25,11 @@ import { ElectronKeychainStore } from './keychain';
 import { validateApiKey } from './api-key-validator';
 import { DEFAULT_MODEL, getPriceTier, getModelPricing } from '../config/model-pricing';
 import type { SessionState } from '../shared/ipc';
+import { createAnalytics, type Analytics } from './analytics';
+import { createPostHogTransport } from './posthog-transport';
+import { getMachineId, anonymousDistinctId } from './machine-id';
+import { buildSessionEndedEvent, type SessionEndReason } from '../shared/analytics-events';
+import { POSTHOG_PROJECT_TOKEN, POSTHOG_HOST } from '../config/analytics';
 
 const APP_ROOT = path.join(__dirname, '..', '..');
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
@@ -43,6 +48,15 @@ function log(msg: string): void {
 }
 
 let keychain: ElectronKeychainStore | null = null;
+
+// Replaced with the real instance in app.whenReady(); disabled until then so an
+// early capture can never throw on an uninitialised keychain.
+let analytics: Analytics = createAnalytics({
+  transport: null,
+  distinctId: '',
+  enabled: false,
+  log,
+});
 
 let tray: Tray | null = null;
 let startWin: BrowserWindow | null = null;
@@ -425,6 +439,7 @@ function startSession(intention: string, durationMin: number): void {
     remainingSec: durationMin * 60,
     paused: false,
   };
+  analytics.capture({ name: 'session_started', properties: { planned_duration_min: durationMin } });
 
   if (startWin) {
     startWin.close();
@@ -512,7 +527,7 @@ function startSession(intention: string, durationMin: number): void {
     sessionState.remainingSec--;
 
     if (sessionState.remainingSec <= 0) {
-      endSession();
+      endSession('completed');
       return;
     }
 
@@ -533,7 +548,7 @@ function togglePause(): void {
   updateTrayMenu();
 }
 
-async function endSession(): Promise<void> {
+async function endSession(endReason: SessionEndReason = 'user_ended'): Promise<void> {
   sessionState.active = false;
   sessionState.paused = false;
   if (timerInterval) {
@@ -544,6 +559,14 @@ async function endSession(): Promise<void> {
   const startedAt = sessionStartedAt ?? new Date().toISOString();
   const actualElapsedSec = Math.round((Date.now() - new Date(startedAt).getTime()) / 1000);
   const actualDurationMin = Math.max(1, Math.round(actualElapsedSec / 60));
+  analytics.capture(
+    buildSessionEndedEvent({
+      plannedDurationMin: sessionState.durationMin,
+      startedAtMs: new Date(startedAt).getTime(),
+      endedAtMs: Date.now(),
+      endReason,
+    }),
+  );
 
   if (focusTracker) {
     if (actualElapsedSec >= 15) {
@@ -616,7 +639,7 @@ ipcMain.on('toggle-pause', () => {
 });
 
 ipcMain.on('end-session', () => {
-  endSession();
+  endSession('user_ended');
 });
 
 ipcMain.on('timer-resize', (_event, { height }: { height: number }) => {
@@ -624,6 +647,10 @@ ipcMain.on('timer-resize', (_event, { height }: { height: number }) => {
   const [x, y] = timerWin.getPosition();
   timerWin.setSize(360, Math.round(height));
   timerWin.setPosition(x, y);
+});
+
+ipcMain.on('hud-toggled', (_event, { expanded }: { expanded: boolean }) => {
+  analytics.capture({ name: 'hud_toggled', properties: { expanded } });
 });
 
 ipcMain.on('timer-ready', () => {
@@ -673,6 +700,12 @@ ipcMain.on('open-accessibility-permission-settings', () => {
 });
 
 ipcMain.on('permissions-complete', () => {
+  if (systemPreferences.getMediaAccessStatus('screen') === 'granted') {
+    analytics.capture({ name: 'onboarding_step_completed', properties: { step: 'screen_permission' } });
+  }
+  if (systemPreferences.isTrustedAccessibilityClient(false)) {
+    analytics.capture({ name: 'onboarding_step_completed', properties: { step: 'accessibility_permission' } });
+  }
   showApiKeyWindow();
 });
 
@@ -709,6 +742,8 @@ ipcMain.handle('get-onboarding-state', () => {
 });
 
 ipcMain.on('api-key-complete', () => {
+  analytics.capture({ name: 'onboarding_step_completed', properties: { step: 'api_key' } });
+  analytics.capture({ name: 'onboarding_completed', properties: { app_version: app.getVersion() } });
   if (startWin) {
     startWin.close();
     startWin = null;
@@ -752,18 +787,25 @@ ipcMain.handle('fetch-models', async () => {
 });
 
 ipcMain.handle('get-settings-state', () => {
-  if (!keychain) return { hasApiKey: false, maskedKey: null, selectedModel: null };
+  if (!keychain) return { hasApiKey: false, maskedKey: null, selectedModel: null, analyticsEnabled: true };
   const rawKey = keychain.getApiKey();
   return {
     hasApiKey: rawKey !== null,
     maskedKey: rawKey ? `sk-ant-•••••${rawKey.slice(-4)}` : null,
     selectedModel: keychain.getSelectedModel(),
+    analyticsEnabled: keychain.getAnalyticsEnabled(),
   };
 });
 
 ipcMain.on('update-model', (_event, { modelId }: { modelId: string }) => {
   keychain?.setSelectedModel(modelId);
   log(`Model updated to ${modelId}`);
+});
+
+ipcMain.on('update-analytics-enabled', (_event, { enabled }: { enabled: boolean }) => {
+  keychain?.setAnalyticsEnabled(enabled);
+  analytics.setEnabled(enabled); // takes effect immediately — no restart
+  log(`Analytics ${enabled ? 'enabled' : 'disabled'}`);
 });
 
 ipcMain.on('quit-app', () => {
@@ -855,6 +897,17 @@ app.whenReady().then(async () => {
 
   keychain = new ElectronKeychainStore(app.getPath('userData'));
 
+  analytics = createAnalytics({
+    transport: createPostHogTransport(POSTHOG_PROJECT_TOKEN, POSTHOG_HOST),
+    distinctId: anonymousDistinctId(getMachineId()),
+    enabled: keychain.getAnalyticsEnabled(),
+    log,
+  });
+  analytics.capture({
+    name: 'app_launched',
+    properties: { app_version: app.getVersion(), is_first_launch: keychain.consumeFirstLaunch() },
+  });
+
   const screenOk = systemPreferences.getMediaAccessStatus('screen') === 'granted';
   const a11yOk = systemPreferences.isTrustedAccessibilityClient(false);
   log(`Permissions check: screen=${screenOk}, accessibility=${a11yOk}`);
@@ -908,7 +961,30 @@ function cleanup(): void {
   }
 }
 
-app.on('before-quit', cleanup);
+let quitFlushStarted = false;
+
+app.on('before-quit', (event) => {
+  if (sessionState.active) {
+    analytics.capture(
+      buildSessionEndedEvent({
+        plannedDurationMin: sessionState.durationMin,
+        startedAtMs: new Date(sessionStartedAt ?? new Date().toISOString()).getTime(),
+        endedAtMs: Date.now(),
+        endReason: 'app_quit',
+      }),
+    );
+    sessionState.active = false;
+  }
+
+  cleanup();
+
+  if (quitFlushStarted) return;
+  quitFlushStarted = true;
+  // posthog-node batches; give the last events ~2s to land, then quit regardless.
+  event.preventDefault();
+  analytics.shutdown().catch(() => {}).then(() => app.quit());
+});
+
 app.on('window-all-closed', () => {
   // tray app — don't quit on window close
 });

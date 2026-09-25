@@ -115,6 +115,7 @@ export interface SettingsState {
   hasApiKey: boolean;
   maskedKey: string | null;
   selectedModel: string | null;
+  analyticsEnabled: boolean;
 }
 
 export interface ApiErrorEvent {
@@ -127,6 +128,7 @@ export interface TomatoApi {
   togglePause(): void;
   endSession(): void;
   timerResize(height: number): void;
+  hudToggled(expanded: boolean): void;
   timerReady(): void;
   closeStart(): void;
   nudgeRefocus(): void;
@@ -150,6 +152,7 @@ export interface TomatoApi {
   fetchModels(): Promise<{ models: ModelInfo[]; error?: string }>;
   getSettingsState(): Promise<SettingsState>;
   updateModel(modelId: string): void;
+  updateAnalyticsEnabled(enabled: boolean): void;
   quitApp(): void;
   openSettings(): void;
   closeSettings(): void;

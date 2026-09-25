@@ -70,12 +70,14 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modelError, setModelError] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     window.tomato.getSettingsState().then((state) => {
       setSettingsState(state);
       setSelectedModel(state.selectedModel);
+      setAnalyticsEnabled(state.analyticsEnabled);
       setMode(state.hasApiKey ? 'saved' : 'no-key');
 
       if (state.hasApiKey) {
@@ -165,6 +167,12 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
     setDropdownOpen(false);
     window.tomato.updateModel(modelId);
     setToastMessage(`Switched to ${formatModelName(modelId)}`);
+  }
+
+  function handleAnalyticsToggle() {
+    const next = !analyticsEnabled;
+    setAnalyticsEnabled(next);
+    window.tomato.updateAnalyticsEnabled(next);
   }
 
   const dismissToast = useCallback(() => setToastMessage(null), []);
@@ -323,6 +331,39 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
             Models are fetched live from your Anthropic account.
           </p>
         )}
+
+        <div className="flex flex-col gap-2 border-t border-border pt-4">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs font-semibold text-text">Share anonymous usage data</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={analyticsEnabled}
+              aria-label="Share anonymous usage data"
+              data-testid="analytics-toggle"
+              onClick={handleAnalyticsToggle}
+              className={`relative h-5 w-9 shrink-0 cursor-pointer rounded-full border-0 p-0 transition-colors duration-200 ${
+                analyticsEnabled ? 'bg-[#7CB342]' : 'bg-[#D6D2C8]'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.1)] transition-[left] duration-200 ${
+                  analyticsEnabled ? 'left-5' : 'left-0.5'
+                }`}
+              />
+            </button>
+          </div>
+          <p className="m-0 text-xs leading-normal text-muted">
+            Counts of sessions and setup steps. Never your screen, your goals, or your API key.{' '}
+            <a
+              href="https://tomatoapp.dev/privacy.html"
+              onClick={(e) => { e.preventDefault(); window.open('https://tomatoapp.dev/privacy.html', '_blank'); }}
+              className="cursor-pointer font-medium text-[#B86B60] no-underline"
+            >
+              How this works &rarr;
+            </a>
+          </p>
+        </div>
       </div>
 
       {toastMessage && <Toast message={toastMessage} onDone={dismissToast} />}
