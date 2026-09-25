@@ -549,6 +549,12 @@ function togglePause(): void {
 }
 
 async function endSession(endReason: SessionEndReason = 'user_ended'): Promise<void> {
+  // Re-entry guard: the "End session" click has no immediate visual feedback
+  // (the LLM summarization call below can take seconds), so a user can click
+  // twice, and the deferred quit flow can also race the timer tick. Without
+  // this guard a second invocation would emit a duplicate `session_ended`.
+  if (!sessionState.active) return;
+
   sessionState.active = false;
   sessionState.paused = false;
   if (timerInterval) {
@@ -949,6 +955,10 @@ app.whenReady().then(async () => {
 });
 
 function cleanup(): void {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
   stopScreenpipe();
   if (focusTracker) focusTracker.stop();
   if (debugWin) {

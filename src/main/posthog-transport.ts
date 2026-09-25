@@ -19,9 +19,6 @@ export function createPostHogTransport(token: string, host: string): AnalyticsTr
     // page discloses this.
     disableGeoip: false,
   });
-  // If the installed posthog-node rejects `disableGeoip` as a constructor option,
-  // pass `disableGeoip: false` on each `client.capture({...})` call instead — do not
-  // silently drop it, or every event loses its country.
 
   return {
     capture: ({ distinctId, event, properties }) => {
