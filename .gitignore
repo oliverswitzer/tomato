@@ -13,3 +13,6 @@ ARCHITECTURE.md
 KNOWN-GAPS.md
 .claude/worktrees
 /tmp/
+.codex/*
+.agents
+.DS_Store
