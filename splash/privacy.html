@@ -106,6 +106,7 @@
       <li><code>hud_toggled</code> — whether you expanded or collapsed the timer</li>
     </ul>
     <p>On this website, PostHog also records page views and three events on the download button: that you opened the email form, that you dismissed it, and that you completed the download. Autocapture and session replay are switched off in both the app and the website — we do not record your clicks, your keystrokes, or your screen.</p>
+    <p>Every event, in the app and on this website, also carries whether it came from a released build or from a developer's local run, so our own testing does not show up in the numbers. Nothing else is attached.</p>
 
     <h2 class="serif">What we never collect</h2>
     <p>Tomato has no backend of its own. Nothing below is ever sent to us or to PostHog &mdash; the only place any of your activity text goes is Anthropic, under your own API key, as listed above:</p>

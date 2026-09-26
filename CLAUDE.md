@@ -132,7 +132,10 @@ main.ts —analytics.capture(typedEvent)→ analytics.ts —AnalyticsTransport�
   commit a `phx_` personal API key.
 - Every event carries `environment: 'development' | 'production'` (from `app.isPackaged`, stamped
   once in `createAnalytics`), so production funnels filter `environment = 'production'` and local
-  runs never inflate them. Verify live delivery with `npm run verify:analytics`; see
+  runs never inflate them. The splash half adopts the same contract by a different mechanism:
+  `splash/index.html` derives it from `location.hostname` (only `tomatoapp.dev` is production, so
+  localhost and `*.vercel.app` previews are not) and attaches it with `posthog.register()`, which
+  tags `$pageview` too. Verify live delivery with `npm run verify:analytics`; see
   `docs/analytics-verification.md`.
 - `src/main/machine-id.ts` — hardware UUID (`IOPlatformUUID` via `ioreg`, hostname fallback) plus
   `anonymousDistinctId()`, a salted SHA-256 truncated to 32 chars. The raw UUID is never sent.

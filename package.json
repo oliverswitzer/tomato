@@ -13,6 +13,7 @@
     "start": "npm run build && electron dist/main/main.js",
     "typecheck": "tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.renderer.json --noEmit",
     "verify": "npm run typecheck && npm test",
+    "verify:analytics": "TOMATO_LIVE_ANALYTICS=1 vitest run src/main/__tests__/analytics.live.test.ts",
     "test": "vitest run",
     "pack": "npm run build && npx electron-rebuild && electron-builder --mac --dir && bash scripts/sign.sh",
     "dist": "npm run build && npx electron-rebuild && electron-builder --mac"
