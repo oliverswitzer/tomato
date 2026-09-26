@@ -2,8 +2,9 @@ import { PostHog } from 'posthog-node';
 import type { AnalyticsTransport } from './analytics';
 
 /**
- * Returns null when no project token is compiled in, which is the default in dev
- * and CI — callers treat that as "log locally, send nothing".
+ * Returns null when the token is empty — callers treat that as "log locally, send
+ * nothing". A live token is compiled in (src/config/analytics.ts), so this is the
+ * opt-out path (`TOMATO_POSTHOG_TOKEN=`), not the default.
  */
 export function createPostHogTransport(token: string, host: string): AnalyticsTransport | null {
   if (!token) return null;

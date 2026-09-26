@@ -121,9 +121,12 @@ main.ts —analytics.capture(typedEvent)→ analytics.ts —AnalyticsTransport�
   text, window titles, screen content, file paths and the API key must never be sent.
 - `src/main/analytics.ts` — the only interface call sites use. **Zero third-party imports**; the
   PostHog client lives behind an injected `AnalyticsTransport`, mirroring the `SqliteDatabase` DI
-  pattern, so tests use a fake and never load `posthog-node` or touch the network.
+  pattern, so the `analytics.ts` tests use a fake and never touch the network; only the opt-in
+  live suite (`npm run verify:analytics`) loads `posthog-node` and reaches the network.
 - `src/main/posthog-transport.ts` — the only `posthog-node` importer. Built only when a token is
-  present; the factory returns `null` otherwise, so the whole send path is inert by default.
+  present; the factory returns `null` only when the token is empty. Since the live token is
+  compiled in (next bullet), the send path is **live by default** — it goes inert only when the
+  token is blanked via `TOMATO_POSTHOG_TOKEN=`.
 - `src/config/analytics.ts` — `POSTHOG_PROJECT_TOKEN`, **compiled in at build time** (a packaged
   macOS app launched from Finder inherits no shell env). The live project token is committed here
   and in the `splash/index.html` snippet; a `phc_` project token is a public, write-only key, so
