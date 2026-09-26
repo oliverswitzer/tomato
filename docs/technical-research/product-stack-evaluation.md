@@ -7,7 +7,7 @@
 
 ## Current State
 
-- **Analytics:** None in-app. Splash page has no Vercel Analytics configured.
+- **Analytics:** PostHog in-app and on the splash page as of card TO1 (2026-09-25). At the time of writing (2026-05-03) there was none.
 - **Payments:** None. App is free, requires user's own API key.
 - **A/B testing:** None.
 - **Feedback:** None. No Canny integration despite having an account.
@@ -76,6 +76,16 @@ A single serverless function (Vercel or Supabase Edge Function) that inserts row
 2. **Minimal self-hosted events endpoint** for in-app telemetry (3-5 anonymous events)
 
 **Add PostHog later** when we need feature flags, session replay, or deeper behavioral analytics (100+ users).
+
+> **Superseded (2026-09-25, card TO1).** This section's verdict was reached for a different
+> question. The question that actually got asked — *after someone downloads Tomato, do they get
+> through setup, start sessions, and come back?* — is one Vercel Analytics structurally cannot
+> answer (it is web-only and cannot see the app), and one a hand-rolled events table answers
+> painfully (no cohort or funnel views). Tomato now uses **PostHog** for both halves of the funnel:
+> `posthog-js` on the splash page and `posthog-node` in the Electron main process, with autocapture
+> and session replay off in both. See `splash/privacy.html` for the full event list, and
+> `src/shared/analytics-events.ts` for the typed catalog. The "self-hosted events endpoint" below
+> was never built.
 
 ---
 

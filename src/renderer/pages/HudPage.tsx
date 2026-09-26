@@ -25,12 +25,11 @@ export function HudPage() {
 
   const toggleExpand = useCallback(() => {
     setManualOverride(true);
-    setIsExpanded((prev) => {
-      const next = !prev;
-      resize(next);
-      return next;
-    });
-  }, [resize]);
+    const next = !isExpanded;
+    setIsExpanded(next);
+    resize(next);
+    window.tomato.hudToggled(next);
+  }, [isExpanded, resize]);
 
   useEffect(() => {
     window.tomato.timerReady();

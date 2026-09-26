@@ -1,8 +1,7 @@
 import crypto from 'crypto';
-import { execFileSync } from 'child_process';
-import os from 'os';
 import fs from 'fs';
 import path from 'path';
+import { getMachineId } from './machine-id';
 
 const ENCRYPTION_SALT = 'com.tomato.pomodoro.v1';
 
@@ -12,13 +11,16 @@ interface KeychainStore {
   deleteApiKey(): void;
   setSelectedModel(model: string): void;
   getSelectedModel(): string | null;
+  getAnalyticsEnabled(): boolean;
+  setAnalyticsEnabled(enabled: boolean): void;
+  consumeFirstLaunch(): boolean;
 }
 
 export class ElectronKeychainStore implements KeychainStore {
   private encryptionKey: Buffer;
 
   constructor(private storagePath: string, machineId?: string) {
-    const id = machineId ?? ElectronKeychainStore.getMachineId();
+    const id = machineId ?? getMachineId();
     this.encryptionKey = crypto.createHash('sha256')
       .update(ENCRYPTION_SALT + id)
       .digest();
@@ -66,6 +68,28 @@ export class ElectronKeychainStore implements KeychainStore {
     return typeof val === 'string' ? val : null;
   }
 
+  // --- Non-secret preferences. Plain JSON: these are settings, not secrets. ---
+
+  getAnalyticsEnabled(): boolean {
+    const val = this.readJson('preferences.json')?.analyticsEnabled;
+    return typeof val === 'boolean' ? val : true; // on by default
+  }
+
+  setAnalyticsEnabled(enabled: boolean): void {
+    this.writeJson('preferences.json', {
+      ...this.readJson('preferences.json'),
+      analyticsEnabled: enabled,
+    });
+  }
+
+  /** True the very first time this machine ever launches Tomato, false afterwards. */
+  consumeFirstLaunch(): boolean {
+    const prefs = this.readJson('preferences.json');
+    if (prefs?.hasLaunchedBefore === true) return false;
+    this.writeJson('preferences.json', { ...prefs, hasLaunchedBefore: true });
+    return true;
+  }
+
   private keyFilePath(): string {
     return path.join(this.storagePath, 'api-key.enc');
   }
@@ -85,14 +109,5 @@ export class ElectronKeychainStore implements KeychainStore {
   private writeJson(name: string, data: Record<string, unknown>): void {
     fs.mkdirSync(this.storagePath, { recursive: true });
     fs.writeFileSync(this.jsonFilePath(name), JSON.stringify(data, null, 2));
-  }
-
-  private static getMachineId(): string {
-    try {
-      const output = execFileSync('ioreg', ['-rd1', '-c', 'IOPlatformExpertDevice']).toString();
-      const match = output.match(/"IOPlatformUUID"\s*=\s*"([^"]+)"/);
-      if (match) return match[1];
-    } catch {}
-    return os.hostname();
   }
 }

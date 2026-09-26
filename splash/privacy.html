@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy — Tomato</title>
+  <link rel="canonical" href="https://tomatoapp.dev/privacy.html">
+  <meta name="description" content="What Tomato collects, what it never collects, and how to turn analytics off.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --cream: #FAF4E8;
+      --cream-light: #FFFBF1;
+      --brown-dark: #2B2620;
+      --brown-body: #6F665B;
+      --brown-muted: #9C9286;
+      --brown-border: rgba(43, 38, 32, 0.12);
+      --red: #D85440;
+      --divider: #EDE4D2;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      color: var(--brown-dark);
+      background: var(--cream);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .serif { font-family: 'Fraunces', Georgia, serif; }
+
+    .page { max-width: 720px; margin: 0 auto; padding: 32px 24px 72px; }
+
+    .nav { display: flex; align-items: center; justify-content: space-between; padding-bottom: 48px; }
+    .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--brown-dark); }
+    .brand-emoji { font-size: 20px; }
+    .brand-name { font-size: 20px; font-weight: 600; }
+    .nav a.back { font-size: 14px; font-weight: 500; color: var(--red); text-decoration: none; }
+
+    h1 { font-size: 40px; font-weight: 600; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 12px; }
+    .updated { font-size: 13px; color: var(--brown-muted); margin-bottom: 40px; }
+
+    h2 { font-size: 22px; font-weight: 600; line-height: 1.25; margin: 40px 0 12px; }
+    p { font-size: 16px; line-height: 1.65; color: var(--brown-body); margin-bottom: 14px; }
+    ul { margin: 0 0 14px 20px; }
+    li { font-size: 16px; line-height: 1.65; color: var(--brown-body); margin-bottom: 8px; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; background: var(--cream-light); border: 1px solid var(--brown-border); border-radius: 5px; padding: 1px 5px; }
+    strong { color: var(--brown-dark); font-weight: 600; }
+
+    .callout { background: var(--cream-light); border: 1px solid var(--brown-border); border-radius: 16px; padding: 20px 22px; margin: 24px 0; }
+    .callout p:last-child { margin-bottom: 0; }
+
+    .footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--divider); display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--brown-muted); }
+
+    @media (max-width: 640px) {
+      h1 { font-size: 32px; }
+      .page { padding: 24px 20px 56px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="nav">
+      <a class="brand" href="/">
+        <span class="brand-emoji">🍅</span>
+        <span class="serif brand-name">Tomato</span>
+      </a>
+      <a class="back" href="/">&larr; Back to Tomato</a>
+    </nav>
+
+    <h1 class="serif">Privacy</h1>
+    <p class="updated">Last updated 25 September 2026</p>
+
+    <p>Tomato watches your screen so it can tell you when you have drifted off the thing you said you were going to do. That is an unusual amount of trust to ask for, so here is exactly what happens to that data — and what does not.</p>
+
+    <div class="callout">
+      <p><strong>The short version.</strong> Your screen recording and your session journal never leave your Mac. So the app can describe what you are doing, it sends <em>text</em> about your recent activity — your session goal, window titles, browser URLs, the text you typed, and headings read off the screen — to Anthropic, using your own API key. Separately, anonymous counts — how many sessions you ran, which setup steps you finished — go to PostHog, and you can switch those off in Settings.</p>
+    </div>
+
+    <h2 class="serif">What stays on your Mac</h2>
+    <p>Tomato uses a local screen recorder to capture what is on screen — window titles, browser tabs, and on-screen text. That capture, and the journal of focus sessions built from it, live in a database on your own machine. The recording itself — every screenshot and every frame of video — is never uploaded anywhere, and neither is the journal. Some of the <em>text</em> drawn from the capture is sent to Anthropic so it can be summarised; the next section says exactly which text.</p>
+
+    <h2 class="serif">What goes to Anthropic</h2>
+    <p>Every few minutes, and again when a session ends, Tomato sends a description of your recent activity to Anthropic's API, using <strong>your own API key</strong>, and gets back a one-line summary plus a judgement about whether you have drifted. It is sent as text — no screenshots and no video are ever sent — and it contains:</p>
+    <ul>
+      <li>the session goal you typed, word for word</li>
+      <li>the app names and window titles you were in</li>
+      <li>browser URLs</li>
+      <li>the text you typed, as captured</li>
+      <li>headings and other on-screen text read from the accessibility layer</li>
+    </ul>
+    <p>This is the least we can send and still tell focus from drift. It goes to Anthropic under the key you supply, and Anthropic's handling of it is governed by their own terms — not by us. We never see it.</p>
+
+    <h2 class="serif">What goes to PostHog</h2>
+    <p>Tomato sends a small set of anonymous counts to PostHog so we can tell whether people who download the app actually get through setup and come back. This is the complete list — there is nothing else:</p>
+    <ul>
+      <li><code>app_launched</code> — app version, and whether this was the first launch on this machine</li>
+      <li><code>onboarding_step_completed</code> — which setup step finished: screen permission, accessibility permission, or API key</li>
+      <li><code>onboarding_completed</code> — app version</li>
+      <li><code>session_started</code> — the planned length of the session, in minutes</li>
+      <li><code>session_ended</code> — planned length, actual length, whether it ended early, and why</li>
+      <li><code>hud_toggled</code> — whether you expanded or collapsed the timer</li>
+    </ul>
+    <p>On this website, PostHog also records page views and three events on the download button: that you opened the email form, that you dismissed it, and that you completed the download. Autocapture and session replay are switched off in both the app and the website — we do not record your clicks, your keystrokes, or your screen.</p>
+
+    <h2 class="serif">What we never collect</h2>
+    <p>Tomato has no backend of its own. Nothing below is ever sent to us or to PostHog &mdash; the only place any of your activity text goes is Anthropic, under your own API key, as listed above:</p>
+    <ul>
+      <li><strong>Screen content.</strong> No screenshots and no video leave your Mac at all. The on-screen text read from the capture goes only to Anthropic, never to us.</li>
+      <li><strong>Window titles and browser tabs.</strong> Used locally and included in the text sent to Anthropic; never transmitted to us or to PostHog.</li>
+      <li><strong>Your goal text.</strong> Sent to Anthropic under your own key so it can judge drift; never sent to us or to PostHog.</li>
+      <li><strong>Your Anthropic API key.</strong> Encrypted at rest on your Mac, and never included in any event.</li>
+      <li><strong>Your name, email, or account.</strong> Tomato has no accounts and no login.</li>
+    </ul>
+
+    <h2 class="serif">How you are identified</h2>
+    <p>Analytics events are tagged with a one-way hash of your Mac's hardware identifier, truncated to 32 characters. It cannot be reversed back to your machine, and it is not linked to your email or to anything you type. Its only job is to let us tell one returning user from two new ones.</p>
+    <p>PostHog also derives an approximate country from the IP address the request arrives on. Under PostHog's default settings that IP address is retained alongside the event; it is not used for anything beyond country-level geography.</p>
+
+    <h2 class="serif">Turning analytics off</h2>
+    <p>Open <strong>Settings</strong> from the Tomato menu-bar icon and switch off <strong>Share anonymous usage data</strong>. It takes effect immediately — no restart — and nothing further is sent. The app works exactly the same either way.</p>
+
+    <h2 class="serif">The email you give us</h2>
+    <p>If you enter an email to download Tomato, it is stored by our email provider and used only to send occasional product updates. Every message has an unsubscribe link.</p>
+
+    <div class="footer">
+      <span>🍅</span>
+      <span>Tomato &nbsp;·&nbsp; © 2026 &nbsp;·&nbsp; A focus partner for macOS</span>
+    </div>
+  </div>
+</body>
+</html>

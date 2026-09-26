@@ -70,7 +70,7 @@ The API key is encrypted at rest using AES-256-GCM and stored at `~/Library/Appl
 
 This deliberately avoids Electron's `safeStorage` API, which uses macOS Keychain internally and triggers a system prompt ("Tomato wants to use your confidential information stored in 'Tomato Safe Storage'") that cannot be suppressed. The crypto-based approach produces zero system dialogs on any launch.
 
-The `ElectronKeychainStore` constructor accepts an optional `machineId` parameter for testing (avoids calling `ioreg` in CI). Users upgrading from an older safeStorage-based build will need to re-enter their API key once.
+The hardware-UUID lookup itself lives in `src/main/machine-id.ts` (`getMachineId()`), shared with the analytics distinct-id. The `ElectronKeychainStore` constructor accepts an optional `machineId` parameter for testing (avoids calling `ioreg` in CI). Users upgrading from an older safeStorage-based build will need to re-enter their API key once.
 
 ## ANTHROPIC_API_KEY
 
@@ -108,6 +108,37 @@ Key modules:
 - `timeline-builder.ts` — assembles timeline, collapses consecutive typing in same app/window
 - `llm-summarizer.ts` — batch summarization + session summary with focus score
 - `focus-tracker.ts` — orchestrator with two timers
+
+### Analytics
+
+```
+main.ts —analytics.capture(typedEvent)→ analytics.ts —AnalyticsTransport→ posthog-transport.ts → PostHog
+```
+
+- `src/shared/analytics-events.ts` — `AnalyticsEvent` as a **discriminated union**. A caller
+  physically cannot invent an event or attach a free-text property, which is what makes the
+  privacy guarantee structural rather than a convention. Never add a free-text field: intention
+  text, window titles, screen content, file paths and the API key must never be sent.
+- `src/main/analytics.ts` — the only interface call sites use. **Zero third-party imports**; the
+  PostHog client lives behind an injected `AnalyticsTransport`, mirroring the `SqliteDatabase` DI
+  pattern, so tests use a fake and never load `posthog-node` or touch the network.
+- `src/main/posthog-transport.ts` — the only `posthog-node` importer. Built only when a token is
+  present; the factory returns `null` otherwise, so the whole send path is inert by default.
+- `src/config/analytics.ts` — `POSTHOG_PROJECT_TOKEN`, **compiled in at build time** (a packaged
+  macOS app launched from Finder inherits no shell env). Empty in the repo: paste the token here
+  and into the `splash/index.html` snippet to switch analytics on.
+- `src/main/machine-id.ts` — hardware UUID (`IOPlatformUUID` via `ioreg`, hostname fallback) plus
+  `anonymousDistinctId()`, a salted SHA-256 truncated to 32 chars. The raw UUID is never sent.
+- Opt-out lives in Settings and is honoured immediately, with no restart.
+
+IPC channels for the above: `hud-toggled` (renderer → main, HUD expand/collapse) and
+`update-analytics-enabled` (renderer → main, opt-out toggle). Both go through the preload bridge.
+
+### On-disk state (`app.getPath('userData')`)
+
+- `api-key.enc` — the AES-256-GCM encrypted API key (see below)
+- `onboarding.json` — onboarding progress and `selectedModel`
+- `preferences.json` — non-secret settings: `analyticsEnabled`, `hasLaunchedBefore`
 
 ## Renderer state & styling
 
