@@ -26,6 +26,65 @@ export interface ActivityTimeline {
   dominantApp: string;
 }
 
+const MIN_NOVEL_SCREEN_TEXT_CHARS = 40;
+
+function normalizeScreenTextLine(line: string): string {
+  return line.trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+export function removeRepeatedScreenLines(
+  screenText: string | null,
+  previousAppScreenText: string | null | undefined,
+): string | null {
+  if (!screenText) return null;
+  if (!previousAppScreenText) return screenText;
+
+  const previousLines = new Set(
+    previousAppScreenText
+      .split('\n')
+      .map((line) => normalizeScreenTextLine(line))
+      .filter((line) => line.length > 0),
+  );
+
+  if (previousLines.size === 0) return screenText;
+
+  const novelLines = screenText
+    .split('\n')
+    .map((line) => line.trimEnd())
+    .filter((line) => {
+      const normalized = normalizeScreenTextLine(line);
+      return normalized.length > 0 && !previousLines.has(normalized);
+    });
+
+  const novelText = novelLines.join('\n').trim();
+  if (novelText.length >= MIN_NOVEL_SCREEN_TEXT_CHARS) return novelText;
+  return screenText;
+}
+
+function uniqueNonNullStrings(values: Array<string | null | undefined>): string[] {
+  return [...new Set(values.filter((value): value is string => value != null))];
+}
+
+function getFrameWithBestScreenText(frames: PassiveFrameRow[]): PassiveFrameRow | null {
+  return frames.reduce<PassiveFrameRow | null>((best, frame) => {
+    if (!frame.screen_text) return best;
+    if (!best?.screen_text || frame.screen_text.length > best.screen_text.length) return frame;
+    return best;
+  }, null);
+}
+
+function buildPassiveContext(frames: PassiveFrameRow[], clickEvents: ClickEventRow[]): PassiveContext {
+  const frameWithBestText = getFrameWithBestScreenText(frames);
+  return {
+    urls: uniqueNonNullStrings(frames.map((frame) => frame.browser_url)),
+    screenText: removeRepeatedScreenLines(
+      frameWithBestText?.screen_text ?? null,
+      frameWithBestText?.previous_app_screen_text,
+    ),
+    clickTargets: uniqueNonNullStrings(clickEvents.map((clickEvent) => clickEvent.element_name)),
+  };
+}
+
 export class TimelineBuilder {
   buildFromDb(db: ScreenpipeDb, since: string, until: string): ActivityTimeline {
     const textEvents = db.getTextEvents(since, until);
@@ -151,15 +210,10 @@ export class TimelineBuilder {
     for (const [, group] of grouped) {
       const first = group[0];
       const last = group[group.length - 1];
-      const urls = [...new Set(group.map((f) => f.browser_url).filter((u): u is string => u != null))];
-      const longestText = group.reduce<string | null>(
-        (best, f) => (f.screen_text && (!best || f.screen_text.length > best.length) ? f.screen_text : best),
-        null,
+      const passiveContext = buildPassiveContext(
+        group,
+        clickEvents.filter((clickEvent) => clickEvent.app_name === first.app_name),
       );
-      const clicks = clickEvents
-        .filter((c) => c.app_name === first.app_name)
-        .map((c) => c.element_name)
-        .filter((n): n is string => n != null);
 
       raw.push({
         timestamp: first.timestamp,
@@ -169,12 +223,8 @@ export class TimelineBuilder {
         typedText: null,
         eventType: 'passive',
         accessibilityHints: [],
-        browserUrl: urls[0] ?? null,
-        passiveContext: {
-          urls,
-          screenText: longestText,
-          clickTargets: [...new Set(clicks)],
-        },
+        browserUrl: passiveContext.urls[0] ?? null,
+        passiveContext,
       });
     }
   }
@@ -194,26 +244,20 @@ export class TimelineBuilder {
 
       if (overlapping.length === 0) return entry;
 
-      const urls = [...new Set(overlapping.map((f) => f.browser_url).filter((u): u is string => u != null))];
-      const longestText = overlapping.reduce<string | null>(
-        (best, f) => (f.screen_text && (!best || f.screen_text.length > best.length) ? f.screen_text : best),
-        null,
+      const passiveContext = buildPassiveContext(
+        overlapping,
+        clickEvents.filter(
+          (clickEvent) =>
+            clickEvent.app_name === entry.app &&
+            clickEvent.timestamp >= entryStart &&
+            clickEvent.timestamp <= entryEnd,
+        ),
       );
-      const clicks = clickEvents
-        .filter(
-          (c) => c.app_name === entry.app && c.timestamp >= entryStart && c.timestamp <= entryEnd,
-        )
-        .map((c) => c.element_name)
-        .filter((n): n is string => n != null);
 
       return {
         ...entry,
-        browserUrl: entry.browserUrl ?? urls[0] ?? null,
-        passiveContext: {
-          urls,
-          screenText: longestText,
-          clickTargets: [...new Set(clicks)],
-        },
+        browserUrl: entry.browserUrl ?? passiveContext.urls[0] ?? null,
+        passiveContext,
       };
     });
   }

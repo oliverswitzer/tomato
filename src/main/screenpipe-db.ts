@@ -43,6 +43,7 @@ export interface PassiveFrameRow {
   window_name: string;
   browser_url: string | null;
   screen_text: string | null;
+  previous_app_screen_text?: string | null;
   capture_trigger: string | null;
 }
 
@@ -158,14 +159,27 @@ export class SqliteScreenpipeDb implements ScreenpipeDb {
   getPassiveFrames(since: string, until: string): PassiveFrameRow[] {
     return this.db
       .prepare(
-        `SELECT id, timestamp, app_name, window_name, browser_url,
-           substr(full_text, 1, 500) as screen_text,
-           capture_trigger
-         FROM frames
-         WHERE app_name IS NOT NULL
-           AND timestamp BETWEEN ? AND ?
-         GROUP BY content_hash
-         ORDER BY timestamp ASC`,
+        `SELECT f.id, f.timestamp, f.app_name, f.window_name, f.browser_url,
+           substr(f.full_text, 1, 2000) as screen_text,
+           substr(
+             (
+               SELECT f2.full_text
+               FROM frames f2
+               WHERE f2.app_name = f.app_name
+                 AND f2.timestamp < f.timestamp
+                 AND f2.full_text IS NOT NULL AND length(f2.full_text) > 0
+               ORDER BY f2.timestamp DESC
+               LIMIT 1
+             ),
+             1,
+             2000
+           ) as previous_app_screen_text,
+           f.capture_trigger
+         FROM frames f
+         WHERE f.app_name IS NOT NULL
+           AND f.timestamp BETWEEN ? AND ?
+         GROUP BY f.content_hash
+         ORDER BY f.timestamp ASC`,
       )
       .all(since, until) as PassiveFrameRow[];
   }

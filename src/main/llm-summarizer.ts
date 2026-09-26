@@ -121,7 +121,7 @@ export class AnthropicLlmClient implements LlmClient {
               if (e.typedText) parts.push(`  typed: "${e.typedText}"`);
               if (e.eventType === 'app_switch') parts.push('  (switched to this app)');
               if (e.eventType === 'clipboard') parts.push('  (clipboard)');
-              if (e.eventType === 'passive') parts.push('  (passive consumption — no typing detected)');
+              if (e.eventType === 'passive') parts.push('  (passive viewing — no typing detected)');
               if (e.accessibilityHints.length > 0)
                 parts.push(`  headings: ${e.accessibilityHints.join(', ')}`);
               return parts.join('\n');
@@ -229,12 +229,34 @@ Consider this trajectory when assessing drift. A user who has been on-track and 
       parts.push(`URLs visited: ${allUrls.join(', ')}`);
     }
     if (allScreenTexts.length > 0) {
-      parts.push(`Screen text: ${allScreenTexts[0].slice(0, 200)}`);
+      const primaryScreenText = allScreenTexts.reduce((best, text) =>
+        text.length > best.length ? text : best,
+      );
+      const excerpts = this.buildScreenTextExcerpts(primaryScreenText);
+      parts.push(`Screen text (start): ${excerpts.start}`);
+      if (excerpts.middle) parts.push(`Screen text (middle): ${excerpts.middle}`);
+      if (excerpts.end) parts.push(`Screen text (end): ${excerpts.end}`);
     }
     if (allClickTargets.length > 0) {
       parts.push(`Click targets: ${allClickTargets.join(', ')}`);
     }
     return parts.join('\n');
+  }
+
+  private buildScreenTextExcerpts(screenText: string): { start: string; middle?: string; end?: string } {
+    const excerptChars = 220;
+    const compact = screenText.replace(/\s+/g, ' ').trim();
+    if (compact.length <= excerptChars) return { start: compact };
+
+    const start = compact.slice(0, excerptChars);
+    if (compact.length <= excerptChars * 2) {
+      return { start, end: compact.slice(-excerptChars) };
+    }
+
+    const middleStart = Math.max(0, Math.floor((compact.length - excerptChars) / 2));
+    const middle = compact.slice(middleStart, middleStart + excerptChars);
+    const end = compact.slice(-excerptChars);
+    return { start, middle, end };
   }
 
   private parseResponse(text: string, usage: TokenUsage): BatchSummaryResult | null {

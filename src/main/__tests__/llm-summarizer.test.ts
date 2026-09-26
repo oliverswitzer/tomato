@@ -374,8 +374,49 @@ describe('AnthropicLlmClient', () => {
       const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
       expect(prompt).toContain('Passive Context');
       expect(prompt).toContain('URLs visited: https://www.youtube.com/watch?v=tU52nLIUz8Y');
-      expect(prompt).toContain('Screen text: How i book 3-5 meetings a day');
+      expect(prompt).toContain('Screen text (start): How i book 3-5 meetings a day');
       expect(prompt).toContain('Click targets: Start 25-minute session, Refocus');
+    });
+
+    it('includes middle and end passive screen-text excerpts for long content', async () => {
+      const anthropic = makeMockAnthropic(validResponse);
+      const client = new AnthropicLlmClient(anthropic);
+
+      const longScreenText = [
+        'START_MARKER ChatGPT sidebar Recents Projects',
+        ...Array(40).fill('filler-start'),
+        'MIDDLE_MARKER Packing List Planning Bear Care Schedule',
+        ...Array(40).fill('filler-middle'),
+        'END_MARKER finalize checklist socks chargers medicine',
+      ].join(' ');
+
+      const timeline = sampleTimeline({
+        entries: [
+          {
+            timestamp: '2026-04-25T10:00:05Z',
+            app: 'ChatGPT Classic',
+            window: 'Financial Advice',
+            typedText: null,
+            eventType: 'passive',
+            accessibilityHints: [],
+            browserUrl: null,
+            passiveContext: {
+              urls: [],
+              screenText: longScreenText,
+              clickTargets: [],
+            },
+          },
+        ],
+      });
+
+      await client.batchSummarize(timeline, 'Plan my trip packing list');
+
+      const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
+      expect(prompt).toContain('Screen text (start):');
+      expect(prompt).toContain('Screen text (middle):');
+      expect(prompt).toContain('Screen text (end):');
+      expect(prompt).toContain('MIDDLE_MARKER Packing List Planning Bear Care Schedule');
+      expect(prompt).toContain('END_MARKER finalize checklist socks chargers medicine');
     });
 
     it('includes anti-hallucination instruction in prompt', async () => {
@@ -388,7 +429,7 @@ describe('AnthropicLlmClient', () => {
       expect(prompt).toContain('Do not infer or fabricate video titles, article names, or page content that is not explicitly shown');
     });
 
-    it('marks passive entries with passive consumption label in prompt', async () => {
+    it('marks passive entries with passive viewing label in prompt', async () => {
       const anthropic = makeMockAnthropic(validResponse);
       const client = new AnthropicLlmClient(anthropic);
 
@@ -409,7 +450,7 @@ describe('AnthropicLlmClient', () => {
       await client.batchSummarize(timeline, 'Build it');
 
       const prompt = anthropic.messages.create.mock.calls[0][0].messages[0].content;
-      expect(prompt).toContain('passive consumption');
+      expect(prompt).toContain('passive viewing');
     });
 
     it('omits passive context section when no passive data exists', async () => {
