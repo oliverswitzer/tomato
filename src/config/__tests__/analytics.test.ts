@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { POSTHOG_PROJECT_TOKEN, POSTHOG_HOST } from '../analytics';
+import { POSTHOG_PROJECT_TOKEN, POSTHOG_HOST, maskToken } from '../analytics';
 
 describe('PostHog configuration', () => {
   it('ships a non-empty project token, so a release build actually sends', () => {
@@ -56,5 +56,25 @@ describe('splash/index.html PostHog snippet', () => {
   it('keeps autocapture and session replay off', () => {
     expect(html).toContain('autocapture: false');
     expect(html).toContain('disable_session_recording: true');
+  });
+});
+
+describe('maskToken', () => {
+  it('reports the absence of a token distinguishably from a real one', () => {
+    expect(maskToken('')).toBe('(none)');
+  });
+
+  it('shows enough of a real token to tell two projects apart', () => {
+    expect(maskToken(POSTHOG_PROJECT_TOKEN)).toBe('phc_tVk4…PrtA');
+  });
+
+  it('never reveals the whole token, which is what makes it safe to log', () => {
+    const masked = maskToken(POSTHOG_PROJECT_TOKEN);
+    expect(masked).not.toBe(POSTHOG_PROJECT_TOKEN);
+    expect(masked).not.toContain(POSTHOG_PROJECT_TOKEN.slice(8, -4));
+  });
+
+  it('degrades safely on a short string instead of leaking all of it', () => {
+    expect(maskToken('phc_abc')).toBe('phc_…');
   });
 });

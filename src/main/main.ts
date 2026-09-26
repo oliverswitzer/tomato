@@ -33,7 +33,7 @@ import {
   type SessionEndReason,
   type AnalyticsEnvironment,
 } from '../shared/analytics-events';
-import { POSTHOG_PROJECT_TOKEN, POSTHOG_HOST } from '../config/analytics';
+import { POSTHOG_PROJECT_TOKEN, POSTHOG_HOST, maskToken } from '../config/analytics';
 
 const APP_ROOT = path.join(__dirname, '..', '..');
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
@@ -925,9 +925,11 @@ app.whenReady().then(async () => {
     environment: ANALYTICS_ENVIRONMENT,
     log,
   });
+  // Say out loud which token this is. TO1 shipped unable to send anything and the log
+  // looked identical either way, which is why an empty dashboard went unnoticed.
   log(
     `[analytics] transport ${POSTHOG_TOKEN ? 'live' : 'disabled'} ` +
-      `env=${ANALYTICS_ENVIRONMENT} host=${POSTHOG_HOST}`,
+      `token=${maskToken(POSTHOG_TOKEN)} env=${ANALYTICS_ENVIRONMENT} host=${POSTHOG_HOST}`,
   );
   analytics.capture({
     name: 'app_launched',
