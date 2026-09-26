@@ -1686,6 +1686,10 @@
       var input = document.getElementById('email-input');
       var errorEl = document.getElementById('email-error');
 
+      // Analytics is fire-and-forget: if the head <script> ever fails to evaluate,
+      // fall back to a no-op so a missing tomatoTrack cannot throw on the download path.
+      window.tomatoTrack = window.tomatoTrack || function () {};
+
       function openOverlay(e) {
         e.preventDefault();
         overlay.classList.add('active');

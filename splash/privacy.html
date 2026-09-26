@@ -110,7 +110,7 @@
 
     <h2 class="serif">How you are identified</h2>
     <p>Analytics events are tagged with a one-way hash of your Mac's hardware identifier, truncated to 32 characters. It cannot be reversed back to your machine, and it is not linked to your email or to anything you type. Its only job is to let us tell one returning user from two new ones.</p>
-    <p>PostHog also derives an approximate country from the IP address the request arrives on. The IP address itself is not stored as an event property.</p>
+    <p>PostHog also derives an approximate country from the IP address the request arrives on. Under PostHog's default settings that IP address is retained alongside the event; it is not used for anything beyond country-level geography.</p>
 
     <h2 class="serif">Turning analytics off</h2>
     <p>Open <strong>Settings</strong> from the Tomato menu-bar icon and switch off <strong>Share anonymous usage data</strong>. It takes effect immediately — no restart — and nothing further is sent. The app works exactly the same either way.</p>

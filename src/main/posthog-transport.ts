@@ -15,8 +15,10 @@ export function createPostHogTransport(token: string, host: string): AnalyticsTr
     flushInterval: 10_000,
     // posthog-node suppresses GeoIP by default because server-side the request IP
     // is the server's. Here the client IS the user's machine, so approximate country
-    // is real and useful. The IP itself is not stored as a property, and the privacy
-    // page discloses this.
+    // is real and useful. Note that PostHog also retains the request IP alongside the
+    // event under default project settings (dropping it requires the project's
+    // "Discard client IP data" toggle, which no code here can set) — privacy.html
+    // discloses both the country derivation and that retention.
     disableGeoip: false,
   });
 
