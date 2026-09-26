@@ -27,38 +27,52 @@ describe('createAnalytics', () => {
   it('forwards a captured event to the transport with the distinct id', () => {
     const { transport, sent } = fakeTransport();
     const { log } = makeLogger();
-    const analytics = createAnalytics({ transport, distinctId: 'abc123', enabled: true, log });
+    const analytics = createAnalytics({
+      transport, distinctId: 'abc123', enabled: true, environment: 'development', log,
+    });
 
     analytics.capture({ name: 'session_started', properties: { planned_duration_min: 25 } });
 
     expect(sent).toEqual([
-      { distinctId: 'abc123', event: 'session_started', properties: { planned_duration_min: 25 } },
+      {
+        distinctId: 'abc123',
+        event: 'session_started',
+        properties: { planned_duration_min: 25, environment: 'development' },
+      },
     ]);
   });
 
   it('logs every captured event as "[analytics] <name> <props-json>"', () => {
     const { transport } = fakeTransport();
     const { lines, log } = makeLogger();
-    const analytics = createAnalytics({ transport, distinctId: 'abc123', enabled: true, log });
+    const analytics = createAnalytics({
+      transport, distinctId: 'abc123', enabled: true, environment: 'development', log,
+    });
 
     analytics.capture({ name: 'hud_toggled', properties: { expanded: true } });
 
-    expect(lines).toEqual(['[analytics] hud_toggled {"expanded":true}']);
+    expect(lines).toEqual(['[analytics] hud_toggled {"expanded":true,"environment":"development"}']);
   });
 
   it('still logs but sends nothing when no transport is configured', () => {
     const { lines, log } = makeLogger();
-    const analytics = createAnalytics({ transport: null, distinctId: 'abc123', enabled: true, log });
+    const analytics = createAnalytics({
+      transport: null, distinctId: 'abc123', enabled: true, environment: 'development', log,
+    });
 
     analytics.capture({ name: 'session_started', properties: { planned_duration_min: 25 } });
 
-    expect(lines).toEqual(['[analytics] session_started {"planned_duration_min":25}']);
+    expect(lines).toEqual([
+      '[analytics] session_started {"planned_duration_min":25,"environment":"development"}',
+    ]);
   });
 
   it('emits nothing at all — not even a log line — when disabled', () => {
     const { transport, sent } = fakeTransport();
     const { lines, log } = makeLogger();
-    const analytics = createAnalytics({ transport, distinctId: 'abc123', enabled: false, log });
+    const analytics = createAnalytics({
+      transport, distinctId: 'abc123', enabled: false, environment: 'development', log,
+    });
 
     analytics.capture({ name: 'session_started', properties: { planned_duration_min: 25 } });
 
@@ -70,7 +84,9 @@ describe('createAnalytics', () => {
   it('setEnabled takes effect immediately, both ways', () => {
     const { transport, sent } = fakeTransport();
     const { log } = makeLogger();
-    const analytics = createAnalytics({ transport, distinctId: 'abc123', enabled: true, log });
+    const analytics = createAnalytics({
+      transport, distinctId: 'abc123', enabled: true, environment: 'development', log,
+    });
 
     analytics.setEnabled(false);
     analytics.capture({ name: 'session_started', properties: { planned_duration_min: 25 } });
@@ -80,13 +96,15 @@ describe('createAnalytics', () => {
     expect(analytics.isEnabled()).toBe(true);
     analytics.capture({ name: 'session_started', properties: { planned_duration_min: 50 } });
     expect(sent).toHaveLength(1);
-    expect(sent[0].properties).toEqual({ planned_duration_min: 50 });
+    expect(sent[0].properties).toEqual({ planned_duration_min: 50, environment: 'development' });
   });
 
   it('swallows a throwing transport instead of propagating', () => {
     const { transport } = fakeTransport({ throwOnCapture: true });
     const { lines, log } = makeLogger();
-    const analytics = createAnalytics({ transport, distinctId: 'abc123', enabled: true, log });
+    const analytics = createAnalytics({
+      transport, distinctId: 'abc123', enabled: true, environment: 'development', log,
+    });
 
     expect(() =>
       analytics.capture({ name: 'session_started', properties: { planned_duration_min: 25 } }),
@@ -101,6 +119,7 @@ describe('createAnalytics', () => {
       transport,
       distinctId: 'abc123',
       enabled: true,
+      environment: 'development',
       log,
       shutdownTimeoutMs: 10,
     });
@@ -110,14 +129,85 @@ describe('createAnalytics', () => {
 
   it('shutdown is a no-op with no transport', async () => {
     const { log } = makeLogger();
-    const analytics = createAnalytics({ transport: null, distinctId: 'abc123', enabled: true, log });
+    const analytics = createAnalytics({
+      transport: null, distinctId: 'abc123', enabled: true, environment: 'development', log,
+    });
     await expect(analytics.shutdown()).resolves.toBeUndefined();
+  });
+
+  it('stamps every captured event with the environment', () => {
+    const { transport, sent } = fakeTransport();
+    const { log } = makeLogger();
+    const analytics = createAnalytics({
+      transport, distinctId: 'abc123', enabled: true, environment: 'production', log,
+    });
+
+    analytics.capture({ name: 'session_started', properties: { planned_duration_min: 25 } });
+
+    expect(sent).toEqual([
+      {
+        distinctId: 'abc123',
+        event: 'session_started',
+        properties: { planned_duration_min: 25, environment: 'production' },
+      },
+    ]);
+  });
+
+  it('logs exactly what it sends, environment included', () => {
+    const { transport } = fakeTransport();
+    const { lines, log } = makeLogger();
+    const analytics = createAnalytics({
+      transport, distinctId: 'abc123', enabled: true, environment: 'development', log,
+    });
+
+    analytics.capture({ name: 'hud_toggled', properties: { expanded: true } });
+
+    expect(lines).toEqual(['[analytics] hud_toggled {"expanded":true,"environment":"development"}']);
+  });
+
+  it('stamps the environment even with no transport, so the log never lies', () => {
+    const { lines, log } = makeLogger();
+    const analytics = createAnalytics({
+      transport: null, distinctId: 'abc123', enabled: true, environment: 'development', log,
+    });
+
+    analytics.capture({ name: 'session_started', properties: { planned_duration_min: 25 } });
+
+    expect(lines).toEqual([
+      '[analytics] session_started {"planned_duration_min":25,"environment":"development"}',
+    ]);
+  });
+
+  it('tags every event in the catalog, so no event can escape the funnel filter', () => {
+    const { transport, sent } = fakeTransport();
+    const { log } = makeLogger();
+    const analytics = createAnalytics({
+      transport, distinctId: 'abc123', enabled: true, environment: 'production', log,
+    });
+
+    analytics.capture({ name: 'app_launched', properties: { app_version: '0.2.0', is_first_launch: true } });
+    analytics.capture({ name: 'onboarding_step_completed', properties: { step: 'api_key' } });
+    analytics.capture({ name: 'onboarding_completed', properties: { app_version: '0.2.0' } });
+    analytics.capture({ name: 'session_started', properties: { planned_duration_min: 25 } });
+    analytics.capture(
+      buildSessionEndedEvent({
+        plannedDurationMin: 25, startedAtMs: 0, endedAtMs: 30_000, endReason: 'user_ended',
+      }),
+    );
+    analytics.capture({ name: 'hud_toggled', properties: { expanded: false } });
+
+    expect(sent).toHaveLength(6);
+    for (const payload of sent) {
+      expect(payload.properties.environment).toBe('production');
+    }
   });
 
   it('never carries the intention text or the API key in any payload', () => {
     const { transport, sent } = fakeTransport();
     const { lines, log } = makeLogger();
-    const analytics = createAnalytics({ transport, distinctId: 'abc123', enabled: true, log });
+    const analytics = createAnalytics({
+      transport, distinctId: 'abc123', enabled: true, environment: 'development', log,
+    });
 
     analytics.capture({ name: 'app_launched', properties: { app_version: '0.2.0', is_first_launch: true } });
     analytics.capture({ name: 'onboarding_step_completed', properties: { step: 'api_key' } });

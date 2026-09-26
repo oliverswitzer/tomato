@@ -8,6 +8,17 @@ export type OnboardingStep = 'screen_permission' | 'accessibility_permission' | 
 
 export type SessionEndReason = 'completed' | 'user_ended' | 'app_quit';
 
+/**
+ * Stamped onto every event as the `environment` property.
+ *
+ * A `npm run dev` run and a packaged install are otherwise indistinguishable in PostHog, so
+ * local testing would inflate the very download → setup → retention funnel this
+ * instrumentation exists to measure. Production dashboards filter `environment = 'production'`.
+ *
+ * A closed union, like every other property in this file — it adds no free-text surface.
+ */
+export type AnalyticsEnvironment = 'development' | 'production';
+
 export type AnalyticsEvent =
   | { name: 'app_launched'; properties: { app_version: string; is_first_launch: boolean } }
   | { name: 'onboarding_step_completed'; properties: { step: OnboardingStep } }

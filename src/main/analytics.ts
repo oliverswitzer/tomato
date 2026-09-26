@@ -1,4 +1,4 @@
-import type { AnalyticsEvent } from '../shared/analytics-events';
+import type { AnalyticsEvent, AnalyticsEnvironment } from '../shared/analytics-events';
 
 export interface CapturePayload {
   distinctId: string;
@@ -24,6 +24,8 @@ export interface AnalyticsDeps {
   transport: AnalyticsTransport | null;
   distinctId: string;
   enabled: boolean;
+  /** Stamped onto every event so production funnels can exclude dev runs. */
+  environment: AnalyticsEnvironment;
   log: (msg: string) => void;
   shutdownTimeoutMs?: number;
 }
@@ -37,17 +39,20 @@ const DEFAULT_SHUTDOWN_TIMEOUT_MS = 2000;
  * swallowed, because analytics must never be able to break a focus session.
  */
 export function createAnalytics(deps: AnalyticsDeps): Analytics {
-  const { transport, distinctId, log } = deps;
+  const { transport, distinctId, log, environment } = deps;
   const shutdownTimeoutMs = deps.shutdownTimeoutMs ?? DEFAULT_SHUTDOWN_TIMEOUT_MS;
   let enabled = deps.enabled;
 
   return {
     capture(event: AnalyticsEvent): void {
       if (!enabled) return;
-      log(`[analytics] ${event.name} ${JSON.stringify(event.properties)}`);
+      // Stamped here, not at the call sites, so no event can be emitted untagged and
+      // AnalyticsEvent stays free of anything a caller has to remember to set.
+      const properties = { ...event.properties, environment };
+      log(`[analytics] ${event.name} ${JSON.stringify(properties)}`);
       if (!transport) return;
       try {
-        transport.capture({ distinctId, event: event.name, properties: event.properties });
+        transport.capture({ distinctId, event: event.name, properties });
       } catch (err) {
         log(`[analytics] capture failed for ${event.name}: ${(err as Error).message}`);
       }

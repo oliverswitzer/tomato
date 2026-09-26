@@ -4,10 +4,15 @@
 // variables (see CLAUDE.md). This is unlike ANTHROPIC_API_KEY, which is secret and
 // must stay out of the bundle.
 //
-// Empty by default: with no token the app logs [analytics] lines locally and sends
-// nothing, which keeps dev runs and CI out of the production project. A human pastes
-// the real token here once the PostHog project exists.
-export const POSTHOG_PROJECT_TOKEN = '';
+// `splash/index.html` carries this same token for the web half of the funnel;
+// src/config/__tests__/analytics.test.ts fails if the two ever drift apart.
+//
+// To silence sending during a dev run without editing this file, export an empty
+// TOMATO_POSTHOG_TOKEN (see src/main/main.ts) — the app then only writes
+// [analytics] lines to tomato.log.
+export const POSTHOG_PROJECT_TOKEN = 'phc_tVk47syJwzBZXn6fVGMWh9f9ZeX7utiPFuHrPofoPrtA';
 
-// 'https://us.i.posthog.com' or 'https://eu.i.posthog.com', matching the project's region.
+// Must match the project's region. Verified: GET <host>/array/<token>/config returns
+// 200 on the US host and 404 on the EU one — asserted by
+// src/main/__tests__/analytics.live.test.ts.
 export const POSTHOG_HOST = 'https://us.i.posthog.com';

@@ -125,8 +125,15 @@ main.ts —analytics.capture(typedEvent)→ analytics.ts —AnalyticsTransport�
 - `src/main/posthog-transport.ts` — the only `posthog-node` importer. Built only when a token is
   present; the factory returns `null` otherwise, so the whole send path is inert by default.
 - `src/config/analytics.ts` — `POSTHOG_PROJECT_TOKEN`, **compiled in at build time** (a packaged
-  macOS app launched from Finder inherits no shell env). Empty in the repo: paste the token here
-  and into the `splash/index.html` snippet to switch analytics on.
+  macOS app launched from Finder inherits no shell env). The live project token is committed here
+  and in the `splash/index.html` snippet; a `phc_` project token is a public, write-only key, so
+  this is safe. `src/config/__tests__/analytics.test.ts` fails if the two ever drift apart.
+  Export an empty `TOMATO_POSTHOG_TOKEN` to make a dev run inert without editing the file. Never
+  commit a `phx_` personal API key.
+- Every event carries `environment: 'development' | 'production'` (from `app.isPackaged`, stamped
+  once in `createAnalytics`), so production funnels filter `environment = 'production'` and local
+  runs never inflate them. Verify live delivery with `npm run verify:analytics`; see
+  `docs/analytics-verification.md`.
 - `src/main/machine-id.ts` — hardware UUID (`IOPlatformUUID` via `ioreg`, hostname fallback) plus
   `anonymousDistinctId()`, a salted SHA-256 truncated to 32 chars. The raw UUID is never sent.
 - Opt-out lives in Settings and is honoured immediately, with no restart.

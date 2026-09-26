@@ -28,11 +28,25 @@ import type { SessionState } from '../shared/ipc';
 import { createAnalytics, type Analytics } from './analytics';
 import { createPostHogTransport } from './posthog-transport';
 import { getMachineId, anonymousDistinctId } from './machine-id';
-import { buildSessionEndedEvent, type SessionEndReason } from '../shared/analytics-events';
+import {
+  buildSessionEndedEvent,
+  type SessionEndReason,
+  type AnalyticsEnvironment,
+} from '../shared/analytics-events';
 import { POSTHOG_PROJECT_TOKEN, POSTHOG_HOST } from '../config/analytics';
 
 const APP_ROOT = path.join(__dirname, '..', '..');
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
+
+// Stamped onto every analytics event. `app.isPackaged` is readable before whenReady(),
+// so the bootstrap instance below gets the same value as the real one.
+const ANALYTICS_ENVIRONMENT: AnalyticsEnvironment = app.isPackaged ? 'production' : 'development';
+
+// A dev-only escape hatch. Export an empty TOMATO_POSTHOG_TOKEN to stop sending without
+// editing src/config/analytics.ts, or another project's token to route events elsewhere.
+// A packaged app launched from Finder inherits no shell environment, so this can only
+// ever apply to a dev run.
+const POSTHOG_TOKEN = process.env.TOMATO_POSTHOG_TOKEN ?? POSTHOG_PROJECT_TOKEN;
 
 function getLogPath(): string {
   try {
@@ -55,6 +69,7 @@ let analytics: Analytics = createAnalytics({
   transport: null,
   distinctId: '',
   enabled: false,
+  environment: ANALYTICS_ENVIRONMENT,
   log,
 });
 
@@ -904,11 +919,16 @@ app.whenReady().then(async () => {
   keychain = new ElectronKeychainStore(app.getPath('userData'));
 
   analytics = createAnalytics({
-    transport: createPostHogTransport(POSTHOG_PROJECT_TOKEN, POSTHOG_HOST),
+    transport: createPostHogTransport(POSTHOG_TOKEN, POSTHOG_HOST),
     distinctId: anonymousDistinctId(getMachineId()),
     enabled: keychain.getAnalyticsEnabled(),
+    environment: ANALYTICS_ENVIRONMENT,
     log,
   });
+  log(
+    `[analytics] transport ${POSTHOG_TOKEN ? 'live' : 'disabled'} ` +
+      `env=${ANALYTICS_ENVIRONMENT} host=${POSTHOG_HOST}`,
+  );
   analytics.capture({
     name: 'app_launched',
     properties: { app_version: app.getVersion(), is_first_launch: keychain.consumeFirstLaunch() },
